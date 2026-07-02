@@ -155,6 +155,7 @@ export class ManufacturerDocumentService {
 
             documentUrl = `/api/manufacturer/documents/download?docId=${document.id}`;
 
+            let driveLinkUrl: string | null = null;
             try {
                 const { GoogleDriveService } = await import("./google-drive.service");
                 const driveLink = await GoogleDriveService.uploadFile(
@@ -163,11 +164,29 @@ export class ManufacturerDocumentService {
                     file.type
                 );
                 if (driveLink) {
+                    driveLinkUrl = driveLink;
                     remarks = `[Google Drive] ${driveLink}`;
                 }
             } catch (err: any) {
                 console.error("[ManufacturerDocumentService] Google Drive upload failed:", err?.message || err);
                 remarks = `Google Drive upload failed: ${err?.message || "Unknown error"}`;
+            }
+
+            try {
+                const { sendDocumentNotificationEmail } = await import("./document-notification.service");
+                await sendDocumentNotificationEmail({
+                    manufacturerId: manufacturer.id,
+                    manufacturerName: manufacturer.companyName,
+                    documentType: docType,
+                    documentName: input.documentName,
+                    uploadedAt: new Date(),
+                    driveLink: driveLinkUrl,
+                    fileBuffer: buffer,
+                    fileName: file.name || input.documentName,
+                    mimeType: file.type || "application/octet-stream",
+                });
+            } catch (err: any) {
+                console.error("[ManufacturerDocumentService] Failed to send document notification email:", err?.message || err);
             }
 
             await prisma.manufacturerDocument.update({
