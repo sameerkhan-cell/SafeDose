@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
+import { getStoredSession } from "@/services/auth";
 import { motion } from "framer-motion";
 import {
     FileText,
@@ -351,18 +352,62 @@ export function ComplianceDocuments() {
                                         {doc.status.replace("_", " ")}
                                     </span>
                                     {doc.documentUrl && (
-                                        <a
-                                            href={doc.documentUrl}
-                                            target={doc.documentUrl.startsWith("/api/") ? "_self" : "_blank"}
-                                            rel="noopener noreferrer"
-                                            className="inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"
-                                        >
-                                            {doc.documentUrl.startsWith("/api/") ? (
-                                                <><Download className="h-3 w-3" /> Download</>
-                                            ) : (
-                                                <>View</>
-                                            )}
-                                        </a>
+                                        doc.documentUrl.startsWith("/api/") ? (
+                                            <button
+                                                type="button"
+                                                className="inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+                                                onClick={() => {
+                                                    const session = getStoredSession();
+                                                    if (!session?.token) {
+                                                        toast.error("Session expired. Please log in again.");
+                                                        return;
+                                                    }
+                                                    fetch(doc.documentUrl, {
+                                                        headers: { Authorization: `Bearer ${session.token}` },
+                                                    })
+                                                        .then((res) => {
+                                                            if (!res.ok) {
+                                                                return Promise.reject(
+                                                                    res.status === 401 || res.status === 403
+                                                                        ? "Access denied. You do not have permission to download this file."
+                                                                        : res.status === 404
+                                                                          ? "File not found. It may have been deleted."
+                                                                          : `Download failed (${res.status}).`
+                                                                );
+                                                            }
+                                                            return res.blob();
+                                                        })
+                                                        .then((blob) => {
+                                                            const url = URL.createObjectURL(blob as Blob);
+                                                            const a = document.createElement("a");
+                                                            a.href = url;
+                                                            a.download = doc.documentName || "document";
+                                                            document.body.appendChild(a);
+                                                            a.click();
+                                                            document.body.removeChild(a);
+                                                            URL.revokeObjectURL(url);
+                                                        })
+                                                        .catch((err: unknown) => {
+                                                            toast.error(
+                                                                typeof err === "string"
+                                                                    ? err
+                                                                    : "Could not download the file. Please try again."
+                                                            );
+                                                        });
+                                                }}
+                                            >
+                                                <Download className="h-3 w-3" /> View
+                                            </button>
+                                        ) : (
+                                            <a
+                                                href={doc.documentUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="inline-flex items-center gap-1 text-xs text-primary font-medium hover:underline"
+                                            >
+                                                View
+                                            </a>
+                                        )
                                     )}
                                     <button
                                         type="button"
