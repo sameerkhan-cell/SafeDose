@@ -17,6 +17,8 @@ export type ManufacturerProfile = {
     manufacturingCapacity: string;
     certifications: string;
     operatingCountries: string;
+    taxId: string;
+    registrationNumber: string;
     registrationDate: string;
     companyDescription: string;
     compliance?: ComplianceSummary;

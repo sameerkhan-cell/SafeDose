@@ -104,6 +104,8 @@ const EMPTY_MANUFACTURER_PROFILE: ManufacturerProfile = {
   manufacturingCapacity: "",
   certifications: "",
   operatingCountries: "",
+  taxId: "",
+  registrationNumber: "",
   registrationDate: "",
   companyDescription: "",
 };
@@ -231,6 +233,8 @@ function ManufacturerProfile() {
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Company Name" icon={Building2} value={form.companyName} onChange={u("companyName")} required />
           <Field label="DRAP License #" icon={Shield} value={form.drapLicense} onChange={u("drapLicense")} required placeholder="DRAP-MFG-2024-001847" />
+          <Field label="Tax ID" icon={FileText} value={form.taxId} onChange={u("taxId")} placeholder="e.g. NTN-1234567" />
+          <Field label="Registration Number" icon={FileText} value={form.registrationNumber} onChange={u("registrationNumber")} placeholder="e.g. SECP-2021-0012345" />
           <Field label="Business Location" icon={MapPin} value={form.businessLocation} onChange={u("businessLocation")} />
           <Field label="Full Address" icon={MapPin} value={form.address} onChange={u("address")} required />
           <Field label="Contact Number" icon={Phone} value={form.contactNumber} onChange={u("contactNumber")} type="tel" required />

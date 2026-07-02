@@ -23,6 +23,8 @@ export type ManufacturerProfileDto = {
     manufacturingCapacity: string;
     certifications: string;
     operatingCountries: string;
+    taxId: string;
+    registrationNumber: string;
     registrationDate: string;
     companyDescription: string;
     compliance?: ComplianceMetrics;
@@ -42,6 +44,8 @@ function toDto(mfg: {
     manufacturingCapacity: string | null;
     certifications: string | null;
     operatingCountries: string | null;
+    taxId: string | null;
+    registrationNumber: string | null;
     registrationDate: Date | null;
     companyDescription: string | null;
 }): ManufacturerProfileDto {
@@ -59,6 +63,8 @@ function toDto(mfg: {
         manufacturingCapacity: mfg.manufacturingCapacity ?? "",
         certifications: mfg.certifications ?? "",
         operatingCountries: mfg.operatingCountries ?? "",
+        taxId: mfg.taxId ?? "",
+        registrationNumber: mfg.registrationNumber ?? "",
         registrationDate: mfg.registrationDate
             ? mfg.registrationDate.toISOString().slice(0, 10)
             : "",
@@ -81,6 +87,8 @@ function toDbData(input: ManufacturerProfileInput) {
         manufacturingCapacity: input.manufacturingCapacity?.trim() || null,
         certifications: input.certifications?.trim() || null,
         operatingCountries: input.operatingCountries?.trim() || null,
+        taxId: input.taxId?.trim() || null,
+        registrationNumber: input.registrationNumber?.trim() || null,
         registrationDate: input.registrationDate
             ? new Date(input.registrationDate)
             : null,
