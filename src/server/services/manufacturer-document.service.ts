@@ -1,6 +1,8 @@
 import type { DocumentStatus, ManufacturerDocumentType } from "@prisma/client";
 import { prisma } from "../db/client";
 import { ApiError } from "../utils/api-response";
+import fs from "node:fs/promises";
+import path from "node:path";
 import {
     REQUIRED_COMPLIANCE_TYPES,
     validateAdminReview,
@@ -106,7 +108,7 @@ function mapAuditLog(log: {
 }
 
 export class ManufacturerDocumentService {
-    static async uploadDocument(userId: string, body: unknown) {
+    static async uploadDocument(userId: string, body: unknown, file?: any) {
         const input = validateUploadDocument(body);
         const manufacturer = await getManufacturerForUser(userId);
         const docType = input.documentType as DocumentTypeValue;
@@ -132,13 +134,53 @@ export class ManufacturerDocumentService {
                 manufacturerId: manufacturer.id,
                 documentType: docType as ManufacturerDocumentType,
                 documentName: input.documentName,
-                documentUrl: input.documentUrl,
-                fileSize: input.fileSize,
-                mimeType: input.mimeType,
+                documentUrl: input.documentUrl || "",
+                fileSize: file ? file.size : input.fileSize,
+                mimeType: file ? file.type : input.mimeType,
                 expiryDate: input.expiryDate ? new Date(input.expiryDate) : null,
                 status: "PENDING",
             },
         });
+
+        let documentUrl = input.documentUrl || "";
+        let remarks = "";
+
+        if (file) {
+            const uploadDir = path.join(process.cwd(), "storage", "manufacturer-documents", manufacturer.id);
+            await fs.mkdir(uploadDir, { recursive: true });
+            
+            const filePath = path.join(uploadDir, `doc-${document.id}`);
+            const buffer = Buffer.from(await file.arrayBuffer());
+            await fs.writeFile(filePath, buffer);
+
+            documentUrl = `/api/manufacturer/documents/download?docId=${document.id}`;
+
+            try {
+                const { GoogleDriveService } = await import("./google-drive.service");
+                const driveLink = await GoogleDriveService.uploadFile(
+                    buffer,
+                    input.documentName,
+                    file.type
+                );
+                if (driveLink) {
+                    remarks = `[Google Drive] ${driveLink}`;
+                }
+            } catch (err: any) {
+                console.error("[ManufacturerDocumentService] Google Drive upload failed:", err?.message || err);
+                remarks = `Google Drive upload failed: ${err?.message || "Unknown error"}`;
+            }
+
+            await prisma.manufacturerDocument.update({
+                where: { id: document.id },
+                data: {
+                    documentUrl,
+                    remarks: remarks || null
+                }
+            });
+            
+            document.documentUrl = documentUrl;
+            document.remarks = remarks || null;
+        }
 
         await logAudit({
             documentId: document.id,
@@ -147,6 +189,7 @@ export class ManufacturerDocumentService {
             oldStatus: null,
             newStatus: "PENDING",
             performedBy: userId,
+            remarks: remarks || undefined,
         });
 
         return toDocumentDto(document);

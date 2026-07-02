@@ -7,11 +7,29 @@ export const Route = createAPIFileRoute("/api/manufacturer/documents/upload")({
     POST: async ({ request }: { request: Request }) => {
         try {
             const payload = await authorizeRequest(request, ["MANUFACTURER"]);
-            const body = await request.json();
+            
+            const contentType = request.headers.get("content-type") || "";
+            let body: any = {};
+            let file: File | null = null;
+
+            if (contentType.includes("multipart/form-data")) {
+                const formData = await request.formData();
+                body = {
+                    documentType: formData.get("documentType") as string,
+                    documentName: formData.get("documentName") as string,
+                    expiryDate: (formData.get("expiryDate") as string) || undefined,
+                };
+                file = formData.get("file") as File | null;
+            } else {
+                body = await request.json();
+            }
+
             const document = await ManufacturerDocumentService.uploadDocument(
                 payload.userId,
-                body
+                body,
+                file
             );
+
             return Response.json(
                 ApiResponse.success(document, "Document uploaded successfully.")
             );

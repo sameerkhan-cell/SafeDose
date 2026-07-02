@@ -73,13 +73,19 @@ async function authFetch<T>(
     }
 
     try {
+        const isFormData = options.body instanceof FormData;
+        const headers: Record<string, string> = {
+            Authorization: `Bearer ${session.token}`,
+            ...(options.headers as any ?? {}),
+        };
+
+        if (!isFormData) {
+            headers["Content-Type"] = "application/json";
+        }
+
         const response = await fetch(path, {
             ...options,
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${session.token}`,
-                ...(options.headers ?? {}),
-            },
+            headers,
         });
         const result = await response.json();
         if (!response.ok || !result.success) {
@@ -108,17 +114,17 @@ export const manufacturerDocumentsService = {
             }
         >(`/api/manufacturer/documents/${id}?page=${page}&limit=${limit}`),
 
-    upload: (body: {
+    upload: (body: FormData | {
         documentType: string;
         documentName: string;
-        documentUrl: string;
+        documentUrl?: string;
         fileSize?: number;
         mimeType?: string;
         expiryDate?: string;
     }) =>
         authFetch<ManufacturerDocumentItem>("/api/manufacturer/documents/upload", {
             method: "POST",
-            body: JSON.stringify(body),
+            body: body instanceof FormData ? body : JSON.stringify(body),
         }),
 
     remove: (id: string) =>

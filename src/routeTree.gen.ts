@@ -76,6 +76,7 @@ import { Route as ApiManufacturerProfileLogoUploadRouteImport } from './routes/a
 import { Route as ApiManufacturerProfileLogoImageRouteImport } from './routes/api/manufacturer/profile.logo-image'
 import { Route as ApiManufacturerProfileLogoRouteImport } from './routes/api/manufacturer/profile.logo'
 import { Route as ApiManufacturerDocumentsUploadRouteImport } from './routes/api/manufacturer/documents/upload'
+import { Route as ApiManufacturerDocumentsDownloadRouteImport } from './routes/api/manufacturer/documents/download'
 import { Route as ApiManufacturerDocumentsIdRouteImport } from './routes/api/manufacturer/documents.$id'
 import { Route as ApiManufacturerBatchIdRouteImport } from './routes/api/manufacturer/batch.$id'
 import { Route as ApiAdminRecallsIdRouteImport } from './routes/api/admin/recalls.$id'
@@ -434,6 +435,12 @@ const ApiManufacturerDocumentsUploadRoute =
     path: '/upload',
     getParentRoute: () => ApiManufacturerDocumentsRoute,
   } as any)
+const ApiManufacturerDocumentsDownloadRoute =
+  ApiManufacturerDocumentsDownloadRouteImport.update({
+    id: '/download',
+    path: '/download',
+    getParentRoute: () => ApiManufacturerDocumentsRoute,
+  } as any)
 const ApiManufacturerDocumentsIdRoute =
   ApiManufacturerDocumentsIdRouteImport.update({
     id: '/$id',
@@ -567,6 +574,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/recalls/$id': typeof ApiAdminRecallsIdRoute
   '/api/manufacturer/batch/$id': typeof ApiManufacturerBatchIdRouteWithChildren
   '/api/manufacturer/documents/$id': typeof ApiManufacturerDocumentsIdRoute
+  '/api/manufacturer/documents/download': typeof ApiManufacturerDocumentsDownloadRoute
   '/api/manufacturer/documents/upload': typeof ApiManufacturerDocumentsUploadRoute
   '/api/manufacturer/profile/logo': typeof ApiManufacturerProfileLogoRoute
   '/api/manufacturer/profile/logo-image': typeof ApiManufacturerProfileLogoImageRoute
@@ -647,6 +655,7 @@ export interface FileRoutesByTo {
   '/api/admin/recalls/$id': typeof ApiAdminRecallsIdRoute
   '/api/manufacturer/batch/$id': typeof ApiManufacturerBatchIdRouteWithChildren
   '/api/manufacturer/documents/$id': typeof ApiManufacturerDocumentsIdRoute
+  '/api/manufacturer/documents/download': typeof ApiManufacturerDocumentsDownloadRoute
   '/api/manufacturer/documents/upload': typeof ApiManufacturerDocumentsUploadRoute
   '/api/manufacturer/profile/logo': typeof ApiManufacturerProfileLogoRoute
   '/api/manufacturer/profile/logo-image': typeof ApiManufacturerProfileLogoImageRoute
@@ -728,6 +737,7 @@ export interface FileRoutesById {
   '/api/admin/recalls/$id': typeof ApiAdminRecallsIdRoute
   '/api/manufacturer/batch/$id': typeof ApiManufacturerBatchIdRouteWithChildren
   '/api/manufacturer/documents/$id': typeof ApiManufacturerDocumentsIdRoute
+  '/api/manufacturer/documents/download': typeof ApiManufacturerDocumentsDownloadRoute
   '/api/manufacturer/documents/upload': typeof ApiManufacturerDocumentsUploadRoute
   '/api/manufacturer/profile/logo': typeof ApiManufacturerProfileLogoRoute
   '/api/manufacturer/profile/logo-image': typeof ApiManufacturerProfileLogoImageRoute
@@ -810,6 +820,7 @@ export interface FileRouteTypes {
     | '/api/admin/recalls/$id'
     | '/api/manufacturer/batch/$id'
     | '/api/manufacturer/documents/$id'
+    | '/api/manufacturer/documents/download'
     | '/api/manufacturer/documents/upload'
     | '/api/manufacturer/profile/logo'
     | '/api/manufacturer/profile/logo-image'
@@ -890,6 +901,7 @@ export interface FileRouteTypes {
     | '/api/admin/recalls/$id'
     | '/api/manufacturer/batch/$id'
     | '/api/manufacturer/documents/$id'
+    | '/api/manufacturer/documents/download'
     | '/api/manufacturer/documents/upload'
     | '/api/manufacturer/profile/logo'
     | '/api/manufacturer/profile/logo-image'
@@ -970,6 +982,7 @@ export interface FileRouteTypes {
     | '/api/admin/recalls/$id'
     | '/api/manufacturer/batch/$id'
     | '/api/manufacturer/documents/$id'
+    | '/api/manufacturer/documents/download'
     | '/api/manufacturer/documents/upload'
     | '/api/manufacturer/profile/logo'
     | '/api/manufacturer/profile/logo-image'
@@ -1519,6 +1532,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiManufacturerDocumentsUploadRouteImport
       parentRoute: typeof ApiManufacturerDocumentsRoute
     }
+    '/api/manufacturer/documents/download': {
+      id: '/api/manufacturer/documents/download'
+      path: '/download'
+      fullPath: '/api/manufacturer/documents/download'
+      preLoaderRoute: typeof ApiManufacturerDocumentsDownloadRouteImport
+      parentRoute: typeof ApiManufacturerDocumentsRoute
+    }
     '/api/manufacturer/documents/$id': {
       id: '/api/manufacturer/documents/$id'
       path: '/$id'
@@ -1654,12 +1674,15 @@ const ApiAdminRecallsRouteWithChildren = ApiAdminRecallsRoute._addFileChildren(
 
 interface ApiManufacturerDocumentsRouteChildren {
   ApiManufacturerDocumentsIdRoute: typeof ApiManufacturerDocumentsIdRoute
+  ApiManufacturerDocumentsDownloadRoute: typeof ApiManufacturerDocumentsDownloadRoute
   ApiManufacturerDocumentsUploadRoute: typeof ApiManufacturerDocumentsUploadRoute
 }
 
 const ApiManufacturerDocumentsRouteChildren: ApiManufacturerDocumentsRouteChildren =
   {
     ApiManufacturerDocumentsIdRoute: ApiManufacturerDocumentsIdRoute,
+    ApiManufacturerDocumentsDownloadRoute:
+      ApiManufacturerDocumentsDownloadRoute,
     ApiManufacturerDocumentsUploadRoute: ApiManufacturerDocumentsUploadRoute,
   }
 

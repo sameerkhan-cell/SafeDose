@@ -28,7 +28,7 @@ const documentTypeSchema = z.enum(DOCUMENT_TYPES, {
 export const uploadDocumentSchema = z.object({
     documentType: documentTypeSchema,
     documentName: z.string().trim().min(2, "Document name is required."),
-    documentUrl: z.string().trim().url("Enter a valid document URL."),
+    documentUrl: z.string().trim().url("Enter a valid document URL.").optional(),
     fileSize: z.number().int().positive().optional(),
     mimeType: z.string().trim().max(128).optional(),
     expiryDate: z

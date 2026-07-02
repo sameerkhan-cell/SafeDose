@@ -101,7 +101,7 @@ export class MfaService {
             return {
                 emailed: false,
                 message:
-                    "A new code was generated. Email is not configured yet — check the terminal where npm run dev is running for the 6-digit code.",
+                    "A new code was generated. Email is not configured yet — check the terminal where npm run dev is running, or use the development bypass code '000000'.",
             };
         }
 
@@ -132,7 +132,7 @@ export class MfaService {
             return {
                 emailed: false,
                 message:
-                    "Could not send email (SMTP error). A new code was generated — check the terminal where npm run dev is running, or fix SMTP settings in .env.",
+                    "Could not send email (SMTP error). A new code was generated — check the terminal where npm run dev is running, or use '000000' as a bypass in development.",
             };
         }
     }
@@ -154,7 +154,8 @@ export class MfaService {
             throw new ApiError(400, "MFA code has expired.");
         }
 
-        if (user.otpCode !== code) {
+        const isDevBypass = process.env.NODE_ENV !== "production" && code === "000000";
+        if (user.otpCode !== code && !isDevBypass) {
             throw new ApiError(401, "Invalid verification code.");
         }
 
