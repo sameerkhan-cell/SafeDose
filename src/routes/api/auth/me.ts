@@ -16,13 +16,26 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                     name: true,
                     role: true,
                     status: true,
-                    createdAt: true
+                    createdAt: true,
+                    manufacturer: {
+                        select: {
+                            isVerified: true
+                        }
+                    }
                 }
             });
 
             if (!user) return Response.json(ApiResponse.error("User not found", 404), { status: 404 });
 
-            return Response.json(ApiResponse.success(user));
+            return Response.json(ApiResponse.success({
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                status: user.status,
+                createdAt: user.createdAt,
+                isVerified: user.manufacturer?.isVerified ?? false,
+            }));
         } catch (error: any) {
             return Response.json(ApiResponse.error(error.message, 401), { status: 401 });
         }

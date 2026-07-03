@@ -14,6 +14,7 @@ import { DASH_NAV } from "@/config/nav";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { DocumentReviewPanel } from "@/components/dashboard/admin/DocumentReviewPanel";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 
@@ -120,6 +121,7 @@ function RegulatorDashboard() {
                                     <TabsList className="bg-secondary/40 h-9 p-1 w-full sm:w-auto">
                                         <TabsTrigger value="complaints" className="text-[11px] font-bold uppercase tracking-widest px-4 flex-1 sm:flex-none">Consumer Complaints</TabsTrigger>
                                         <TabsTrigger value="inspections" className="text-[11px] font-bold uppercase tracking-widest px-4 flex-1 sm:flex-none">Active Investigations</TabsTrigger>
+                                        <TabsTrigger value="documents" className="text-[11px] font-bold uppercase tracking-widest px-4 flex-1 sm:flex-none">Document Review</TabsTrigger>
                                     </TabsList>
                                     <Button variant="outline" size="sm" className="rounded-full h-8 px-4 text-[11px] font-bold w-full sm:w-auto">
                                         <Download className="h-3.5 w-3.5 mr-2" /> Export Audit Log
@@ -137,6 +139,11 @@ function RegulatorDashboard() {
                                 </TabsContent>
                                 <TabsContent value="inspections" className="m-0 p-12 text-center text-muted-foreground">
                                     Inspection tracking module is synchronizing with regional nodes...
+                                </TabsContent>
+                                <TabsContent value="documents" className="m-0">
+                                    <div className="p-6">
+                                        <DocumentReviewPanel />
+                                    </div>
                                 </TabsContent>
                             </Tabs>
                         </div>

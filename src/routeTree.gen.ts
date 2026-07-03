@@ -40,10 +40,7 @@ import { Route as ApiRegulatorRecallsRouteImport } from './routes/api/regulator/
 import { Route as ApiRegulatorHeatmapRouteImport } from './routes/api/regulator/heatmap'
 import { Route as ApiRealtimeFeedRouteImport } from './routes/api/realtime/feed'
 import { Route as ApiPharmacyScanLogsRouteImport } from './routes/api/pharmacy/scan-logs'
-import { Route as ApiManufacturerVerifyCompanyOtpRouteImport } from './routes/api/manufacturer/verify-company-otp'
 import { Route as ApiManufacturerStatsRouteImport } from './routes/api/manufacturer/stats'
-import { Route as ApiManufacturerSendCompanyOtpRouteImport } from './routes/api/manufacturer/send-company-otp'
-import { Route as ApiManufacturerRegisterCompanyRouteImport } from './routes/api/manufacturer/register-company'
 import { Route as ApiManufacturerRegisterBatchRouteImport } from './routes/api/manufacturer/register-batch'
 import { Route as ApiManufacturerProfileRouteImport } from './routes/api/manufacturer/profile'
 import { Route as ApiManufacturerDocumentsRouteImport } from './routes/api/manufacturer/documents'
@@ -70,6 +67,7 @@ import { Route as ApiAuthChangePasswordRouteImport } from './routes/api/auth/cha
 import { Route as ApiAiInsightsRouteImport } from './routes/api/ai/insights'
 import { Route as ApiAdminRecallsRouteImport } from './routes/api/admin/recalls'
 import { Route as ApiAdminMedicinesRouteImport } from './routes/api/admin/medicines'
+import { Route as ApiAdminDocumentsRouteImport } from './routes/api/admin/documents'
 import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
 import { Route as ApiAdminBatchSequencesRouteImport } from './routes/api/admin/batch-sequences'
 import { Route as ApiManufacturerProfileLogoUploadRouteImport } from './routes/api/manufacturer/profile.logo-upload'
@@ -244,29 +242,11 @@ const ApiPharmacyScanLogsRoute = ApiPharmacyScanLogsRouteImport.update({
   path: '/api/pharmacy/scan-logs',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiManufacturerVerifyCompanyOtpRoute =
-  ApiManufacturerVerifyCompanyOtpRouteImport.update({
-    id: '/api/manufacturer/verify-company-otp',
-    path: '/api/manufacturer/verify-company-otp',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiManufacturerStatsRoute = ApiManufacturerStatsRouteImport.update({
   id: '/api/manufacturer/stats',
   path: '/api/manufacturer/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ApiManufacturerSendCompanyOtpRoute =
-  ApiManufacturerSendCompanyOtpRouteImport.update({
-    id: '/api/manufacturer/send-company-otp',
-    path: '/api/manufacturer/send-company-otp',
-    getParentRoute: () => rootRouteImport,
-  } as any)
-const ApiManufacturerRegisterCompanyRoute =
-  ApiManufacturerRegisterCompanyRouteImport.update({
-    id: '/api/manufacturer/register-company',
-    path: '/api/manufacturer/register-company',
-    getParentRoute: () => rootRouteImport,
-  } as any)
 const ApiManufacturerRegisterBatchRoute =
   ApiManufacturerRegisterBatchRouteImport.update({
     id: '/api/manufacturer/register-batch',
@@ -401,6 +381,11 @@ const ApiAdminMedicinesRoute = ApiAdminMedicinesRouteImport.update({
   path: '/api/admin/medicines',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminDocumentsRoute = ApiAdminDocumentsRouteImport.update({
+  id: '/api/admin/documents',
+  path: '/api/admin/documents',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminDashboardRoute = ApiAdminDashboardRouteImport.update({
   id: '/api/admin/dashboard',
   path: '/api/admin/dashboard',
@@ -481,27 +466,27 @@ const ApiManufacturerBatchIdAssetsRoute =
   } as any)
 const ApiAdminDocumentsIdReviewRoute =
   ApiAdminDocumentsIdReviewRouteImport.update({
-    id: '/api/admin/documents/$id/review',
-    path: '/api/admin/documents/$id/review',
-    getParentRoute: () => rootRouteImport,
+    id: '/$id/review',
+    path: '/$id/review',
+    getParentRoute: () => ApiAdminDocumentsRoute,
   } as any)
 const ApiAdminDocumentsIdRejectRoute =
   ApiAdminDocumentsIdRejectRouteImport.update({
-    id: '/api/admin/documents/$id/reject',
-    path: '/api/admin/documents/$id/reject',
-    getParentRoute: () => rootRouteImport,
+    id: '/$id/reject',
+    path: '/$id/reject',
+    getParentRoute: () => ApiAdminDocumentsRoute,
   } as any)
 const ApiAdminDocumentsIdExpireRoute =
   ApiAdminDocumentsIdExpireRouteImport.update({
-    id: '/api/admin/documents/$id/expire',
-    path: '/api/admin/documents/$id/expire',
-    getParentRoute: () => rootRouteImport,
+    id: '/$id/expire',
+    path: '/$id/expire',
+    getParentRoute: () => ApiAdminDocumentsRoute,
   } as any)
 const ApiAdminDocumentsIdApproveRoute =
   ApiAdminDocumentsIdApproveRouteImport.update({
-    id: '/api/admin/documents/$id/approve',
-    path: '/api/admin/documents/$id/approve',
-    getParentRoute: () => rootRouteImport,
+    id: '/$id/approve',
+    path: '/$id/approve',
+    getParentRoute: () => ApiAdminDocumentsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
@@ -530,6 +515,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
+  '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -556,10 +542,7 @@ export interface FileRoutesByFullPath {
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
-  '/api/manufacturer/register-company': typeof ApiManufacturerRegisterCompanyRoute
-  '/api/manufacturer/send-company-otp': typeof ApiManufacturerSendCompanyOtpRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
-  '/api/manufacturer/verify-company-otp': typeof ApiManufacturerVerifyCompanyOtpRoute
   '/api/pharmacy/scan-logs': typeof ApiPharmacyScanLogsRoute
   '/api/realtime/feed': typeof ApiRealtimeFeedRoute
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
@@ -611,6 +594,7 @@ export interface FileRoutesByTo {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
+  '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -637,10 +621,7 @@ export interface FileRoutesByTo {
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
-  '/api/manufacturer/register-company': typeof ApiManufacturerRegisterCompanyRoute
-  '/api/manufacturer/send-company-otp': typeof ApiManufacturerSendCompanyOtpRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
-  '/api/manufacturer/verify-company-otp': typeof ApiManufacturerVerifyCompanyOtpRoute
   '/api/pharmacy/scan-logs': typeof ApiPharmacyScanLogsRoute
   '/api/realtime/feed': typeof ApiRealtimeFeedRoute
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
@@ -693,6 +674,7 @@ export interface FileRoutesById {
   '/dashboard/settings': typeof DashboardSettingsRoute
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
+  '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -719,10 +701,7 @@ export interface FileRoutesById {
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
-  '/api/manufacturer/register-company': typeof ApiManufacturerRegisterCompanyRoute
-  '/api/manufacturer/send-company-otp': typeof ApiManufacturerSendCompanyOtpRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
-  '/api/manufacturer/verify-company-otp': typeof ApiManufacturerVerifyCompanyOtpRoute
   '/api/pharmacy/scan-logs': typeof ApiPharmacyScanLogsRoute
   '/api/realtime/feed': typeof ApiRealtimeFeedRoute
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
@@ -776,6 +755,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
+    | '/api/admin/documents'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
     | '/api/ai/insights'
@@ -802,10 +782,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
     | '/api/manufacturer/register-batch'
-    | '/api/manufacturer/register-company'
-    | '/api/manufacturer/send-company-otp'
     | '/api/manufacturer/stats'
-    | '/api/manufacturer/verify-company-otp'
     | '/api/pharmacy/scan-logs'
     | '/api/realtime/feed'
     | '/api/regulator/heatmap'
@@ -857,6 +834,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
+    | '/api/admin/documents'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
     | '/api/ai/insights'
@@ -883,10 +861,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
     | '/api/manufacturer/register-batch'
-    | '/api/manufacturer/register-company'
-    | '/api/manufacturer/send-company-otp'
     | '/api/manufacturer/stats'
-    | '/api/manufacturer/verify-company-otp'
     | '/api/pharmacy/scan-logs'
     | '/api/realtime/feed'
     | '/api/regulator/heatmap'
@@ -938,6 +913,7 @@ export interface FileRouteTypes {
     | '/dashboard/settings'
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
+    | '/api/admin/documents'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
     | '/api/ai/insights'
@@ -964,10 +940,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
     | '/api/manufacturer/register-batch'
-    | '/api/manufacturer/register-company'
-    | '/api/manufacturer/send-company-otp'
     | '/api/manufacturer/stats'
-    | '/api/manufacturer/verify-company-otp'
     | '/api/pharmacy/scan-logs'
     | '/api/realtime/feed'
     | '/api/regulator/heatmap'
@@ -1015,6 +988,7 @@ export interface RootRouteChildren {
   DashboardSettingsRoute: typeof DashboardSettingsRoute
   ApiAdminBatchSequencesRoute: typeof ApiAdminBatchSequencesRoute
   ApiAdminDashboardRoute: typeof ApiAdminDashboardRoute
+  ApiAdminDocumentsRoute: typeof ApiAdminDocumentsRouteWithChildren
   ApiAdminMedicinesRoute: typeof ApiAdminMedicinesRouteWithChildren
   ApiAdminRecallsRoute: typeof ApiAdminRecallsRouteWithChildren
   ApiAiInsightsRoute: typeof ApiAiInsightsRoute
@@ -1040,10 +1014,7 @@ export interface RootRouteChildren {
   ApiManufacturerDocumentsRoute: typeof ApiManufacturerDocumentsRouteWithChildren
   ApiManufacturerProfileRoute: typeof ApiManufacturerProfileRouteWithChildren
   ApiManufacturerRegisterBatchRoute: typeof ApiManufacturerRegisterBatchRoute
-  ApiManufacturerRegisterCompanyRoute: typeof ApiManufacturerRegisterCompanyRoute
-  ApiManufacturerSendCompanyOtpRoute: typeof ApiManufacturerSendCompanyOtpRoute
   ApiManufacturerStatsRoute: typeof ApiManufacturerStatsRoute
-  ApiManufacturerVerifyCompanyOtpRoute: typeof ApiManufacturerVerifyCompanyOtpRoute
   ApiPharmacyScanLogsRoute: typeof ApiPharmacyScanLogsRoute
   ApiRealtimeFeedRoute: typeof ApiRealtimeFeedRoute
   ApiRegulatorHeatmapRoute: typeof ApiRegulatorHeatmapRoute
@@ -1055,10 +1026,6 @@ export interface RootRouteChildren {
   ApiAdminPharmacyBlacklistRoute: typeof ApiAdminPharmacyBlacklistRoute
   ApiAdminRecallCreateRoute: typeof ApiAdminRecallCreateRoute
   ApiManufacturerBatchIdRoute: typeof ApiManufacturerBatchIdRouteWithChildren
-  ApiAdminDocumentsIdApproveRoute: typeof ApiAdminDocumentsIdApproveRoute
-  ApiAdminDocumentsIdExpireRoute: typeof ApiAdminDocumentsIdExpireRoute
-  ApiAdminDocumentsIdRejectRoute: typeof ApiAdminDocumentsIdRejectRoute
-  ApiAdminDocumentsIdReviewRoute: typeof ApiAdminDocumentsIdReviewRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1280,32 +1247,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPharmacyScanLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/api/manufacturer/verify-company-otp': {
-      id: '/api/manufacturer/verify-company-otp'
-      path: '/api/manufacturer/verify-company-otp'
-      fullPath: '/api/manufacturer/verify-company-otp'
-      preLoaderRoute: typeof ApiManufacturerVerifyCompanyOtpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
     '/api/manufacturer/stats': {
       id: '/api/manufacturer/stats'
       path: '/api/manufacturer/stats'
       fullPath: '/api/manufacturer/stats'
       preLoaderRoute: typeof ApiManufacturerStatsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/manufacturer/send-company-otp': {
-      id: '/api/manufacturer/send-company-otp'
-      path: '/api/manufacturer/send-company-otp'
-      fullPath: '/api/manufacturer/send-company-otp'
-      preLoaderRoute: typeof ApiManufacturerSendCompanyOtpRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/api/manufacturer/register-company': {
-      id: '/api/manufacturer/register-company'
-      path: '/api/manufacturer/register-company'
-      fullPath: '/api/manufacturer/register-company'
-      preLoaderRoute: typeof ApiManufacturerRegisterCompanyRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/manufacturer/register-batch': {
@@ -1490,6 +1436,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminMedicinesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/documents': {
+      id: '/api/admin/documents'
+      path: '/api/admin/documents'
+      fullPath: '/api/admin/documents'
+      preLoaderRoute: typeof ApiAdminDocumentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/dashboard': {
       id: '/api/admin/dashboard'
       path: '/api/admin/dashboard'
@@ -1590,31 +1543,31 @@ declare module '@tanstack/react-router' {
     }
     '/api/admin/documents/$id/review': {
       id: '/api/admin/documents/$id/review'
-      path: '/api/admin/documents/$id/review'
+      path: '/$id/review'
       fullPath: '/api/admin/documents/$id/review'
       preLoaderRoute: typeof ApiAdminDocumentsIdReviewRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiAdminDocumentsRoute
     }
     '/api/admin/documents/$id/reject': {
       id: '/api/admin/documents/$id/reject'
-      path: '/api/admin/documents/$id/reject'
+      path: '/$id/reject'
       fullPath: '/api/admin/documents/$id/reject'
       preLoaderRoute: typeof ApiAdminDocumentsIdRejectRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiAdminDocumentsRoute
     }
     '/api/admin/documents/$id/expire': {
       id: '/api/admin/documents/$id/expire'
-      path: '/api/admin/documents/$id/expire'
+      path: '/$id/expire'
       fullPath: '/api/admin/documents/$id/expire'
       preLoaderRoute: typeof ApiAdminDocumentsIdExpireRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiAdminDocumentsRoute
     }
     '/api/admin/documents/$id/approve': {
       id: '/api/admin/documents/$id/approve'
-      path: '/api/admin/documents/$id/approve'
+      path: '/$id/approve'
       fullPath: '/api/admin/documents/$id/approve'
       preLoaderRoute: typeof ApiAdminDocumentsIdApproveRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof ApiAdminDocumentsRoute
     }
   }
 }
@@ -1648,6 +1601,23 @@ const ApiHealthRouteChildren: ApiHealthRouteChildren = {
 const ApiHealthRouteWithChildren = ApiHealthRoute._addFileChildren(
   ApiHealthRouteChildren,
 )
+
+interface ApiAdminDocumentsRouteChildren {
+  ApiAdminDocumentsIdApproveRoute: typeof ApiAdminDocumentsIdApproveRoute
+  ApiAdminDocumentsIdExpireRoute: typeof ApiAdminDocumentsIdExpireRoute
+  ApiAdminDocumentsIdRejectRoute: typeof ApiAdminDocumentsIdRejectRoute
+  ApiAdminDocumentsIdReviewRoute: typeof ApiAdminDocumentsIdReviewRoute
+}
+
+const ApiAdminDocumentsRouteChildren: ApiAdminDocumentsRouteChildren = {
+  ApiAdminDocumentsIdApproveRoute: ApiAdminDocumentsIdApproveRoute,
+  ApiAdminDocumentsIdExpireRoute: ApiAdminDocumentsIdExpireRoute,
+  ApiAdminDocumentsIdRejectRoute: ApiAdminDocumentsIdRejectRoute,
+  ApiAdminDocumentsIdReviewRoute: ApiAdminDocumentsIdReviewRoute,
+}
+
+const ApiAdminDocumentsRouteWithChildren =
+  ApiAdminDocumentsRoute._addFileChildren(ApiAdminDocumentsRouteChildren)
 
 interface ApiAdminMedicinesRouteChildren {
   ApiAdminMedicinesIdRoute: typeof ApiAdminMedicinesIdRoute
@@ -1745,6 +1715,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardSettingsRoute: DashboardSettingsRoute,
   ApiAdminBatchSequencesRoute: ApiAdminBatchSequencesRoute,
   ApiAdminDashboardRoute: ApiAdminDashboardRoute,
+  ApiAdminDocumentsRoute: ApiAdminDocumentsRouteWithChildren,
   ApiAdminMedicinesRoute: ApiAdminMedicinesRouteWithChildren,
   ApiAdminRecallsRoute: ApiAdminRecallsRouteWithChildren,
   ApiAiInsightsRoute: ApiAiInsightsRoute,
@@ -1770,10 +1741,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManufacturerDocumentsRoute: ApiManufacturerDocumentsRouteWithChildren,
   ApiManufacturerProfileRoute: ApiManufacturerProfileRouteWithChildren,
   ApiManufacturerRegisterBatchRoute: ApiManufacturerRegisterBatchRoute,
-  ApiManufacturerRegisterCompanyRoute: ApiManufacturerRegisterCompanyRoute,
-  ApiManufacturerSendCompanyOtpRoute: ApiManufacturerSendCompanyOtpRoute,
   ApiManufacturerStatsRoute: ApiManufacturerStatsRoute,
-  ApiManufacturerVerifyCompanyOtpRoute: ApiManufacturerVerifyCompanyOtpRoute,
   ApiPharmacyScanLogsRoute: ApiPharmacyScanLogsRoute,
   ApiRealtimeFeedRoute: ApiRealtimeFeedRoute,
   ApiRegulatorHeatmapRoute: ApiRegulatorHeatmapRoute,
@@ -1785,10 +1753,6 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminPharmacyBlacklistRoute: ApiAdminPharmacyBlacklistRoute,
   ApiAdminRecallCreateRoute: ApiAdminRecallCreateRoute,
   ApiManufacturerBatchIdRoute: ApiManufacturerBatchIdRouteWithChildren,
-  ApiAdminDocumentsIdApproveRoute: ApiAdminDocumentsIdApproveRoute,
-  ApiAdminDocumentsIdExpireRoute: ApiAdminDocumentsIdExpireRoute,
-  ApiAdminDocumentsIdRejectRoute: ApiAdminDocumentsIdRejectRoute,
-  ApiAdminDocumentsIdReviewRoute: ApiAdminDocumentsIdReviewRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

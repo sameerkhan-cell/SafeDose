@@ -93,6 +93,13 @@ export class BatchService {
         });
         if (!manufacturer) throw new ApiError(404, "Manufacturer profile not found.");
 
+        if (!manufacturer.isVerified) {
+            throw new ApiError(
+                403,
+                "Your DRAP License must be approved before you can register batches or generate QR codes. Please complete your company profile and wait for DRAP License approval."
+            );
+        }
+
         // 2. Business validations
         if (quantityBoxes < 1) throw new ApiError(400, "Quantity of boxes must be at least 1.");
         if (pillsPerBox < 1) throw new ApiError(400, "Pills per box must be at least 1.");

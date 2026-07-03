@@ -21,7 +21,6 @@ import { QRGeneratorModal } from "@/components/dashboard/QRGeneratorModal";
 import { DualQRModal } from "@/components/batch-registration/DualQRModal";
 import { ExtendBatchModal } from "@/components/batch-registration/ExtendBatchModal";
 import { RecallHubWidget } from "@/components/regulatory/RecallHubWidget";
-import { CompanyRegistrationForm } from "@/components/dashboard/manufacturer/CompanyRegistration";
 
 export const Route = createFileRoute("/dashboard/manufacturer")({
   head: () => ({
@@ -61,7 +60,7 @@ import { AIFraudMonitor } from "@/components/dashboard/ai-fraud-monitor";
 import { useEffect } from "react";
 
 function Page() {
-  const { user, isAuthenticated, signOut, isLoading } = useAuth();
+  const { user, isAuthenticated, signOut, isLoading, updateUser } = useAuth();
   const { batches, pills, stats, setBatches } = useQRStore();
   const [qrOpen, setQrOpen] = useState(false);
   const [dualOpen, setDualOpen] = useState(false);
@@ -91,6 +90,19 @@ function Page() {
     };
 
     const headers = { "Authorization": `Bearer ${getToken()}` };
+
+    // Sync verification status dynamically
+    fetch("/api/auth/me", { headers })
+      .then(res => res.json())
+      .then(res => {
+        if (res.success && res.data) {
+          updateUser({
+            isVerified: res.data.isVerified,
+            fullName: res.data.name,
+          });
+        }
+      })
+      .catch(err => console.error("Failed to sync user data:", err));
 
     // Load real batches from DB
     fetch("/api/manufacturer/batches", { headers })
@@ -150,25 +162,11 @@ function Page() {
     mfgCode: b.manufacturerCode
   }));
 
-  // Enforce company registration for manufacturers
-  if (!user?.isVerified) {
-    return (
-      <DashShell
-        title="Manufacturer Command Center"
-        subtitle="Complete your registration to access full features"
-        nav={DASH_NAV}
-      >
-        <div className="max-w-5xl mx-auto py-8">
-          <CompanyRegistrationForm />
-        </div>
-      </DashShell>
-    );
-  }
 
   return (
     <DashShell
       title="Manufacturer Command Center"
-      subtitle={`${user?.fullName || "GlaxoSmithKline"} Pakistan · Verified Manufacturer`}
+      subtitle={`${user?.fullName || "GlaxoSmithKline"} Pakistan · ${user?.isVerified ? "Verified Manufacturer" : "Unverified Manufacturer"}`}
       badge="Enterprise"
       nav={DASH_NAV}
       actions={

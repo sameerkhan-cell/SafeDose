@@ -177,6 +177,27 @@ function ManufacturerProfile() {
     void loadProfile();
   }, [loadProfile]);
 
+  useEffect(() => {
+    if (!user) return;
+    const session = localStorage.getItem("mediverify_session") || sessionStorage.getItem("mediverify_session");
+    if (!session) return;
+    try {
+      const parsed = JSON.parse(session);
+      const headers = { "Authorization": `Bearer ${parsed.token}` };
+      fetch("/api/auth/me", { headers })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success && res.data) {
+            updateUser({
+              isVerified: res.data.isVerified,
+              fullName: res.data.name,
+            });
+          }
+        })
+        .catch(err => console.error("Failed to sync user verification status:", err));
+    } catch {}
+  }, [updateUser, user]);
+
   const save = async () => {
     setSaving(true);
     const res = await manufacturerProfileService.updateProfile(form);
@@ -215,7 +236,7 @@ function ManufacturerProfile() {
     );
   }
 
-  const badge = user?.isVerified ? "DRAP Certified" : "Pending Verification";
+  const badge = user?.isVerified ? "Verified" : "Unverified";
 
   return (
     <div className="space-y-6">
@@ -385,8 +406,16 @@ function AvatarSection({
       <div className="text-center sm:text-left flex-1 min-w-0">
         <h2 className="text-[20px] font-bold truncate">{name}</h2>
         <p className="text-[13px] text-muted-foreground truncate">{subtitle}</p>
-        <span className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-success/10 border border-success/20 px-3 py-1 text-[11px] font-bold text-success">
-          <CheckCircle2 className="h-3 w-3" /> {badge}
+        <span className={`mt-2 inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-bold ${
+          badge === "Unverified" || badge === "Pending Verification"
+            ? "bg-warning/10 border border-warning/20 text-warning-foreground"
+            : "bg-success/10 border border-success/20 text-success"
+        }`}>
+          {badge === "Unverified" || badge === "Pending Verification" ? (
+            <Clock className="h-3 w-3" />
+          ) : (
+            <CheckCircle2 className="h-3 w-3" />
+          )} {badge}
         </span>
       </div>
 

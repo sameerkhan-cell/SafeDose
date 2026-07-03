@@ -417,6 +417,33 @@ export class ManufacturerDocumentService {
             },
         });
 
+        if (document.documentType === "DRAP_LICENSE") {
+            if (newStatus === "APPROVED") {
+                await prisma.manufacturer.update({
+                    where: { id: document.manufacturerId },
+                    data: {
+                        isVerified: true,
+                        verificationStatus: "VERIFIED",
+                        verifiedAt: new Date(),
+                    },
+                });
+            } else if (newStatus === "REJECTED") {
+                const mfg = await prisma.manufacturer.findUnique({
+                    where: { id: document.manufacturerId },
+                    select: { isVerified: true },
+                });
+                if (mfg?.isVerified) {
+                    await prisma.manufacturer.update({
+                        where: { id: document.manufacturerId },
+                        data: {
+                            isVerified: false,
+                            verificationStatus: "PENDING",
+                        },
+                    });
+                }
+            }
+        }
+
         await logAudit({
             documentId,
             manufacturerId: document.manufacturerId,
@@ -428,5 +455,58 @@ export class ManufacturerDocumentService {
         });
 
         return toDocumentDto(updated);
+    }
+
+    static async adminListDocuments(status?: string) {
+        let statusFilter: any;
+        if (status) {
+            statusFilter = status as DocumentStatus;
+        } else {
+            statusFilter = { in: ["PENDING", "UNDER_REVIEW"] as DocumentStatus[] };
+        }
+
+        const documents = await prisma.manufacturerDocument.findMany({
+            where: {
+                deletedAt: null,
+                status: statusFilter,
+            },
+            include: {
+                manufacturer: {
+                    select: {
+                        companyName: true,
+                        licenseNumber: true,
+                    },
+                },
+            },
+            orderBy: {
+                uploadedAt: "desc",
+            },
+        });
+
+        return documents.map((doc) => {
+            const enriched = enrichDocumentExpiry(doc);
+            return {
+                id: doc.id,
+                manufacturerId: doc.manufacturerId,
+                documentType: doc.documentType,
+                documentName: doc.documentName,
+                documentUrl: doc.documentUrl,
+                fileSize: doc.fileSize,
+                mimeType: doc.mimeType,
+                status: enriched.effectiveStatus,
+                effectiveStatus: enriched.effectiveStatus,
+                isExpired: enriched.isExpired,
+                uploadedAt: doc.uploadedAt.toISOString(),
+                verifiedAt: doc.verifiedAt?.toISOString() ?? null,
+                verifiedBy: doc.verifiedBy,
+                expiryDate: doc.expiryDate?.toISOString().slice(0, 10) ?? null,
+                remarks: doc.remarks,
+                daysRemaining: enriched.daysRemaining,
+                manufacturer: {
+                    companyName: doc.manufacturer.companyName,
+                    licenseNumber: doc.manufacturer.licenseNumber,
+                },
+            };
+        });
     }
 }

@@ -9,6 +9,7 @@ import {
 import { useAuth } from "@/lib/auth-context";
 import { DashShell } from "@/components/dashboard/DashShell";
 import { Button } from "@/components/ui/button";
+import { DocumentReviewPanel } from "@/components/dashboard/admin/DocumentReviewPanel";
 
 export const Route = createFileRoute("/dashboard/admin")({
   component: Page,
@@ -398,7 +399,7 @@ function Page() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls">("medicines");
+  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents">("medicines");
   const [showMedicineForm, setShowMedicineForm] = useState(false);
   const [showSequenceForm, setShowSequenceForm] = useState(false);
   const [showRecallForm, setShowRecallForm] = useState(false);
@@ -463,9 +464,9 @@ function Page() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-secondary/30 rounded-xl p-1 w-fit">
-          {(["medicines", "sequences", "recalls"] as const).map(tab => (
+          {(["medicines", "sequences", "recalls", "documents"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${activeTab === tab ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : "Recall Alerts"}
+              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : tab === "recalls" ? "Recall Alerts" : "Document Review"}
             </button>
           ))}
         </div>
@@ -582,6 +583,11 @@ function Page() {
               ))}
             </div>
           </div>
+        )}
+
+        {/* ── DOCUMENTS TAB ── */}
+        {activeTab === "documents" && (
+          <DocumentReviewPanel />
         )}
       </div>
 
