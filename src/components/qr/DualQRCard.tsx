@@ -124,12 +124,12 @@ export function DualQRCard({
                 </div>
 
                 {/* Actions */}
-                <div className="flex gap-2 w-full">
+                <div className="flex flex-col gap-2 w-full">
                     <Button
                         variant="outline"
                         size="sm"
                         onClick={handleCopy}
-                        className={`flex-1 rounded-xl text-[11px] h-8 border ${borderColor} hover:${isBox ? "bg-primary/5" : "bg-success/5"}`}
+                        className={`w-full rounded-xl text-[11px] h-8 border ${borderColor} hover:${isBox ? "bg-primary/5" : "bg-success/5"}`}
                     >
                         {copied
                             ? <><CheckCircle2 className="mr-1 h-3 w-3 text-success" />Copied!</>
@@ -139,7 +139,7 @@ export function DualQRCard({
                     <Button
                         size="sm"
                         onClick={handleDownload}
-                        className={`flex-1 rounded-xl text-[11px] h-8 ${isCarton ? "bg-gradient-to-br from-amber-500 to-amber-600" : (isBox ? "bg-gradient-primary" : "bg-gradient-success")} text-white shadow-elegant`}
+                        className={`w-full rounded-xl text-[11px] h-8 ${isCarton ? "bg-gradient-to-br from-amber-500 to-amber-600" : (isBox ? "bg-gradient-primary" : "bg-gradient-success")} text-white shadow-elegant`}
                     >
                         <Download className="mr-1 h-3 w-3" />PNG
                     </Button>
