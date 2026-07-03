@@ -96,7 +96,7 @@ export class BatchService {
         if (!manufacturer.isVerified) {
             throw new ApiError(
                 403,
-                "Your DRAP License must be approved before you can register batches or generate QR codes. Please complete your company profile and wait for DRAP License approval."
+                "Your company profile and DRAP License must be completed and approved before you can register batches or generate QR codes. Please complete your profile details and ensure your DRAP License is approved."
             );
         }
 

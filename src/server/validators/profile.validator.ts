@@ -35,8 +35,8 @@ export const manufacturerProfileUpdateSchema = z.object({
     manufacturingCapacity: z.string().trim().optional(),
     certifications: z.string().trim().optional(),
     operatingCountries: z.string().trim().optional(),
-    taxId: z.string().trim().optional(),
-    registrationNumber: z.string().trim().optional(),
+    taxId: z.string().trim().min(1, "Tax ID is required."),
+    registrationNumber: z.string().trim().min(1, "Registration Number is required."),
     registrationDate: z
         .string()
         .trim()

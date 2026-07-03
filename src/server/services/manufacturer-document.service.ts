@@ -113,6 +113,24 @@ export class ManufacturerDocumentService {
         const manufacturer = await getManufacturerForUser(userId);
         const docType = input.documentType as DocumentTypeValue;
 
+        // Goal 2: Block DRAP_LICENSE upload until manufacturer profile is complete
+        if (docType === "DRAP_LICENSE") {
+            const hasAddress = manufacturer.address && manufacturer.address.trim().length > 0;
+            const hasPhone = manufacturer.businessPhone && manufacturer.businessPhone.trim().length > 0;
+            const hasEmail = manufacturer.businessEmail && manufacturer.businessEmail.trim().length > 0;
+            const hasLicense = manufacturer.licenseNumber && manufacturer.licenseNumber.trim().length > 0;
+            const hasTaxId = manufacturer.taxId && manufacturer.taxId.trim().length > 0;
+            const hasRegNumber = manufacturer.registrationNumber && manufacturer.registrationNumber.trim().length > 0;
+            const hasCompanyName = manufacturer.companyName && manufacturer.companyName.trim().length > 0;
+
+            if (!hasCompanyName || !hasAddress || !hasPhone || !hasEmail || !hasLicense || !hasTaxId || !hasRegNumber) {
+                throw new ApiError(
+                    400,
+                    "Please complete your company profile (address, contact number, business email, tax ID, and registration number) before uploading your DRAP License."
+                );
+            }
+        }
+
         if (REQUIRED_COMPLIANCE_TYPES.includes(docType)) {
             const existing = await prisma.manufacturerDocument.findFirst({
                 where: {
