@@ -11,6 +11,8 @@ import {
     MessageSquare,
     Clock,
     Shield,
+    ChevronDown,
+    ChevronUp,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,14 @@ export function DocumentReviewPanel() {
     const [actioningId, setActioningId] = useState<string | null>(null);
     const [rejectingId, setRejectingId] = useState<string | null>(null);
     const [remarks, setRemarks] = useState("");
+    const [expandedIds, setExpandedIds] = useState<Record<string, boolean>>({});
+
+    const toggleExpand = (id: string) => {
+        setExpandedIds((prev) => ({
+            ...prev,
+            [id]: !prev[id],
+        }));
+    };
 
     const loadDocuments = useCallback(async () => {
         setLoading(true);
@@ -242,6 +252,82 @@ export function DocumentReviewPanel() {
                                             </Button>
                                         </div>
                                     </div>
+
+                                    {/* Expandable Company Details Section */}
+                                    <div className="mt-3.5 border-t border-border/20 pt-3">
+                                        <button
+                                            onClick={() => toggleExpand(doc.id)}
+                                            className="text-[11px] font-semibold text-primary hover:text-primary/80 flex items-center gap-1 focus:outline-none transition-colors"
+                                        >
+                                            {expandedIds[doc.id] ? (
+                                                <>Hide Company Profile <ChevronUp className="h-3.5 w-3.5" /></>
+                                            ) : (
+                                                <>View Company Profile <ChevronDown className="h-3.5 w-3.5" /></>
+                                            )}
+                                        </button>
+                                    </div>
+
+                                    <AnimatePresence initial={false}>
+                                        {expandedIds[doc.id] && (
+                                            <motion.div
+                                                initial={{ height: 0, opacity: 0 }}
+                                                animate={{ height: "auto", opacity: 1 }}
+                                                exit={{ height: 0, opacity: 0 }}
+                                                transition={{ duration: 0.25, ease }}
+                                                className="overflow-hidden"
+                                            >
+                                                <div className="mt-3.5 p-4 rounded-xl bg-secondary/20 border border-border/30 grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 text-xs">
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Address</span>
+                                                        <p className="text-foreground/90 font-medium break-words">{doc.manufacturer.address || "Not provided"}</p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Phone</span>
+                                                        <p className="text-foreground/90 font-medium break-words">{doc.manufacturer.businessPhone || "Not provided"}</p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Email</span>
+                                                        <p className="text-foreground/90 font-medium break-words">{doc.manufacturer.businessEmail || "Not provided"}</p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tax ID (NTN)</span>
+                                                        <p className="text-foreground/90 font-medium break-words">{doc.manufacturer.taxId || "Not provided"}</p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Registration #</span>
+                                                        <p className="text-foreground/90 font-medium break-words">{doc.manufacturer.registrationNumber || "Not provided"}</p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Industry Type</span>
+                                                        <p className="text-foreground/90 font-medium break-words">{doc.manufacturer.industryType || "Not provided"}</p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Website</span>
+                                                        <p className="text-foreground/90 font-medium break-words">
+                                                            {doc.manufacturer.website ? (
+                                                                <a
+                                                                    href={doc.manufacturer.website.startsWith("http") ? doc.manufacturer.website : `https://${doc.manufacturer.website}`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-primary hover:underline inline-flex items-center gap-1"
+                                                                >
+                                                                    {doc.manufacturer.website} <ExternalLink className="h-3 w-3" />
+                                                                </a>
+                                                            ) : (
+                                                                "Not provided"
+                                                            )}
+                                                        </p>
+                                                    </div>
+                                                    <div className="space-y-0.5">
+                                                        <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Status</span>
+                                                        <p className="text-foreground/90 font-medium break-words capitalize">
+                                                            {doc.manufacturer.verificationStatus?.toLowerCase() || "unregistered"} ({doc.manufacturer.isVerified ? "Verified" : "Unverified"})
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            </motion.div>
+                                        )}
+                                    </AnimatePresence>
 
                                     {/* Reject Remarks Panel */}
                                     <AnimatePresence>

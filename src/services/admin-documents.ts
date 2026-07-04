@@ -6,6 +6,15 @@ export interface AdminDocumentItem extends ManufacturerDocumentItem {
     manufacturer: {
         companyName: string;
         licenseNumber: string;
+        address: string | null;
+        businessPhone: string | null;
+        businessEmail: string | null;
+        taxId: string | null;
+        registrationNumber: string | null;
+        industryType: string | null;
+        website: string | null;
+        isVerified: boolean;
+        verificationStatus: string;
     };
 }
 

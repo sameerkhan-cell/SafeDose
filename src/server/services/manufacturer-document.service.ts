@@ -493,6 +493,15 @@ export class ManufacturerDocumentService {
                     select: {
                         companyName: true,
                         licenseNumber: true,
+                        address: true,
+                        businessPhone: true,
+                        businessEmail: true,
+                        taxId: true,
+                        registrationNumber: true,
+                        industryType: true,
+                        website: true,
+                        isVerified: true,
+                        verificationStatus: true,
                     },
                 },
             },
@@ -523,6 +532,15 @@ export class ManufacturerDocumentService {
                 manufacturer: {
                     companyName: doc.manufacturer.companyName,
                     licenseNumber: doc.manufacturer.licenseNumber,
+                    address: doc.manufacturer.address,
+                    businessPhone: doc.manufacturer.businessPhone,
+                    businessEmail: doc.manufacturer.businessEmail,
+                    taxId: doc.manufacturer.taxId,
+                    registrationNumber: doc.manufacturer.registrationNumber,
+                    industryType: doc.manufacturer.industryType,
+                    website: doc.manufacturer.website,
+                    isVerified: doc.manufacturer.isVerified,
+                    verificationStatus: doc.manufacturer.verificationStatus,
                 },
             };
         });
