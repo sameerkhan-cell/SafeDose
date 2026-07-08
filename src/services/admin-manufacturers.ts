@@ -15,6 +15,8 @@ export interface AdminManufacturerItem {
     verificationStatus: string;
     registrationDate: string | null;
     website: string | null;
+    isSuspended: boolean;
+    suspendedAt: string | null;
     medicineCount: number;
     batchCount: number;
 }
@@ -94,10 +96,27 @@ async function authFetch<T>(
 }
 
 export const adminManufacturersService = {
-    getManufacturers: () => {
-        return authFetch<AdminManufacturerItem[]>("/api/admin/manufacturers");
+    getManufacturers: (options: { includeSuspended?: boolean } = {}) => {
+        const params = options.includeSuspended ? "?includeSuspended=true" : "";
+        return authFetch<AdminManufacturerItem[]>(`/api/admin/manufacturers${params}`);
     },
     getManufacturerReport: (id: string) => {
         return authFetch<AdminManufacturerReport>(`/api/admin/manufacturers/${id}/report`);
     },
+    suspendManufacturer: (id: string) => {
+        return authFetch<AdminManufacturerItem>(`/api/admin/manufacturers/${id}/suspend`, {
+            method: "POST",
+        });
+    },
+    restoreManufacturer: (id: string) => {
+        return authFetch<AdminManufacturerItem>(`/api/admin/manufacturers/${id}/restore`, {
+            method: "POST",
+        });
+    },
+    unverifyManufacturer: (id: string) => {
+        return authFetch<AdminManufacturerItem>(`/api/admin/manufacturers/${id}/unverify`, {
+            method: "POST",
+        });
+    },
 };
+

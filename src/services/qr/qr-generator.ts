@@ -45,10 +45,48 @@ export function buildPillQrCode(batchNumber: string, pillNumber: string, manufac
 
 // ── Batch + pill creation ────────────────────────────────────────────────────
 
-function createBatch(form: BatchRegistrationForm): MedicineBatch {
+function createBatch(form: BatchRegistrationForm, startCartonNumber = 1, startBoxNumber = 1): MedicineBatch {
     const totalPills = form.quantityBoxes * form.totalPillsPerBox;
     const batchNumber = form.batchNumber || generateId();
     const manufacturerCode = form.manufacturerCode.toUpperCase();
+    const quantityBoxes = form.quantityBoxes;
+    const totalCartons = form.totalCartons || Math.max(1, Math.ceil(quantityBoxes / 10));
+    const boxesPerCarton = Math.floor(quantityBoxes / totalCartons);
+
+    // Generate cartons and boxes
+    const cartons: any[] = [];
+    const boxes: any[] = [];
+    const baseBoxesPerCarton = Math.floor(quantityBoxes / totalCartons);
+    const cartonsWithExtra = quantityBoxes % totalCartons;
+
+    let globalBoxCounter = startBoxNumber - 1;
+    for (let c = 1; c <= totalCartons; c++) {
+        const boxesInThisCarton = c <= cartonsWithExtra ? baseBoxesPerCarton + 1 : baseBoxesPerCarton;
+        if (boxesInThisCarton === 0) continue;
+
+        const cartonIdx = (startCartonNumber - 1 + c).toString().padStart(3, "0");
+        const cartonCode = `CARTON-${batchNumber.toUpperCase()}-${cartonIdx}-${manufacturerCode}`;
+
+        cartons.push({
+            id: `carton-${c}-${Math.random().toString(36).slice(2, 6)}`,
+            cartonNumber: cartonCode,
+            qrCode: cartonCode,
+            boxesCount: boxesInThisCarton,
+        });
+
+        for (let b = 1; b <= boxesInThisCarton; b++) {
+            globalBoxCounter++;
+            const boxIdx = globalBoxCounter.toString().padStart(4, "0");
+            const boxCode = `BOX-${batchNumber.toUpperCase()}-${boxIdx}-${manufacturerCode}`;
+
+            boxes.push({
+                id: `box-${globalBoxCounter}-${Math.random().toString(36).slice(2, 6)}`,
+                boxNumber: boxCode,
+                qrCode: boxCode,
+                pillsCount: form.totalPillsPerBox,
+            });
+        }
+    }
 
     return {
         id: generateId(),
@@ -68,6 +106,10 @@ function createBatch(form: BatchRegistrationForm): MedicineBatch {
         createdAt: new Date().toISOString(),
         txHash: generateTxHash(),
         status: "Active",
+        boxesPerCarton,
+        totalCartons,
+        cartons,
+        boxes
     };
 }
 
@@ -104,6 +146,10 @@ export interface GenerateOptions {
     chunkDelay?: number;
     /** The starting number for the pill sequence (useful for extending batches) */
     startNumber?: number;
+    /** The starting carton index */
+    startCartonNumber?: number;
+    /** The starting box index */
+    startBoxNumber?: number;
 }
 
 /**
@@ -114,10 +160,10 @@ export async function generateDualQR(
     form: BatchRegistrationForm,
     options: GenerateOptions = {}
 ): Promise<DualQRResult> {
-    const { onProgress, chunkDelay = 30, startNumber = 1 } = options;
+    const { onProgress, chunkDelay = 30, startNumber = 1, startCartonNumber = 1, startBoxNumber = 1 } = options;
 
     // STEP 1 — Create batch
-    const batch = createBatch(form);
+    const batch = createBatch(form, startCartonNumber, startBoxNumber);
 
     // STEP 2 — Create pills in chunks for animated progress
     const quantityToGenerate = batch.totalPills;

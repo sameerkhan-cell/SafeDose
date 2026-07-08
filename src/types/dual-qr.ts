@@ -32,6 +32,8 @@ export interface MedicineBatch {
     createdAt: string;
     txHash: string;
     status: "Active" | "Recalled" | "Expired";
+    boxesPerCarton?: number;
+    totalCartons?: number;
     cartons?: CartonRecord[];
     boxes?: BoxRecord[];
 }

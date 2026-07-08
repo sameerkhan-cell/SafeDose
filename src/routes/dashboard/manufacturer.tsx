@@ -14,8 +14,6 @@ import {
 } from "recharts";
 import {
   BatchRegistrationWidget, QRManagementWidget, SupplyChainWidget,
-  FraudHeatmapWidget, RecallWidget, AIFraudWidget, DistributorWidget,
-  SuspiciousScansWidget, ComplianceWidget, PerformanceWidget,
 } from "@/components/dashboard/manufacturer-widgets";
 import { QRGeneratorModal } from "@/components/dashboard/QRGeneratorModal";
 import { DualQRModal } from "@/components/batch-registration/DualQRModal";
@@ -92,17 +90,22 @@ function Page() {
     const headers = { "Authorization": `Bearer ${getToken()}` };
 
     // Sync verification status dynamically
-    fetch("/api/auth/me", { headers })
-      .then(res => res.json())
-      .then(res => {
-        if (res.success && res.data) {
-          updateUser({
-            isVerified: res.data.isVerified,
-            fullName: res.data.name,
-          });
-        }
-      })
-      .catch(err => console.error("Failed to sync user data:", err));
+    const syncUser = () => {
+      fetch("/api/auth/me", { headers })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success && res.data) {
+            updateUser({
+              isVerified: res.data.isVerified,
+              fullName: res.data.name,
+            });
+          }
+        })
+        .catch(err => console.error("Failed to sync user data:", err));
+    };
+
+    syncUser();
+    const syncInterval = setInterval(syncUser, 10000);
 
     // Load real batches from DB
     fetch("/api/manufacturer/batches", { headers })
@@ -126,6 +129,7 @@ function Page() {
             qrGenerationStatus: b.blockchainStatus?.toLowerCase() || "completed",
             boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`,
             quantityBoxes: b.quantityBoxes,
+            boxesPerCarton: b.boxesPerCarton || 10,
           })));
         }
       })
@@ -137,6 +141,7 @@ function Page() {
       .then(res => { if (res.success) setDbStats(res.data); })
       .catch(err => console.error("Failed to load stats:", err));
 
+    return () => clearInterval(syncInterval);
   }, [isAuthenticated, user?.role, setBatches, signOut]);
 
   if (isLoading) {
@@ -205,21 +210,13 @@ function Page() {
 
       {/* Stat cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4 mb-8">
-        <StatCard icon={Package} label="Total Batches" value={dbStats?.totalBatches ?? batches.length ?? 284} delta={12} sparkline={[60, 72, 65, 80, 78, 90, 88, 95]} />
-        <StatCard icon={QrCode} label="Total Pills Generated" value={dbStats?.totalPillsGenerated ?? stats.totalGenerated() ?? 1248302} delta={8} tone="success" sparkline={[50, 60, 55, 70, 80, 75, 90, 95]} />
-        <StatCard icon={Activity} label="Active Batches" value={dbStats?.activeBatches ?? batches.length ?? 9214} delta={4} sparkline={[40, 55, 48, 62, 70, 58, 75, 80]} />
-        <StatCard icon={AlertTriangle} label="Expired / Recalled" value={(dbStats?.expiredBatches ?? 0) + (dbStats?.recalledBatches ?? 0)} delta={-9} tone="destructive" sparkline={[20, 24, 18, 30, 22, 19, 16, 14]} description="Expired + recalled batches" />
+        <StatCard icon={Package} label="Total Batches" value={dbStats?.totalBatches ?? batches.length ?? 0} delta={12} sparkline={[60, 72, 65, 80, 78, 90, 88, 95]} />
+        <StatCard icon={QrCode} label="Total Pills Generated" value={dbStats?.totalPillsGenerated ?? stats.totalGenerated() ?? 0} delta={8} tone="success" sparkline={[50, 60, 55, 70, 80, 75, 90, 95]} />
+        <StatCard icon={Activity} label="Active Batches" value={dbStats?.activeBatches ?? batches.length ?? 0} delta={4} sparkline={[40, 55, 48, 62, 70, 58, 75, 80]} />
+        <StatCard icon={AlertTriangle} label="Expired / Recalled" value={(dbStats?.expiredBatches ?? 0) + (dbStats?.recalledBatches ?? 0)} delta={-9} tone="destructive" sparkline={[20, 24, 18, 30, 22, 19, 16, 14]} />
       </div>
 
-      {/* AI FRAUD MONITOR */}
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        className="mb-8"
-      >
-        <AIFraudMonitor />
-      </motion.div>
+
 
       {/* 2. Batch Registration & 3. QR Management */}
       <div className="mt-6 grid gap-5 lg:grid-cols-2">
@@ -410,7 +407,7 @@ function Page() {
           </div>
 
           <div className="border-t border-border/40 px-5 py-3 flex items-center justify-between text-[12px] text-muted-foreground">
-            <span>Showing {displayBatches.length || 5} of {batches.length || 284} batches</span>
+            <span>Showing {displayBatches.length || 0} of {batches.length || 0} batches</span>
             <button className="flex items-center gap-1 text-primary hover:underline font-medium">View all <ArrowRight className="h-3.5 w-3.5" /></button>
           </div>
         </motion.div>
@@ -464,60 +461,8 @@ function Page() {
               );
             })}
           </ol>
-          <div className="mt-5 grid grid-cols-2 gap-2.5 border-t border-border/40 pt-5">
-            {[
-              { label: "Blocks today", value: "1,284" },
-              { label: "Avg confirm time", value: "0.8s" },
-              { label: "Network nodes", value: "48" },
-              { label: "Tx success rate", value: "99.9%" },
-            ].map(m => (
-              <div key={m.label} className="rounded-xl bg-secondary/40 px-3 py-2.5">
-                <p className="text-[10px] text-muted-foreground">{m.label}</p>
-                <p className="mt-0.5 text-[13px] font-semibold tabular-nums">{m.value}</p>
-              </div>
-            ))}
-          </div>
         </motion.div>
       </div>
-
-      {/* 10. AI Fraud & 12. Suspicious Scans */}
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        <AIFraudWidget />
-        <SuspiciousScansWidget />
-      </div>
-
-      {/* 8. Fraud Heatmap & 9. Recall Center */}
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        <FraudHeatmapWidget />
-        <RecallWidget />
-      </div>
-
-      {/* 11. Distributors & 13. Compliance */}
-      <div className="mt-6 grid gap-5 lg:grid-cols-2">
-        <DistributorWidget />
-        <ComplianceWidget />
-      </div>
-
-      {/* 14. Performance Insights */}
-      <div className="mt-6">
-        <PerformanceWidget />
-      </div>
-
-      {/* Bottom metrics */}
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ duration: 0.5, ease }}
-        className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4"
-      >
-        {[
-          { icon: CheckCircle2, label: "Verification accuracy", value: "99.4%", tone: "success" as const },
-          { icon: Package, label: "Batches this quarter", value: "1,284", tone: "primary" as const },
-          { icon: Globe2, label: "Countries active", value: "7", tone: "primary" as const },
-          { icon: Clock, label: "Avg scan time", value: "0.6s", tone: "success" as const },
-        ].map(m => <MetricRow key={m.label} {...m} />)}
-      </motion.div>
 
       {/* Legacy QR Generator Modal */}
       <QRGeneratorModal open={qrOpen} onClose={() => setQrOpen(false)} />

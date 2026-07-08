@@ -120,6 +120,10 @@ model Manufacturer {
   verifiedAt         DateTime?
   companyCode        String?   @unique // Generated once: MFG-GSK001 etc.
 
+  // Suspension Fields
+  isSuspended        Boolean   @default(false)
+  suspendedAt        DateTime?
+
   medicines     Medicine[]
   documents     ManufacturerDocument[]
 

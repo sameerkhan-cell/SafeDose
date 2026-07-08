@@ -251,8 +251,8 @@ export function DualQRModal({ open, onClose }: Props) {
                                                 >
                                                     <option>Pharmaceutical</option>
                                                     <option>Vaccine</option>
-                                                    <option>Nutraceutical</option>
-                                                    <option>Biological</option>
+                                                    {/* <option>Nutraceutical</option>
+                                                    <option>Biological</option> */}
                                                 </select>
                                             </FieldRow>
                                         </div>

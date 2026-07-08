@@ -67,6 +67,7 @@ import { Route as ApiAuthChangePasswordRouteImport } from './routes/api/auth/cha
 import { Route as ApiAiInsightsRouteImport } from './routes/api/ai/insights'
 import { Route as ApiAdminRecallsRouteImport } from './routes/api/admin/recalls'
 import { Route as ApiAdminMedicinesRouteImport } from './routes/api/admin/medicines'
+import { Route as ApiAdminManufacturersRouteImport } from './routes/api/admin/manufacturers'
 import { Route as ApiAdminDocumentsRouteImport } from './routes/api/admin/documents'
 import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
 import { Route as ApiAdminBatchSequencesRouteImport } from './routes/api/admin/batch-sequences'
@@ -82,6 +83,10 @@ import { Route as ApiAdminRecallCreateRouteImport } from './routes/api/admin/rec
 import { Route as ApiAdminPharmacyBlacklistRouteImport } from './routes/api/admin/pharmacy/blacklist'
 import { Route as ApiAdminMedicinesIdRouteImport } from './routes/api/admin/medicines.$id'
 import { Route as ApiManufacturerBatchIdAssetsRouteImport } from './routes/api/manufacturer/batch.$id.assets'
+import { Route as ApiAdminManufacturersIdUnverifyRouteImport } from './routes/api/admin/manufacturers.$id.unverify'
+import { Route as ApiAdminManufacturersIdSuspendRouteImport } from './routes/api/admin/manufacturers.$id.suspend'
+import { Route as ApiAdminManufacturersIdRestoreRouteImport } from './routes/api/admin/manufacturers.$id.restore'
+import { Route as ApiAdminManufacturersIdReportRouteImport } from './routes/api/admin/manufacturers.$id.report'
 import { Route as ApiAdminDocumentsIdReviewRouteImport } from './routes/api/admin/documents.$id.review'
 import { Route as ApiAdminDocumentsIdRejectRouteImport } from './routes/api/admin/documents.$id.reject'
 import { Route as ApiAdminDocumentsIdExpireRouteImport } from './routes/api/admin/documents.$id.expire'
@@ -381,6 +386,11 @@ const ApiAdminMedicinesRoute = ApiAdminMedicinesRouteImport.update({
   path: '/api/admin/medicines',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminManufacturersRoute = ApiAdminManufacturersRouteImport.update({
+  id: '/api/admin/manufacturers',
+  path: '/api/admin/manufacturers',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminDocumentsRoute = ApiAdminDocumentsRouteImport.update({
   id: '/api/admin/documents',
   path: '/api/admin/documents',
@@ -464,6 +474,30 @@ const ApiManufacturerBatchIdAssetsRoute =
     path: '/assets',
     getParentRoute: () => ApiManufacturerBatchIdRoute,
   } as any)
+const ApiAdminManufacturersIdUnverifyRoute =
+  ApiAdminManufacturersIdUnverifyRouteImport.update({
+    id: '/$id/unverify',
+    path: '/$id/unverify',
+    getParentRoute: () => ApiAdminManufacturersRoute,
+  } as any)
+const ApiAdminManufacturersIdSuspendRoute =
+  ApiAdminManufacturersIdSuspendRouteImport.update({
+    id: '/$id/suspend',
+    path: '/$id/suspend',
+    getParentRoute: () => ApiAdminManufacturersRoute,
+  } as any)
+const ApiAdminManufacturersIdRestoreRoute =
+  ApiAdminManufacturersIdRestoreRouteImport.update({
+    id: '/$id/restore',
+    path: '/$id/restore',
+    getParentRoute: () => ApiAdminManufacturersRoute,
+  } as any)
+const ApiAdminManufacturersIdReportRoute =
+  ApiAdminManufacturersIdReportRouteImport.update({
+    id: '/$id/report',
+    path: '/$id/report',
+    getParentRoute: () => ApiAdminManufacturersRoute,
+  } as any)
 const ApiAdminDocumentsIdReviewRoute =
   ApiAdminDocumentsIdReviewRouteImport.update({
     id: '/$id/review',
@@ -516,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
+  '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -566,6 +601,10 @@ export interface FileRoutesByFullPath {
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
   '/api/admin/documents/$id/review': typeof ApiAdminDocumentsIdReviewRoute
+  '/api/admin/manufacturers/$id/report': typeof ApiAdminManufacturersIdReportRoute
+  '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
+  '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
+  '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
 export interface FileRoutesByTo {
@@ -595,6 +634,7 @@ export interface FileRoutesByTo {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
+  '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -645,6 +685,10 @@ export interface FileRoutesByTo {
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
   '/api/admin/documents/$id/review': typeof ApiAdminDocumentsIdReviewRoute
+  '/api/admin/manufacturers/$id/report': typeof ApiAdminManufacturersIdReportRoute
+  '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
+  '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
+  '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
 export interface FileRoutesById {
@@ -675,6 +719,7 @@ export interface FileRoutesById {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
+  '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -725,6 +770,10 @@ export interface FileRoutesById {
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
   '/api/admin/documents/$id/review': typeof ApiAdminDocumentsIdReviewRoute
+  '/api/admin/manufacturers/$id/report': typeof ApiAdminManufacturersIdReportRoute
+  '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
+  '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
+  '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
 export interface FileRouteTypes {
@@ -756,6 +805,7 @@ export interface FileRouteTypes {
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
     | '/api/admin/documents'
+    | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
     | '/api/ai/insights'
@@ -806,6 +856,10 @@ export interface FileRouteTypes {
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
     | '/api/admin/documents/$id/review'
+    | '/api/admin/manufacturers/$id/report'
+    | '/api/admin/manufacturers/$id/restore'
+    | '/api/admin/manufacturers/$id/suspend'
+    | '/api/admin/manufacturers/$id/unverify'
     | '/api/manufacturer/batch/$id/assets'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -835,6 +889,7 @@ export interface FileRouteTypes {
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
     | '/api/admin/documents'
+    | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
     | '/api/ai/insights'
@@ -885,6 +940,10 @@ export interface FileRouteTypes {
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
     | '/api/admin/documents/$id/review'
+    | '/api/admin/manufacturers/$id/report'
+    | '/api/admin/manufacturers/$id/restore'
+    | '/api/admin/manufacturers/$id/suspend'
+    | '/api/admin/manufacturers/$id/unverify'
     | '/api/manufacturer/batch/$id/assets'
   id:
     | '__root__'
@@ -914,6 +973,7 @@ export interface FileRouteTypes {
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
     | '/api/admin/documents'
+    | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
     | '/api/ai/insights'
@@ -964,6 +1024,10 @@ export interface FileRouteTypes {
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
     | '/api/admin/documents/$id/review'
+    | '/api/admin/manufacturers/$id/report'
+    | '/api/admin/manufacturers/$id/restore'
+    | '/api/admin/manufacturers/$id/suspend'
+    | '/api/admin/manufacturers/$id/unverify'
     | '/api/manufacturer/batch/$id/assets'
   fileRoutesById: FileRoutesById
 }
@@ -989,6 +1053,7 @@ export interface RootRouteChildren {
   ApiAdminBatchSequencesRoute: typeof ApiAdminBatchSequencesRoute
   ApiAdminDashboardRoute: typeof ApiAdminDashboardRoute
   ApiAdminDocumentsRoute: typeof ApiAdminDocumentsRouteWithChildren
+  ApiAdminManufacturersRoute: typeof ApiAdminManufacturersRouteWithChildren
   ApiAdminMedicinesRoute: typeof ApiAdminMedicinesRouteWithChildren
   ApiAdminRecallsRoute: typeof ApiAdminRecallsRouteWithChildren
   ApiAiInsightsRoute: typeof ApiAiInsightsRoute
@@ -1436,6 +1501,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminMedicinesRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/manufacturers': {
+      id: '/api/admin/manufacturers'
+      path: '/api/admin/manufacturers'
+      fullPath: '/api/admin/manufacturers'
+      preLoaderRoute: typeof ApiAdminManufacturersRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/documents': {
       id: '/api/admin/documents'
       path: '/api/admin/documents'
@@ -1541,6 +1613,34 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiManufacturerBatchIdAssetsRouteImport
       parentRoute: typeof ApiManufacturerBatchIdRoute
     }
+    '/api/admin/manufacturers/$id/unverify': {
+      id: '/api/admin/manufacturers/$id/unverify'
+      path: '/$id/unverify'
+      fullPath: '/api/admin/manufacturers/$id/unverify'
+      preLoaderRoute: typeof ApiAdminManufacturersIdUnverifyRouteImport
+      parentRoute: typeof ApiAdminManufacturersRoute
+    }
+    '/api/admin/manufacturers/$id/suspend': {
+      id: '/api/admin/manufacturers/$id/suspend'
+      path: '/$id/suspend'
+      fullPath: '/api/admin/manufacturers/$id/suspend'
+      preLoaderRoute: typeof ApiAdminManufacturersIdSuspendRouteImport
+      parentRoute: typeof ApiAdminManufacturersRoute
+    }
+    '/api/admin/manufacturers/$id/restore': {
+      id: '/api/admin/manufacturers/$id/restore'
+      path: '/$id/restore'
+      fullPath: '/api/admin/manufacturers/$id/restore'
+      preLoaderRoute: typeof ApiAdminManufacturersIdRestoreRouteImport
+      parentRoute: typeof ApiAdminManufacturersRoute
+    }
+    '/api/admin/manufacturers/$id/report': {
+      id: '/api/admin/manufacturers/$id/report'
+      path: '/$id/report'
+      fullPath: '/api/admin/manufacturers/$id/report'
+      preLoaderRoute: typeof ApiAdminManufacturersIdReportRouteImport
+      parentRoute: typeof ApiAdminManufacturersRoute
+    }
     '/api/admin/documents/$id/review': {
       id: '/api/admin/documents/$id/review'
       path: '/$id/review'
@@ -1618,6 +1718,25 @@ const ApiAdminDocumentsRouteChildren: ApiAdminDocumentsRouteChildren = {
 
 const ApiAdminDocumentsRouteWithChildren =
   ApiAdminDocumentsRoute._addFileChildren(ApiAdminDocumentsRouteChildren)
+
+interface ApiAdminManufacturersRouteChildren {
+  ApiAdminManufacturersIdReportRoute: typeof ApiAdminManufacturersIdReportRoute
+  ApiAdminManufacturersIdRestoreRoute: typeof ApiAdminManufacturersIdRestoreRoute
+  ApiAdminManufacturersIdSuspendRoute: typeof ApiAdminManufacturersIdSuspendRoute
+  ApiAdminManufacturersIdUnverifyRoute: typeof ApiAdminManufacturersIdUnverifyRoute
+}
+
+const ApiAdminManufacturersRouteChildren: ApiAdminManufacturersRouteChildren = {
+  ApiAdminManufacturersIdReportRoute: ApiAdminManufacturersIdReportRoute,
+  ApiAdminManufacturersIdRestoreRoute: ApiAdminManufacturersIdRestoreRoute,
+  ApiAdminManufacturersIdSuspendRoute: ApiAdminManufacturersIdSuspendRoute,
+  ApiAdminManufacturersIdUnverifyRoute: ApiAdminManufacturersIdUnverifyRoute,
+}
+
+const ApiAdminManufacturersRouteWithChildren =
+  ApiAdminManufacturersRoute._addFileChildren(
+    ApiAdminManufacturersRouteChildren,
+  )
 
 interface ApiAdminMedicinesRouteChildren {
   ApiAdminMedicinesIdRoute: typeof ApiAdminMedicinesIdRoute
@@ -1716,6 +1835,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminBatchSequencesRoute: ApiAdminBatchSequencesRoute,
   ApiAdminDashboardRoute: ApiAdminDashboardRoute,
   ApiAdminDocumentsRoute: ApiAdminDocumentsRouteWithChildren,
+  ApiAdminManufacturersRoute: ApiAdminManufacturersRouteWithChildren,
   ApiAdminMedicinesRoute: ApiAdminMedicinesRouteWithChildren,
   ApiAdminRecallsRoute: ApiAdminRecallsRouteWithChildren,
   ApiAiInsightsRoute: ApiAiInsightsRoute,

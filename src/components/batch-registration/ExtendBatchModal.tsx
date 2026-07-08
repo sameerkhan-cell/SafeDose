@@ -31,11 +31,20 @@ export function ExtendBatchModal({ open, onClose }: Props) {
     const { progress, result, error, generate, reset } = useBatchGeneration();
     const boxQrRef = useRef<HTMLDivElement>(null);
 
+    const handleCartonDownload = useCallback((canvas: HTMLCanvasElement) => {
+        const dataUrl = exportQRCanvasToPng(
+            canvas,
+            result?.batch.cartons?.[0]?.qrCode ?? "",
+            `MediVerify · ${result?.batch.medicineName ?? ""} · Carton`
+        );
+        triggerDownload(dataUrl, `MediVerify-CartonQR-${result?.batch.batchNumber ?? "batch"}.png`);
+    }, [result]);
+
     const handleBoxDownload = useCallback((canvas: HTMLCanvasElement) => {
         const dataUrl = exportQRCanvasToPng(
             canvas,
-            result?.batch.boxQrCode ?? "",
-            `MediVerify · ${result?.batch.medicineName ?? ""}`
+            result?.batch.boxes?.[0]?.qrCode || result?.batch.boxQrCode || "",
+            `MediVerify · ${result?.batch.medicineName ?? ""} · Box`
         );
         triggerDownload(dataUrl, `MediVerify-BoxQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
@@ -44,7 +53,7 @@ export function ExtendBatchModal({ open, onClose }: Props) {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.pills[0]?.pillQrCode ?? "",
-            `MediVerify · ${result?.batch.medicineName ?? ""}`
+            `MediVerify · ${result?.batch.medicineName ?? ""} · Pill`
         );
         triggerDownload(dataUrl, `MediVerify-SamplePillQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
@@ -71,6 +80,9 @@ export function ExtendBatchModal({ open, onClose }: Props) {
         if (!selectedBatch) return;
 
         setStep("generating");
+        const boxesPerCarton = selectedBatch.boxesPerCarton || 10;
+        const totalCartonsToGenerate = Math.max(1, Math.ceil(extraBoxes / boxesPerCarton));
+
         await generate({
             medicineName: selectedBatch.medicineName,
             batchNumber: selectedBatch.batchNumber,
@@ -79,6 +91,7 @@ export function ExtendBatchModal({ open, onClose }: Props) {
             expiryDate: selectedBatch.expiryDate,
             quantityBoxes: extraBoxes,
             totalPillsPerBox: selectedBatch.totalPillsPerBox || 20,
+            totalCartons: totalCartonsToGenerate,
             manufacturerCode: selectedBatch.manufacturerCode || "MFG",
             drapLicense: selectedBatch.drapLicense || "DRAP-LIC-001",
             isExtension: true
@@ -249,27 +262,39 @@ export function ExtendBatchModal({ open, onClose }: Props) {
                                             <div>
                                                 <p className="text-[14px] font-bold text-success">Batch Successfully Augmented!</p>
                                                 <p className="text-[11px] text-foreground/70">
-                                                    Total pills now: <span className="font-bold">{result.totalPillsGenerated.toLocaleString()}</span>
+                                                    Batch extended with <span className="font-bold">{result.totalPillsGenerated.toLocaleString()}</span> new pills · {result.batch.cartons?.length || 0} cartons · {result.batch.quantityBoxes} boxes.
                                                 </p>
                                             </div>
                                         </div>
 
-                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                                        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+                                            {/* Carton QR */}
+                                            <DualQRCard
+                                                type="carton"
+                                                qrValue={result.batch.cartons?.[0]?.qrCode || ""}
+                                                label={`Carton #${result.batch.cartons?.[0]?.qrCode?.split("-")?.[2] || "New"}`}
+                                                sublabel={`${result.batch.cartons?.length || 0} cartons added`}
+                                                badge="Shipment Unit"
+                                                onDownloadPng={handleCartonDownload}
+                                            />
+                                            {/* Box QR */}
                                             <div ref={boxQrRef}>
                                                 <DualQRCard
                                                     type="box"
-                                                    qrValue={result.batch.boxQrCode}
-                                                    label="Same Box QR"
+                                                    qrValue={result.batch.boxes?.[0]?.qrCode || result.batch.boxQrCode}
+                                                    label={`Box #${result.batch.boxes?.[0]?.boxNumber?.split("-")?.[2] || "Same"}`}
                                                     sublabel={result.batch.batchNumber}
+                                                    badge="Pharmacy Unit"
                                                     onDownloadPng={handleBoxDownload}
                                                 />
                                             </div>
+                                            {/* Pill QR */}
                                             <DualQRCard
                                                 type="pill"
                                                 qrValue={result.pills[0]?.pillQrCode ?? ""}
                                                 label={`New Pill #${result.pills[0]?.pillNumber}`}
                                                 sublabel="Sequence resumed"
-                                                badge={`+${(extraBoxes * 20).toLocaleString()}`}
+                                                badge={`+${(extraBoxes * (selectedBatch.totalPillsPerBox || 20)).toLocaleString()}`}
                                                 onDownloadPng={handlePillDownload}
                                             />
                                         </div>
@@ -295,7 +320,7 @@ export function ExtendBatchModal({ open, onClose }: Props) {
                             {step === "form" && (
                                 <>
                                     <Button variant="ghost" onClick={() => setStep("selection")} size="sm"><ArrowLeft className="h-4 w-4 mr-2" /> Back</Button>
-                                    <Button onClick={handleGenerate} className="bg-gradient-to-br from-success to-emerald-600 font-bold">Generate {(extraBoxes * 20).toLocaleString()} More Pills</Button>
+                                    <Button onClick={handleGenerate} className="bg-gradient-to-br from-success to-emerald-600 font-bold">Generate {(extraBoxes * (selectedBatch.totalPillsPerBox || 20)).toLocaleString()} More Pills</Button>
                                 </>
                             )}
                             {step === "result" && (

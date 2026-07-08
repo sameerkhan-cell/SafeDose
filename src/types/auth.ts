@@ -1,6 +1,6 @@
 // ─── Auth Types ──────────────────────────────────────────────────────────────
 
-export type UserRole = "customer" | "pharmacy" | "manufacturer";
+export type UserRole = "customer" | "pharmacy" | "manufacturer" | "admin" | "super_admin" | "drap_admin";
 
 export interface User {
   id: string;

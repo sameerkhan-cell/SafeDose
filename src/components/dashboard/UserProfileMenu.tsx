@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   User, Settings, LogOut, ChevronDown, ShieldCheck,
-  Building2, Stethoscope, Cpu,
+  Building2, Stethoscope, Cpu, Shield,
 } from "lucide-react";
 import { ease } from "@/lib/motion";
 import type { UserRole } from "@/types/auth";
@@ -21,6 +21,9 @@ const ROLE_CFG: Record<UserRole, { label: string; icon: typeof User; color: stri
   customer: { label: "Patient", icon: User, color: "#1a56db", bg: "#1a56db15" },
   pharmacy: { label: "Pharmacy", icon: Stethoscope, color: "#16a34a", bg: "#16a34a15" },
   manufacturer: { label: "Manufacturer", icon: Building2, color: "#8b5cf6", bg: "#8b5cf615" },
+  admin: { label: "Admin", icon: Shield, color: "#dc2626", bg: "#dc262615" },
+  super_admin: { label: "Super Admin", icon: Shield, color: "#dc2626", bg: "#dc262615" },
+  drap_admin: { label: "Admin", icon: Shield, color: "#dc2626", bg: "#dc262615" },
 };
 
 const MENU_ITEMS = [

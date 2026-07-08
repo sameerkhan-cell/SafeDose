@@ -553,7 +553,8 @@ function QRLibraryPage() {
                         drapLicense: b.medicine?.manufacturer?.licenseNumber || "DRAP-LIC-001",
                         txHash: b.txHash || "0x" + "0".repeat(40),
                         qrGenerationStatus: b.blockchainStatus?.toLowerCase() || "completed",
-                        boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`
+                        boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`,
+                        boxesPerCarton: b.boxesPerCarton || 10
                     }));
 
                     // To merge without duplicates, we filter out batches that already exist in the store by ID

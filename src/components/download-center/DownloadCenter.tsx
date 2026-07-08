@@ -20,7 +20,7 @@ interface Props {
     boxQrCanvasRef: React.RefObject<HTMLDivElement | null>;
 }
 
-type DlKey = "carton-pdf" | "carton-zip" | "box-pdf" | "box-zip" | "pill-sheet" | "pill-zip-bulk" | "batch-report-pdf";
+type DlKey = "carton-pdf" | "carton-zip" | "box-pdf" | "box-sheet" | "box-zip" | "pill-sheet" | "pill-zip-bulk" | "batch-report-pdf";
 type DlStatus = "idle" | "loading" | "done";
 
 interface DownloadItem {
@@ -54,6 +54,14 @@ const DOWNLOADS: DownloadItem[] = [
         label: "Box Label — A4 PDF",
         description: "Official 3cm × 3cm print layout",
         icon: Printer,
+        accentClass: "text-primary bg-primary/10",
+        badgeText: "Print",
+    },
+    {
+        key: "box-sheet",
+        label: "Download All Box QRs (Sheet)",
+        description: "All box QR codes in grid print layout",
+        icon: Layers,
         accentClass: "text-primary bg-primary/10",
         badgeText: "Print",
     },
@@ -126,6 +134,21 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                     const dataUrl = canvas.toDataURL("image/png");
                     const blob = await PrintingService.generateBoxQrPdf(batch, dataUrl);
                     saveAs(blob, `MediVerify_BoxLabel_${batchId}.pdf`);
+                    break;
+                }
+                case "box-sheet": {
+                    let boxesList = batch.boxes || [];
+                    if (boxesList.length === 0) {
+                        const sessionStr = localStorage.getItem("mediverify_session") || sessionStorage.getItem("mediverify_session");
+                        const token = sessionStr ? JSON.parse(sessionStr).token : "";
+                        const res = await fetch(`/api/manufacturer/batch/${batch.id}`, {
+                            headers: { "Authorization": `Bearer ${token}` }
+                        });
+                        const data = await res.json();
+                        boxesList = data.data?.boxes || [];
+                    }
+                    const blob = await PrintingService.generateBoxQrSheetPdf(batch, boxesList);
+                    saveAs(blob, `MediVerify_AllBoxQRs_${batchId}.pdf`);
                     break;
                 }
                 case "box-zip": {
@@ -252,8 +275,8 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                                         </motion.div>
                                     ) : (
                                         <motion.div key="idle" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex items-center gap-2">
-                                            {(item.key === 'carton-pdf' || item.key === 'box-pdf' || item.key === 'pill-sheet') ? <Printer className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
-                                            {(item.key === 'carton-pdf' || item.key === 'box-pdf' || item.key === 'pill-sheet') ? 'Print' : 'Get'}
+                                            {(item.key === 'carton-pdf' || item.key === 'box-pdf' || item.key === 'box-sheet' || item.key === 'pill-sheet') ? <Printer className="h-3.5 w-3.5" /> : <Download className="h-3.5 w-3.5" />}
+                                            {(item.key === 'carton-pdf' || item.key === 'box-pdf' || item.key === 'box-sheet' || item.key === 'pill-sheet') ? 'Print' : 'Get'}
                                         </motion.div>
                                     )}
                                 </AnimatePresence>

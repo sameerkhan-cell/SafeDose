@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from "react";
 import type { BatchRegistrationForm, DualQRResult, GenerationProgress, GenerationPhase } from "@/types/dual-qr";
-import { generateDualQR } from "@/services/qr/qr-generator";
+// Bypassed client-side mock QR generation in favor of real database data
 
 interface UseBatchGenerationReturn {
     progress: GenerationProgress;
@@ -113,35 +113,58 @@ export function useBatchGeneration(): UseBatchGenerationReturn {
                 throw new Error(data.message || "Failed to register batch on server.");
             }
 
-            const { batch: serverBatch, startPillIndex } = data.data;
+            const { batch: serverBatch, pills: serverPills } = data.data;
 
             // Phase 2 — local box QR generation
             setPhase("generating-box-qr");
             await new Promise((r) => setTimeout(r, 400));
             if (abortRef.current) return false;
 
-            // Phase 3 — pill QR generation (chunked with progress)
+            // Phase 3 — pill QR generation (chunked progress animation using real data)
             const quantityToGenerate = form.quantityBoxes * form.totalPillsPerBox;
             setPhase("generating-pill-qrs", 0, quantityToGenerate);
 
-            const generated = await generateDualQR(form, {
-                onProgress: (done, total) => {
-                    if (!abortRef.current) setPhase("generating-pill-qrs", done, total);
-                },
-                chunkDelay: quantityToGenerate > 500 ? 5 : 15,
-                startNumber: startPillIndex,
-            });
+            const chunkDelay = quantityToGenerate > 500 ? 5 : 15;
+            const CHUNK_SIZE = Math.max(1, Math.ceil(quantityToGenerate / 40));
+
+            for (let i = 0; i < quantityToGenerate; i += CHUNK_SIZE) {
+                const currentProgress = Math.min(i + CHUNK_SIZE, quantityToGenerate);
+                if (abortRef.current) return false;
+                setPhase("generating-pill-qrs", currentProgress, quantityToGenerate);
+                if (chunkDelay > 0 && currentProgress < quantityToGenerate) {
+                    await new Promise((r) => setTimeout(r, chunkDelay));
+                }
+            }
 
             if (abortRef.current) return false;
 
-            // Merge server data with generated QRs
+            // Merge server data with compliant MedicineBatch layout
             const finalResult: DualQRResult = {
-                ...generated,
                 batch: {
-                    ...generated.batch,
-                    ...serverBatch, // Overwrite with server-enriched data (IDs, txHash, cartons, boxes, etc.)
+                    id: serverBatch.id,
+                    medicineName: form.medicineName,
+                    batchNumber: serverBatch.batchNumber,
+                    manufacturingDate: serverBatch.manufacturingDate,
+                    expiryDate: serverBatch.expiryDate,
+                    quantityBoxes: serverBatch.quantityBoxes,
+                    totalPillsPerBox: serverBatch.pillsPerBox,
+                    totalPills: serverBatch.totalPillsGenerated,
+                    manufacturerCode: serverBatch.medicine?.manufacturer?.companyCode || form.manufacturerCode,
+                    drapLicense: serverBatch.medicine?.manufacturer?.licenseNumber || form.drapLicense,
+                    productCategory: serverBatch.category || form.productCategory,
+                    boxQrCode: serverBatch.boxQRCode,
+                    boxQrScanned: false,
+                    qrGenerationStatus: "completed",
+                    createdAt: serverBatch.createdAt,
                     txHash: serverBatch.txHash || "PENDING_ANCHOR",
-                }
+                    status: "Active",
+                    boxesPerCarton: serverBatch.boxesPerCarton,
+                    totalCartons: form.totalCartons,
+                    cartons: serverBatch.cartons,
+                    boxes: serverBatch.boxes
+                },
+                pills: serverPills || [],
+                totalPillsGenerated: serverBatch.totalPillsGenerated || (serverPills ? serverPills.length : 0)
             };
 
             // Phase 4 — complete

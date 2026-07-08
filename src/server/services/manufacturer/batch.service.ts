@@ -47,18 +47,21 @@ export interface DashboardStats {
 
 export class BatchService {
     static formatCartonCode(batchNumber: string, cartonIndex: number, companyCode: string): string {
-        const idx = cartonIndex.toString().padStart(3, "0");
-        return `CARTON-${batchNumber.toUpperCase()}-${idx}-${companyCode.toUpperCase()}`;
+        return `${companyCode.toUpperCase()}-${batchNumber.toUpperCase()}-C${cartonIndex}`;
     }
 
-    static formatBoxCode(batchNumber: string, boxIndex: number, companyCode: string): string {
-        const idx = boxIndex.toString().padStart(4, "0");
-        return `BOX-${batchNumber.toUpperCase()}-${idx}-${companyCode.toUpperCase()}`;
+    static formatBoxCode(batchNumber: string, cartonIndex: number, boxIndexInCarton: number, companyCode: string): string {
+        return `${companyCode.toUpperCase()}-${batchNumber.toUpperCase()}-C${cartonIndex}-B${boxIndexInCarton}`;
     }
 
-    static formatPillCode(batchNumber: string, pillIndex: number, companyCode: string): string {
-        const idx = pillIndex.toString().padStart(5, "0");
-        return `PILL-${batchNumber.toUpperCase()}-${idx}-${companyCode.toUpperCase()}`;
+    static formatPillCode(
+        batchNumber: string,
+        cartonIndex: number,
+        boxIndexInCarton: number,
+        pillIndexInBox: number,
+        companyCode: string
+    ): string {
+        return `${companyCode.toUpperCase()}-${batchNumber.toUpperCase()}-C${cartonIndex}-B${boxIndexInCarton}-P${pillIndexInBox}`;
     }
 
     /**
@@ -92,6 +95,13 @@ export class BatchService {
             where: { userId },
         });
         if (!manufacturer) throw new ApiError(404, "Manufacturer profile not found.");
+
+        if (manufacturer.isSuspended) {
+            throw new ApiError(
+                403,
+                "Your company has been suspended by DRAP due to a compliance concern. Please contact DRAP for reinstatement before generating QR codes."
+            );
+        }
 
         if (!manufacturer.isVerified) {
             throw new ApiError(
@@ -189,41 +199,57 @@ export class BatchService {
                 const cartons: any[] = [];
                 const boxes: any[] = [];
 
-                const batch = await tx.batch.create({
-                    data: {
-                        medicineId: medicine!.id,
-                        batchNumber: finalBatchNumber,
-                        manufacturingDate: mfgDate,
-                        expiryDate: expiry,
-                        quantityBoxes,
-                        pillsPerBox,
-                        // We store the base density for reference, though distribution is now variable
-                        boxesPerCarton: Math.floor(quantityBoxes / (data.totalCartons ?? 10)),
-                        totalPillsGenerated: newPillsCount,
-                        boxQRCode, // Legacy/Batch-wide QR ref
-                        dosageStrength: dosageStrength ?? dosage ?? null,
-                        category: category ?? null,
-                        productType: productType ?? null,
-                        status: "ACTIVE",
-                        medicineStatus: "MANUFACTURED",
-                        blockchainStatus: "PENDING",
-                    },
-                    include: { medicine: { include: { manufacturer: true } } },
-                });
+                const batch = isExtension
+                    ? await tx.batch.update({
+                        where: { id: existingBatch.id },
+                        data: {
+                            quantityBoxes: existingBatch.quantityBoxes + quantityBoxes,
+                            totalPillsGenerated: existingBatch.totalPillsGenerated + newPillsCount,
+                        },
+                        include: { medicine: { include: { manufacturer: true } } },
+                    })
+                    : await tx.batch.create({
+                        data: {
+                            medicineId: medicine!.id,
+                            batchNumber: finalBatchNumber,
+                            manufacturingDate: mfgDate,
+                            expiryDate: expiry,
+                            quantityBoxes,
+                            pillsPerBox,
+                            // We store the base density for reference, though distribution is now variable
+                            boxesPerCarton: Math.floor(quantityBoxes / (data.totalCartons ?? 10)),
+                            totalPillsGenerated: newPillsCount,
+                            boxQRCode, // Legacy/Batch-wide QR ref
+                            dosageStrength: dosageStrength ?? dosage ?? null,
+                            category: category ?? null,
+                            productType: productType ?? null,
+                            status: "ACTIVE",
+                            medicineStatus: "MANUFACTURED",
+                            blockchainStatus: "PENDING",
+                        },
+                        include: { medicine: { include: { manufacturer: true } } },
+                    });
 
                 const totalBoxes = quantityBoxes;
                 const numCartons = data.totalCartons ?? Math.max(1, Math.ceil(totalBoxes / 10));
                 const baseBoxesPerCarton = Math.floor(totalBoxes / numCartons);
                 const cartonsWithExtra = totalBoxes % numCartons;
 
-                let globalBoxCounter = 0;
+                const existingCartonCount = isExtension
+                    ? await tx.carton.count({ where: { batchId: existingBatch.id } })
+                    : 0;
+                const existingBoxCount = isExtension
+                    ? await tx.box.count({ where: { batchId: existingBatch.id } })
+                    : 0;
+
+                let globalBoxCounter = existingBoxCount;
 
                 for (let c = 1; c <= numCartons; c++) {
                     const boxesInThisCarton = c <= cartonsWithExtra ? baseBoxesPerCarton + 1 : baseBoxesPerCarton;
 
                     if (boxesInThisCarton === 0) continue; // Safety check
 
-                    const cartonCode = this.formatCartonCode(finalBatchNumber, c, companyCode);
+                    const cartonCode = this.formatCartonCode(finalBatchNumber, existingCartonCount + c, companyCode);
                     const carton = await tx.carton.create({
                         data: {
                             batchId: batch.id,
@@ -237,7 +263,12 @@ export class BatchService {
 
                     for (let b = 1; b <= boxesInThisCarton; b++) {
                         globalBoxCounter++;
-                        const boxCode = this.formatBoxCode(finalBatchNumber, globalBoxCounter, companyCode);
+                        const boxCode = this.formatBoxCode(
+                            finalBatchNumber,
+                            existingCartonCount + c,
+                            b,
+                            companyCode
+                        );
                         const box = await tx.box.create({
                             data: {
                                 batchId: batch.id,
@@ -253,7 +284,13 @@ export class BatchService {
                         const pillsData = [];
                         for (let p = 1; p <= pillsPerBox; p++) {
                             const globalPillIndex = (globalBoxCounter - 1) * pillsPerBox + p;
-                            const pillCode = this.formatPillCode(finalBatchNumber, globalPillIndex, companyCode);
+                            const pillCode = this.formatPillCode(
+                                finalBatchNumber,
+                                existingCartonCount + c,
+                                b,
+                                globalPillIndex,
+                                companyCode
+                            );
                             pillsData.push({
                                 batchId: batch.id,
                                 boxId: box.id,
@@ -270,8 +307,8 @@ export class BatchService {
                 }
 
                 // Safety verification
-                if (globalBoxCounter !== totalBoxes) {
-                    console.warn(`[BatchService] Box count mismatch: expected ${totalBoxes}, generated ${globalBoxCounter}`);
+                if (globalBoxCounter !== (existingBoxCount + totalBoxes)) {
+                    console.warn(`[BatchService] Box count mismatch: expected ${existingBoxCount + totalBoxes}, generated ${globalBoxCounter}`);
                 }
 
                 await tx.batch.update({
@@ -280,22 +317,50 @@ export class BatchService {
                 });
 
                 // ── QR ASSET STORAGE (Root Asset) ──────────────────────────
-                const boxQrBuffer = await QRService.generatePNGBuffer(boxQRCode, 800);
-                const boxQrPath = await QRService.saveAsset(batch.id, "box.png", boxQrBuffer);
+                if (!isExtension) {
+                    const boxQrBuffer = await QRService.generatePNGBuffer(boxQRCode, 800);
+                    const boxQrPath = await QRService.saveAsset(batch.id, "box.png", boxQrBuffer);
 
-                await tx.qRAsset.create({
-                    data: {
+                    await tx.qRAsset.create({
+                        data: {
+                            batchId: batch.id,
+                            type: "BOX_QR",
+                            fileUrl: boxQrPath,
+                            metadata: JSON.stringify({ width: 800, height: 800 }),
+                        },
+                    });
+                }
+
+                const createdPills = await tx.pill.findMany({
+                    where: {
                         batchId: batch.id,
-                        type: "BOX_QR",
-                        fileUrl: boxQrPath,
-                        metadata: JSON.stringify({ width: 800, height: 800 }),
+                        boxId: { in: boxes.map(b => b.id) }
                     },
+                    orderBy: {
+                        pillNumber: "asc"
+                    },
+                    take: 5000 // Cap to prevent memory/payload overload on large batches
                 });
+
+                const pillsFormatted = createdPills.map(p => ({
+                    id: p.id,
+                    medicineId: batch.medicineId,
+                    pillNumber: p.pillNumber,
+                    pillQrCode: p.qrCode,
+                    qrScanned: p.qrScanned,
+                    qrScannedAt: p.scannedAt ? p.scannedAt.toISOString() : null,
+                    qrScannedLocation: p.scannedLocation || null,
+                    blockchainTx: p.blockchainTx || null,
+                    qrPrinted: false,
+                    qrStatus: p.status.toLowerCase() as "active" | "suspected" | "invalidated",
+                    createdAt: p.createdAt.toISOString()
+                }));
 
                 return {
                     batch: { ...batch, cartons, boxes },
-                    startPillIndex: 1,
-                    newPillsCount: globalBoxCounter * pillsPerBox
+                    pills: pillsFormatted,
+                    startPillIndex: (existingBoxCount * pillsPerBox) + 1,
+                    newPillsCount: totalBoxes * pillsPerBox
                 };
             },
             { timeout: 900000 }
@@ -358,6 +423,7 @@ export class BatchService {
                 pills: options.allPills ? true : { take: 50 },
                 qrAssets: { orderBy: { createdAt: "desc" } },
                 _count: { select: { pills: true } },
+                boxes: true,
             },
         });
 

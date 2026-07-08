@@ -81,7 +81,15 @@ export class PrintingService {
         const MARGIN_Y = 22;        // vertical space reserved for the per-page header
         const QR_SIZE = 8;         // 0.8 cm per QR image
         const CELL_W = QR_SIZE + 5; // 13 mm per column  (QR + horizontal gap)
-        const CELL_H = QR_SIZE + 7; // 15 mm per row     (QR + label + vertical gap)
+        // CELL_H derivation (mm, 1 pt = 0.353 mm, line-height factor = 1.15):
+        //   QR image:          8.00 mm
+        //   gap to text:       2.00 mm  (offset used in doc.text call)
+        //   split-code block:  3 lines × (4.5 pt × 0.353 × 1.15) ≈ 3 × 1.83 = 5.49 mm
+        //   gap before SN:     gap from block bottom to SN baseline ≈ 0.51 mm
+        //   SN line:           4 pt × 0.353 ≈ 1.41 mm  (baseline at y+16, placed at y+QR+8)
+        //   descender buffer:  ~0.5 mm before next row's QR image
+        //   Total: 8 + 2 + 5.49 + 0.51 + 1.41 + 0.5 ≈ 17.9 → ceil to 17 mm
+        const CELL_H = QR_SIZE + 9; // 17 mm per row
         const COLS = 12;
 
         const PAGE_H = doc.internal.pageSize.getHeight();
@@ -162,7 +170,15 @@ export class PrintingService {
                 const fullCode = String(pill.pillQrCode || "");
                 const parts = fullCode.split('-');
                 let displayLines = [fullCode];
-                if (parts.length >= 5) {
+                if (parts.length >= 6) {
+                    // 6-7 segment codes (e.g. CO-BATCH-C1-B1-P1 or CO-BAT1-BAT2-C1-B1-P1):
+                    // split into 3 balanced lines, keeping last 3 segments (C/B/P) together
+                    displayLines = [
+                        parts.slice(0, 2).join('-') + '-',
+                        parts.slice(2, parts.length - 3).join('-') + '-',
+                        parts.slice(parts.length - 3).join('-')
+                    ];
+                } else if (parts.length >= 5) {
                     displayLines = [
                         parts.slice(0, 2).join('-') + '-',
                         parts.slice(2, 4).join('-') + '-',
@@ -178,7 +194,131 @@ export class PrintingService {
 
                 doc.setFont("helvetica", "normal");
                 doc.setFontSize(4);
-                doc.text(`SN: ${pill.pillNumber}`, x + QR_SIZE / 2, y + QR_SIZE + 6, { align: "center" });
+                doc.text(`SN: ${pill.pillNumber}`, x + QR_SIZE / 2, y + QR_SIZE + 8, { align: "center" });
+            }
+        }
+
+        return doc.output("blob");
+    }
+
+    /**
+     * Generates a PDF for a sheet of Box QRs.
+     * Layout: Grid of Box QR codes on A4.
+     */
+    static async generateBoxQrSheetPdf(
+        batch: MedicineBatch,
+        boxes: { id: string; boxNumber: string; qrCode: string }[]
+    ): Promise<Blob> {
+        const doc = new jsPDF({
+            unit: "mm",
+            format: "a4",
+        });
+
+        const MARGIN_X = 10;
+        const MARGIN_Y = 22;        // vertical space reserved for the per-page header
+        const QR_SIZE = 8;         // 0.8 cm per QR image
+        const CELL_W = QR_SIZE + 5; // 13 mm per column  (QR + horizontal gap)
+        // CELL_H derivation: same formula as pill sheet — 17 mm (QR_SIZE + 9).
+        // The full-code caption is replaced by a short 2-segment label (e.g. "Box: C1-B1")
+        // which fits well within CELL_W at font size 4 and sits at y+QR_SIZE+8.
+        const CELL_H = QR_SIZE + 9; // 17 mm per row
+        const COLS = 12;
+
+        const PAGE_H = doc.internal.pageSize.getHeight();
+        const USABLE_H = PAGE_H - MARGIN_Y - 10;
+        const ROWS_PER_PAGE = Math.floor(USABLE_H / CELL_H);
+        const CELLS_PER_PAGE = COLS * ROWS_PER_PAGE;
+
+        const totalPages = Math.ceil(boxes.length / CELLS_PER_PAGE);
+
+        const addPageHeader = (pageNum: number) => {
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(0, 0, 0);
+            doc.text("MediVerify · Box QR Print Sheet", MARGIN_X, 8);
+
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 100, 100);
+            doc.text(
+                `${batch.medicineName} — Batch: ${batch.batchNumber} — Total Boxes: ${boxes.length}  (Page ${pageNum} of ${totalPages})`,
+                MARGIN_X, 14
+            );
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(MARGIN_X, 16, doc.internal.pageSize.getWidth() - MARGIN_X, 16);
+        };
+
+        addPageHeader(1);
+
+        const qrOpts = { margin: 1, width: 80, errorCorrectionLevel: 'L' as const };
+
+        const CHUNK_SIZE = 48;
+        for (let chunkStart = 0; chunkStart < boxes.length; chunkStart += CHUNK_SIZE) {
+            const chunk = boxes.slice(chunkStart, chunkStart + CHUNK_SIZE);
+
+            const rendered = await Promise.all(
+                chunk.map(async (box) => {
+                    try {
+                        const dataUrl = await QRCode.toDataURL(box.qrCode, qrOpts);
+                        return { dataUrl, box };
+                    } catch {
+                        return { dataUrl: null, box };
+                    }
+                })
+            );
+
+            for (let localIdx = 0; localIdx < rendered.length; localIdx++) {
+                const { dataUrl, box } = rendered[localIdx];
+                const i = chunkStart + localIdx;
+                const posOnPage = i % CELLS_PER_PAGE;
+
+                if (posOnPage === 0 && i > 0) {
+                    doc.addPage();
+                    addPageHeader(Math.floor(i / CELLS_PER_PAGE) + 1);
+                }
+
+                const col = posOnPage % COLS;
+                const row = Math.floor(posOnPage / COLS);
+                const x = MARGIN_X + col * CELL_W;
+                const y = MARGIN_Y + row * CELL_H;
+
+                if (dataUrl) {
+                    doc.addImage(dataUrl, "PNG", x, y, QR_SIZE, QR_SIZE);
+                } else {
+                    console.error(`Failed to generate QR for box ${box.boxNumber}`);
+                }
+
+                doc.setFontSize(4.5);
+                doc.setFont("courier", "bold");
+                doc.setTextColor(80, 80, 80);
+                doc.setLineHeightFactor(1.15);
+                const fullCode = String(box.qrCode || "");
+                const parts = fullCode.split('-');
+                let displayLines = [fullCode];
+                if (parts.length >= 5) {
+                    displayLines = [
+                        parts.slice(0, 2).join('-') + '-',
+                        parts.slice(2, 4).join('-') + '-',
+                        parts.slice(4).join('-')
+                    ];
+                } else if (parts.length >= 3) {
+                    displayLines = [
+                        parts.slice(0, 2).join('-') + '-',
+                        parts.slice(2).join('-')
+                    ];
+                }
+                doc.text(displayLines, x + QR_SIZE / 2, y + QR_SIZE + 2, { align: "center" });
+
+                // Show only the last two hyphen-separated segments (e.g. "C1-B1" from
+                // "MFG-SAM001-BAT-MRBZ38YW-C1-B1") — short enough to fit CELL_W at font 4.
+                const boxParts = String(box.qrCode || '').split('-');
+                const shortId = boxParts.length >= 2
+                    ? boxParts.slice(-2).join('-')
+                    : String(box.qrCode || '');
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(4);
+                doc.text(`Box: ${shortId}`, x + QR_SIZE / 2, y + QR_SIZE + 8, { align: "center" });
             }
         }
 

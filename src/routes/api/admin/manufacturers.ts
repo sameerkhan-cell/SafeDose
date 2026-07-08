@@ -12,8 +12,11 @@ export const Route = createAPIFileRoute("/api/admin/manufacturers")({
                 "DRAP_ADMIN",
                 "REGULATOR",
             ]);
-            
-            const manufacturers = await ManufacturerReportService.listManufacturers();
+
+            const url = new URL(request.url);
+            const includeSuspended = url.searchParams.get("includeSuspended") === "true";
+
+            const manufacturers = await ManufacturerReportService.listManufacturers({ includeSuspended });
             
             return Response.json(ApiResponse.success(manufacturers, "Manufacturers loaded successfully."));
         } catch (error: any) {

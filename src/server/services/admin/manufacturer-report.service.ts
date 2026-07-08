@@ -5,8 +5,11 @@ export class ManufacturerReportService {
     /**
      * Lists all manufacturers with basic profile info, medicine counts, and batch counts.
      */
-    static async listManufacturers() {
+    static async listManufacturers(options: { includeSuspended?: boolean } = {}) {
+        const { includeSuspended = false } = options;
+
         const manufacturers = await prisma.manufacturer.findMany({
+            where: { isSuspended: includeSuspended },
             select: {
                 id: true,
                 companyName: true,
@@ -21,6 +24,8 @@ export class ManufacturerReportService {
                 verificationStatus: true,
                 registrationDate: true,
                 website: true,
+                isSuspended: true,
+                suspendedAt: true,
                 medicines: {
                     select: {
                         _count: {
@@ -54,6 +59,8 @@ export class ManufacturerReportService {
                 verificationStatus: m.verificationStatus,
                 registrationDate: m.registrationDate?.toISOString() ?? null,
                 website: m.website,
+                isSuspended: m.isSuspended,
+                suspendedAt: m.suspendedAt?.toISOString() ?? null,
                 medicineCount,
                 batchCount,
             };

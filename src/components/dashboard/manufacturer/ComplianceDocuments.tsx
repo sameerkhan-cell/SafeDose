@@ -54,20 +54,24 @@ export function ComplianceDocuments() {
         expiryDate: "",
     });
 
-    const load = useCallback(async () => {
-        setLoading(true);
+    const load = useCallback(async (silent = false) => {
+        if (!silent) setLoading(true);
         const res = await manufacturerDocumentsService.list();
         if (res.success && res.data) {
             setDocuments(res.data.documents);
             setCompliance(res.data.compliance);
-        } else {
+        } else if (!silent) {
             toast.error(res.error?.message ?? "Failed to load documents.");
         }
-        setLoading(false);
+        if (!silent) setLoading(false);
     }, []);
 
     useEffect(() => {
         void load();
+        const refreshInterval = setInterval(() => {
+            void load(true);
+        }, 10000); // Poll every 10s silently
+        return () => clearInterval(refreshInterval);
     }, [load]);
 
     const handleUpload = async (e: React.FormEvent) => {
