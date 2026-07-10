@@ -294,7 +294,7 @@
   }
 
   .text-gradient-vivid {
-    background: linear-gradient(135deg, oklch(0.55 0.18 295), oklch(0.50 0.20 265), oklch(0.55 0.17 210));
+    background: linear-gradient(135deg, oklch(51.282% 0.16793 277.915), oklch(0.50 0.20 265), oklch(0.55 0.17 210));
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;

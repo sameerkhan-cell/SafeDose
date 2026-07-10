@@ -326,8 +326,140 @@ export class PrintingService {
     }
 
     /**
+     * Generates a PDF for a sheet of Carton QRs.
+     * Layout: Grid of Carton QR codes on A4, mirroring generateBoxQrSheetPdf exactly.
+     */
+    static async generateCartonQrSheetPdf(
+        batch: MedicineBatch,
+        cartons: { id: string; cartonNumber: string; qrCode: string }[]
+    ): Promise<Blob> {
+        const doc = new jsPDF({
+            unit: "mm",
+            format: "a4",
+        });
+
+        const MARGIN_X = 10;
+        const MARGIN_Y = 22;        // vertical space reserved for the per-page header
+        const QR_SIZE = 8;         // 0.8 cm per QR image
+        const CELL_W = QR_SIZE + 5; // 13 mm per column  (QR + horizontal gap)
+        // CELL_H derivation: identical to box sheet — 17 mm (QR_SIZE + 9).
+        // Caption shows only the last segment of the code (e.g. "Carton: C1"),
+        // always short enough to fit CELL_W at font size 4.
+        const CELL_H = QR_SIZE + 9; // 17 mm per row
+        const COLS = 12;
+
+        const PAGE_H = doc.internal.pageSize.getHeight();
+        const USABLE_H = PAGE_H - MARGIN_Y - 10;
+        const ROWS_PER_PAGE = Math.floor(USABLE_H / CELL_H);
+        const CELLS_PER_PAGE = COLS * ROWS_PER_PAGE;
+
+        const totalPages = Math.ceil(cartons.length / CELLS_PER_PAGE);
+
+        const addPageHeader = (pageNum: number) => {
+            doc.setFontSize(10);
+            doc.setFont("helvetica", "bold");
+            doc.setTextColor(0, 0, 0);
+            doc.text("MediVerify · Carton QR Print Sheet", MARGIN_X, 8);
+
+            doc.setFontSize(7);
+            doc.setFont("helvetica", "normal");
+            doc.setTextColor(100, 100, 100);
+            doc.text(
+                `${batch.medicineName} — Batch: ${batch.batchNumber} — Total Cartons: ${cartons.length}  (Page ${pageNum} of ${totalPages})`,
+                MARGIN_X, 14
+            );
+
+            doc.setDrawColor(200, 200, 200);
+            doc.line(MARGIN_X, 16, doc.internal.pageSize.getWidth() - MARGIN_X, 16);
+        };
+
+        addPageHeader(1);
+
+        const qrOpts = { margin: 1, width: 80, errorCorrectionLevel: 'L' as const };
+
+        const CHUNK_SIZE = 48;
+        for (let chunkStart = 0; chunkStart < cartons.length; chunkStart += CHUNK_SIZE) {
+            const chunk = cartons.slice(chunkStart, chunkStart + CHUNK_SIZE);
+
+            const rendered = await Promise.all(
+                chunk.map(async (carton) => {
+                    try {
+                        const dataUrl = await QRCode.toDataURL(carton.qrCode, qrOpts);
+                        return { dataUrl, carton };
+                    } catch {
+                        return { dataUrl: null, carton };
+                    }
+                })
+            );
+
+            for (let localIdx = 0; localIdx < rendered.length; localIdx++) {
+                const { dataUrl, carton } = rendered[localIdx];
+                const i = chunkStart + localIdx;
+                const posOnPage = i % CELLS_PER_PAGE;
+
+                if (posOnPage === 0 && i > 0) {
+                    doc.addPage();
+                    addPageHeader(Math.floor(i / CELLS_PER_PAGE) + 1);
+                }
+
+                const col = posOnPage % COLS;
+                const row = Math.floor(posOnPage / COLS);
+                const x = MARGIN_X + col * CELL_W;
+                const y = MARGIN_Y + row * CELL_H;
+
+                if (dataUrl) {
+                    doc.addImage(dataUrl, "PNG", x, y, QR_SIZE, QR_SIZE);
+                } else {
+                    console.error(`Failed to generate QR for carton ${carton.cartonNumber}`);
+                }
+
+                doc.setFontSize(4.5);
+                doc.setFont("courier", "bold");
+                doc.setTextColor(80, 80, 80);
+                doc.setLineHeightFactor(1.15);
+                const fullCode = String(carton.qrCode || "");
+                const parts = fullCode.split('-');
+                let displayLines = [fullCode];
+                if (parts.length >= 6) {
+                    // 6+ segments: keep last 1 segment (C-index) as line 3
+                    displayLines = [
+                        parts.slice(0, 2).join('-') + '-',
+                        parts.slice(2, parts.length - 1).join('-') + '-',
+                        parts.slice(parts.length - 1).join('-')
+                    ];
+                } else if (parts.length >= 5) {
+                    displayLines = [
+                        parts.slice(0, 2).join('-') + '-',
+                        parts.slice(2, 4).join('-') + '-',
+                        parts.slice(4).join('-')
+                    ];
+                } else if (parts.length >= 3) {
+                    displayLines = [
+                        parts.slice(0, 2).join('-') + '-',
+                        parts.slice(2).join('-')
+                    ];
+                }
+                doc.text(displayLines, x + QR_SIZE / 2, y + QR_SIZE + 2, { align: "center" });
+
+                // Show only the last hyphen-separated segment (e.g. "C1" from
+                // "MFG-SAM001-BAT-MRBZ38YW-C1") — always fits CELL_W at font 4.
+                const cartonParts = String(carton.qrCode || '').split('-');
+                const shortId = cartonParts.length >= 1
+                    ? cartonParts[cartonParts.length - 1]
+                    : String(carton.qrCode || '');
+                doc.setFont("helvetica", "normal");
+                doc.setFontSize(4);
+                doc.text(`Carton: ${shortId}`, x + QR_SIZE / 2, y + QR_SIZE + 8, { align: "center" });
+            }
+        }
+
+        return doc.output("blob");
+    }
+
+    /**
      * Generates a comprehensive Batch Report PDF.
      */
+
     static async generateBatchReportPdf(batch: MedicineBatch, totalPills: number): Promise<Blob> {
         const doc = new jsPDF();
         const pageWidth = doc.internal.pageSize.getWidth();

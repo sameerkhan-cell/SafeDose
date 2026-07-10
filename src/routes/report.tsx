@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, MapPin, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Shield, Loader2 } from "lucide-react";
+import { Upload, MapPin, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Shield, Loader2, Sparkles } from "lucide-react";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { DashShell } from "@/components/dashboard/DashShell";
 import { DASH_NAV } from "@/config/nav";
@@ -15,6 +15,13 @@ import { TiltCard } from "@/components/motion/TiltCard";
 import { ease } from "@/lib/motion";
 
 export const Route = createFileRoute("/report")({
+  validateSearch: (search: Record<string, unknown>) => {
+    return {
+      medicineName: (search.medicineName as string) || undefined,
+      batchNumber: (search.batchNumber as string) || undefined,
+      source: (search.source as string) || undefined,
+    };
+  },
   head: () => ({ meta: [{ title: "Report Fake Medicine — MediVerify" }, { name: "description", content: "Submit a fake medicine report. Auto-routed to DRAP for action." }] }),
   component: Page,
 });
@@ -22,6 +29,7 @@ export const Route = createFileRoute("/report")({
 const STAGES = ["Submitted", "DRAP review", "Lab analysis", "Resolved"];
 
 function Page() {
+  const { medicineName, batchNumber, source } = Route.useSearch();
   const { isAuthenticated, isLoading } = useAuth();
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -133,14 +141,22 @@ function Page() {
             {/* Top accent */}
             <div className="absolute top-0 left-0 right-0 h-[2px] bg-gradient-to-r from-destructive via-warning to-primary" />
             <div className="absolute inset-0 holo pointer-events-none opacity-20" />
+            
+            {source === "scan" && (
+              <div className="flex items-center gap-2 rounded-xl bg-primary/8 border border-primary/20 px-3.5 py-2 text-[12px] font-semibold text-primary">
+                <Sparkles className="h-4 w-4 text-primary animate-pulse shrink-0" />
+                <span>Auto-filled from your recent scan</span>
+              </div>
+            )}
+            
             <div className="grid gap-5 sm:grid-cols-2">
               <div>
                 <Label className="text-[13px] font-medium">Medicine name</Label>
-                <Input name="medicineName" className="mt-2 rounded-xl" placeholder="e.g. Augmentin 625" required maxLength={120} />
+                <Input name="medicineName" defaultValue={medicineName} className="mt-2 rounded-xl" placeholder="e.g. Augmentin 625" required maxLength={120} />
               </div>
               <div>
                 <Label className="text-[13px] font-medium">Batch number</Label>
-                <Input name="batchNumber" className="mt-2 rounded-xl" placeholder="e.g. AUG-77821-C" required maxLength={60} />
+                <Input name="batchNumber" defaultValue={batchNumber} className="mt-2 rounded-xl" placeholder="e.g. AUG-77821-C" required maxLength={60} />
               </div>
             </div>
             <div className="grid gap-5 sm:grid-cols-2">

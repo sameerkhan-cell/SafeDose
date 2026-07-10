@@ -64,7 +64,9 @@ import { Route as ApiAuthLoginRouteImport } from './routes/api/auth/login'
 import { Route as ApiAuthGoogleRouteImport } from './routes/api/auth/google'
 import { Route as ApiAuthForgotPasswordRouteImport } from './routes/api/auth/forgot-password'
 import { Route as ApiAuthChangePasswordRouteImport } from './routes/api/auth/change-password'
+import { Route as ApiAiMedicineChatRouteImport } from './routes/api/ai/medicine-chat'
 import { Route as ApiAiInsightsRouteImport } from './routes/api/ai/insights'
+import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAdminRecallsRouteImport } from './routes/api/admin/recalls'
 import { Route as ApiAdminMedicinesRouteImport } from './routes/api/admin/medicines'
 import { Route as ApiAdminManufacturersRouteImport } from './routes/api/admin/manufacturers'
@@ -83,6 +85,7 @@ import { Route as ApiAdminRecallCreateRouteImport } from './routes/api/admin/rec
 import { Route as ApiAdminPharmacyBlacklistRouteImport } from './routes/api/admin/pharmacy/blacklist'
 import { Route as ApiAdminMedicinesIdRouteImport } from './routes/api/admin/medicines.$id'
 import { Route as ApiManufacturerBatchIdAssetsRouteImport } from './routes/api/manufacturer/batch.$id.assets'
+import { Route as ApiAdminReportsIdStatusRouteImport } from './routes/api/admin/reports.$id.status'
 import { Route as ApiAdminManufacturersIdUnverifyRouteImport } from './routes/api/admin/manufacturers.$id.unverify'
 import { Route as ApiAdminManufacturersIdSuspendRouteImport } from './routes/api/admin/manufacturers.$id.suspend'
 import { Route as ApiAdminManufacturersIdRestoreRouteImport } from './routes/api/admin/manufacturers.$id.restore'
@@ -371,9 +374,19 @@ const ApiAuthChangePasswordRoute = ApiAuthChangePasswordRouteImport.update({
   path: '/api/auth/change-password',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAiMedicineChatRoute = ApiAiMedicineChatRouteImport.update({
+  id: '/api/ai/medicine-chat',
+  path: '/api/ai/medicine-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAiInsightsRoute = ApiAiInsightsRouteImport.update({
   id: '/api/ai/insights',
   path: '/api/ai/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAdminReportsRoute = ApiAdminReportsRouteImport.update({
+  id: '/api/admin/reports',
+  path: '/api/admin/reports',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAdminRecallsRoute = ApiAdminRecallsRouteImport.update({
@@ -474,6 +487,11 @@ const ApiManufacturerBatchIdAssetsRoute =
     path: '/assets',
     getParentRoute: () => ApiManufacturerBatchIdRoute,
   } as any)
+const ApiAdminReportsIdStatusRoute = ApiAdminReportsIdStatusRouteImport.update({
+  id: '/$id/status',
+  path: '/$id/status',
+  getParentRoute: () => ApiAdminReportsRoute,
+} as any)
 const ApiAdminManufacturersIdUnverifyRoute =
   ApiAdminManufacturersIdUnverifyRouteImport.update({
     id: '/$id/unverify',
@@ -553,7 +571,9 @@ export interface FileRoutesByFullPath {
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
+  '/api/admin/reports': typeof ApiAdminReportsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
+  '/api/ai/medicine-chat': typeof ApiAiMedicineChatRoute
   '/api/auth/change-password': typeof ApiAuthChangePasswordRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/google': typeof ApiAuthGoogleRoute
@@ -605,6 +625,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
   '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
+  '/api/admin/reports/$id/status': typeof ApiAdminReportsIdStatusRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
 export interface FileRoutesByTo {
@@ -637,7 +658,9 @@ export interface FileRoutesByTo {
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
+  '/api/admin/reports': typeof ApiAdminReportsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
+  '/api/ai/medicine-chat': typeof ApiAiMedicineChatRoute
   '/api/auth/change-password': typeof ApiAuthChangePasswordRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/google': typeof ApiAuthGoogleRoute
@@ -689,6 +712,7 @@ export interface FileRoutesByTo {
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
   '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
+  '/api/admin/reports/$id/status': typeof ApiAdminReportsIdStatusRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
 export interface FileRoutesById {
@@ -722,7 +746,9 @@ export interface FileRoutesById {
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
+  '/api/admin/reports': typeof ApiAdminReportsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
+  '/api/ai/medicine-chat': typeof ApiAiMedicineChatRoute
   '/api/auth/change-password': typeof ApiAuthChangePasswordRoute
   '/api/auth/forgot-password': typeof ApiAuthForgotPasswordRoute
   '/api/auth/google': typeof ApiAuthGoogleRoute
@@ -774,6 +800,7 @@ export interface FileRoutesById {
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
   '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
+  '/api/admin/reports/$id/status': typeof ApiAdminReportsIdStatusRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
 export interface FileRouteTypes {
@@ -808,7 +835,9 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
+    | '/api/admin/reports'
     | '/api/ai/insights'
+    | '/api/ai/medicine-chat'
     | '/api/auth/change-password'
     | '/api/auth/forgot-password'
     | '/api/auth/google'
@@ -860,6 +889,7 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
     | '/api/admin/manufacturers/$id/unverify'
+    | '/api/admin/reports/$id/status'
     | '/api/manufacturer/batch/$id/assets'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -892,7 +922,9 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
+    | '/api/admin/reports'
     | '/api/ai/insights'
+    | '/api/ai/medicine-chat'
     | '/api/auth/change-password'
     | '/api/auth/forgot-password'
     | '/api/auth/google'
@@ -944,6 +976,7 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
     | '/api/admin/manufacturers/$id/unverify'
+    | '/api/admin/reports/$id/status'
     | '/api/manufacturer/batch/$id/assets'
   id:
     | '__root__'
@@ -976,7 +1009,9 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
+    | '/api/admin/reports'
     | '/api/ai/insights'
+    | '/api/ai/medicine-chat'
     | '/api/auth/change-password'
     | '/api/auth/forgot-password'
     | '/api/auth/google'
@@ -1028,6 +1063,7 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
     | '/api/admin/manufacturers/$id/unverify'
+    | '/api/admin/reports/$id/status'
     | '/api/manufacturer/batch/$id/assets'
   fileRoutesById: FileRoutesById
 }
@@ -1056,7 +1092,9 @@ export interface RootRouteChildren {
   ApiAdminManufacturersRoute: typeof ApiAdminManufacturersRouteWithChildren
   ApiAdminMedicinesRoute: typeof ApiAdminMedicinesRouteWithChildren
   ApiAdminRecallsRoute: typeof ApiAdminRecallsRouteWithChildren
+  ApiAdminReportsRoute: typeof ApiAdminReportsRouteWithChildren
   ApiAiInsightsRoute: typeof ApiAiInsightsRoute
+  ApiAiMedicineChatRoute: typeof ApiAiMedicineChatRoute
   ApiAuthChangePasswordRoute: typeof ApiAuthChangePasswordRoute
   ApiAuthForgotPasswordRoute: typeof ApiAuthForgotPasswordRoute
   ApiAuthGoogleRoute: typeof ApiAuthGoogleRoute
@@ -1480,11 +1518,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthChangePasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/ai/medicine-chat': {
+      id: '/api/ai/medicine-chat'
+      path: '/api/ai/medicine-chat'
+      fullPath: '/api/ai/medicine-chat'
+      preLoaderRoute: typeof ApiAiMedicineChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/ai/insights': {
       id: '/api/ai/insights'
       path: '/api/ai/insights'
       fullPath: '/api/ai/insights'
       preLoaderRoute: typeof ApiAiInsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/admin/reports': {
+      id: '/api/admin/reports'
+      path: '/api/admin/reports'
+      fullPath: '/api/admin/reports'
+      preLoaderRoute: typeof ApiAdminReportsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/admin/recalls': {
@@ -1612,6 +1664,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/manufacturer/batch/$id/assets'
       preLoaderRoute: typeof ApiManufacturerBatchIdAssetsRouteImport
       parentRoute: typeof ApiManufacturerBatchIdRoute
+    }
+    '/api/admin/reports/$id/status': {
+      id: '/api/admin/reports/$id/status'
+      path: '/$id/status'
+      fullPath: '/api/admin/reports/$id/status'
+      preLoaderRoute: typeof ApiAdminReportsIdStatusRouteImport
+      parentRoute: typeof ApiAdminReportsRoute
     }
     '/api/admin/manufacturers/$id/unverify': {
       id: '/api/admin/manufacturers/$id/unverify'
@@ -1761,6 +1820,18 @@ const ApiAdminRecallsRouteWithChildren = ApiAdminRecallsRoute._addFileChildren(
   ApiAdminRecallsRouteChildren,
 )
 
+interface ApiAdminReportsRouteChildren {
+  ApiAdminReportsIdStatusRoute: typeof ApiAdminReportsIdStatusRoute
+}
+
+const ApiAdminReportsRouteChildren: ApiAdminReportsRouteChildren = {
+  ApiAdminReportsIdStatusRoute: ApiAdminReportsIdStatusRoute,
+}
+
+const ApiAdminReportsRouteWithChildren = ApiAdminReportsRoute._addFileChildren(
+  ApiAdminReportsRouteChildren,
+)
+
 interface ApiManufacturerDocumentsRouteChildren {
   ApiManufacturerDocumentsIdRoute: typeof ApiManufacturerDocumentsIdRoute
   ApiManufacturerDocumentsDownloadRoute: typeof ApiManufacturerDocumentsDownloadRoute
@@ -1838,7 +1909,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminManufacturersRoute: ApiAdminManufacturersRouteWithChildren,
   ApiAdminMedicinesRoute: ApiAdminMedicinesRouteWithChildren,
   ApiAdminRecallsRoute: ApiAdminRecallsRouteWithChildren,
+  ApiAdminReportsRoute: ApiAdminReportsRouteWithChildren,
   ApiAiInsightsRoute: ApiAiInsightsRoute,
+  ApiAiMedicineChatRoute: ApiAiMedicineChatRoute,
   ApiAuthChangePasswordRoute: ApiAuthChangePasswordRoute,
   ApiAuthForgotPasswordRoute: ApiAuthForgotPasswordRoute,
   ApiAuthGoogleRoute: ApiAuthGoogleRoute,

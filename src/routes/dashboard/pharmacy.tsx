@@ -314,17 +314,6 @@ function Page() {
     }
   }, [isAuthenticated, user?.role, signOut]);
 
-  if (isLoading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <Loader2 className="h-10 w-10 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  if (!isAuthenticated) return <Navigate to="/auth/login" />;
-  if (user?.role !== "pharmacy") return <Navigate to="/auth/login" />;
-
   useEffect(() => {
     if (!session?.token) return;
     fetch("/api/pharmacy/scan-logs", {
@@ -344,6 +333,17 @@ function Page() {
       })
       .catch(() => { });
   }, [session?.token]);
+
+  if (isLoading) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-background">
+        <Loader2 className="h-10 w-10 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) return <Navigate to="/auth/login" />;
+  if (user?.role !== "pharmacy") return <Navigate to="/auth/login" />;
 
   return (
     <DashShell

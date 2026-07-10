@@ -34,6 +34,7 @@ export interface MedicineBatch {
     status: "Active" | "Recalled" | "Expired";
     boxesPerCarton?: number;
     totalCartons?: number;
+    cartonsCount?: number;
     cartons?: CartonRecord[];
     boxes?: BoxRecord[];
 }

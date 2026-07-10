@@ -46,17 +46,50 @@ export class VerificationEngine {
     // PART 1 — Routing
     // ═══════════════════════════════════
     static async verify(req: VerificationRequest): Promise<VerificationResponse> {
-        const { code } = req;
+        const type = this.classifyCodeType(req.code);
+        if (type === "CARTON") return this.verifyCarton(req);
+        if (type === "BOX") return this.verifyBox(req);
+        if (type === "PILL") return this.verifyPill(req);
+        return this.verifyBatchNumber(req);
+    }
 
+    private static classifyCodeType(code: string): "CARTON" | "BOX" | "PILL" | "BATCH" {
+        // ── LEGACY FORMAT (pre-hierarchical): fixed prefix routing ───────────
+        // Codes generated before the hierarchical QR change use a plain
+        // "TYPE-..." prefix and must continue to be routed correctly.
         if (code.startsWith("CARTON-")) {
-            return this.verifyCarton(req);
+            return "CARTON";
         } else if (code.startsWith("BOX-")) {
-            return this.verifyBox(req);
+            return "BOX";
         } else if (code.startsWith("PILL-")) {
-            return this.verifyPill(req);
-        } else {
-            return this.verifyBatchNumber(req);
+            return "PILL";
         }
+
+        // ── NEW HIERARCHICAL FORMAT: suffix-pattern routing ──────────────────
+        // New codes follow: {companyCode}-{batchNumber}-C{n}[-B{n}[-P{n}]]
+        // We identify the type by what the code ends with, working from most
+        // specific (Pill has all 3 levels) to least specific (Carton has 1).
+        //
+        //   Pill:   ends with -P<digits>  AND contains -B<digits>- AND -C<digits>-
+        //   Box:    ends with -B<digits>  AND contains -C<digits>-  (no trailing -P)
+        //   Carton: ends with -C<digits>  (no trailing -B or -P)
+
+        // Pill: …-C{n}-B{n}-P{n}
+        if (/(-C\d+-B\d+-P\d+)$/.test(code)) {
+            return "PILL";
+        }
+
+        // Box: …-C{n}-B{n}
+        if (/(-C\d+-B\d+)$/.test(code)) {
+            return "BOX";
+        }
+
+        // Carton: …-C{n}
+        if (/-C\d+$/.test(code)) {
+            return "CARTON";
+        }
+
+        return "BATCH";
     }
 
     // ═══════════════════════════════════
@@ -262,7 +295,38 @@ export class VerificationEngine {
         }
 
         if (carton.scannedAt) {
-            return this.handleFakeResult(req, "DUPLICATE: This carton was already scanned on " + carton.scannedAt.toISOString() + ".");
+            // Genuine product that has already been scanned — return DUPLICATE with full context,
+            // NOT a FAKE result, so the patient sees real manufacturer/medicine info.
+            const dupLog = await this.logVerification(req, "DUPLICATE", carton.batch.medicineId, null);
+            BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+            RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
+            return {
+                success: true,
+                resultType: "DUPLICATE",
+                medicine: carton.batch.medicine,
+                manufacturer: carton.batch.medicine.manufacturer,
+                batch: carton.batch,
+                verification: {
+                    id: dupLog.id,
+                    scanTime: dupLog.createdAt,
+                    scanLocation: req.location || "Unknown",
+                    deviceInfo: req.deviceInfo || "Web Browser",
+                    blockchainStatus: carton.batch.blockchainStatus
+                },
+                blockchain: {
+                    txHash: carton.batch.txHash,
+                    status: carton.batch.blockchainStatus,
+                    verifiedOnChain: !!carton.batch.txHash
+                },
+                warnings: ["POTENTIAL_PACKAGING_REUSE"],
+                riskScore: 40,
+                message: "DUPLICATE: This carton was already scanned on " + carton.scannedAt.toISOString() + ".",
+                cartonInfo: {
+                    cartonNumber: carton.cartonNumber,
+                    boxesCount: carton.boxesCount,
+                    boxNumbers: carton.boxes.map(b => b.boxNumber)
+                }
+            };
         }
 
         await prisma.carton.update({
@@ -337,8 +401,39 @@ export class VerificationEngine {
 
         if (scanningUser?.role === "PHARMACY") {
             if (box.pharmacyScannedAt) {
+                // Genuine product already pharmacy-scanned — return DUPLICATE with full context.
                 const existingPharmacy = box.pharmacyId ? await prisma.pharmacy.findUnique({ where: { id: box.pharmacyId } }) : null;
-                return this.handleFakeResult(req, "DUPLICATE: This box was already scanned by " + (existingPharmacy?.name ?? "another pharmacy") + " on " + box.pharmacyScannedAt.toISOString() + ". Cannot be re-verified by another pharmacy.");
+                const dupMsg = "DUPLICATE: This box was already scanned by " + (existingPharmacy?.name ?? "another pharmacy") + " on " + box.pharmacyScannedAt.toISOString() + ". Cannot be re-verified by another pharmacy.";
+                const dupLog = await this.logVerification(req, "DUPLICATE", box.batch.medicineId, null);
+                BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+                RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
+                return {
+                    success: true,
+                    resultType: "DUPLICATE",
+                    medicine: box.batch.medicine,
+                    manufacturer: box.batch.medicine.manufacturer,
+                    batch: box.batch,
+                    verification: {
+                        id: dupLog.id,
+                        scanTime: dupLog.createdAt,
+                        scanLocation: req.location || "Unknown",
+                        deviceInfo: req.deviceInfo || "Web Browser",
+                        blockchainStatus: box.batch.blockchainStatus
+                    },
+                    blockchain: {
+                        txHash: box.batch.txHash,
+                        status: box.batch.blockchainStatus,
+                        verifiedOnChain: !!box.batch.txHash
+                    },
+                    warnings: ["POTENTIAL_PACKAGING_REUSE"],
+                    riskScore: 40,
+                    message: dupMsg,
+                    supplyChain: {
+                        boxNumber: box.boxNumber,
+                        pharmacyName: existingPharmacy?.name ?? null,
+                        verifiedBy: "PHARMACY"
+                    }
+                };
             }
             await prisma.box.update({
                 where: { id: box.id },
@@ -349,7 +444,38 @@ export class VerificationEngine {
             });
         } else if (scanningUser?.role === "PATIENT" || !scanningUser) {
             if (box.patientScannedAt) {
-                return this.handleFakeResult(req, "DUPLICATE: This box QR was already verified by a patient on " + box.patientScannedAt.toISOString() + ". If this is an unopened box, please report immediately.");
+                // Genuine product already patient-scanned — return DUPLICATE with full context.
+                const dupMsg = "DUPLICATE: This box QR was already verified by a patient on " + box.patientScannedAt.toISOString() + ". If this is an unopened box, please report immediately.";
+                const dupLog = await this.logVerification(req, "DUPLICATE", box.batch.medicineId, null);
+                BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+                RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
+                return {
+                    success: true,
+                    resultType: "DUPLICATE",
+                    medicine: box.batch.medicine,
+                    manufacturer: box.batch.medicine.manufacturer,
+                    batch: box.batch,
+                    verification: {
+                        id: dupLog.id,
+                        scanTime: dupLog.createdAt,
+                        scanLocation: req.location || "Unknown",
+                        deviceInfo: req.deviceInfo || "Web Browser",
+                        blockchainStatus: box.batch.blockchainStatus
+                    },
+                    blockchain: {
+                        txHash: box.batch.txHash,
+                        status: box.batch.blockchainStatus,
+                        verifiedOnChain: !!box.batch.txHash
+                    },
+                    warnings: ["POTENTIAL_PACKAGING_REUSE"],
+                    riskScore: 40,
+                    message: dupMsg,
+                    supplyChain: {
+                        boxNumber: box.boxNumber,
+                        pharmacyName: box.pharmacy?.name ?? null,
+                        verifiedBy: "PATIENT"
+                    }
+                };
             }
             await prisma.box.update({
                 where: { id: box.id },
@@ -365,7 +491,7 @@ export class VerificationEngine {
 
         const scanCount = await prisma.verificationLog.count({ where: { code: req.code } });
         const riskLevel = this.calculateRisk(scanCount, req);
-        const resultType = isExpired ? "EXPIRED" : (isRecalled || riskLevel.score > 70) ? "SUSPICIOUS" : scanCount > 0 ? "DUPLICATE" : "GENUINE";
+        const resultType = isExpired ? "EXPIRED" : (isRecalled || riskLevel.score > 70) ? "SUSPICIOUS" : "GENUINE";
 
         const log = await this.logVerification(req, resultType, box.batch.medicineId, null);
 
@@ -428,7 +554,42 @@ export class VerificationEngine {
         }
 
         if (pill.qrScanned) {
-            return this.handleFakeResult(req, "DUPLICATE: This pill was already scanned on " + pill.scannedAt?.toISOString() + ". Each pill can only be verified once.");
+            // Genuine product already scanned — return DUPLICATE with full context.
+            const dupMsg = "DUPLICATE: This pill was already scanned on " + pill.scannedAt?.toISOString() + ". Each pill can only be verified once.";
+            const dupLog = await this.logVerification(req, "DUPLICATE", pill.batch.medicineId, pill.id);
+            BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+            RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
+            return {
+                success: true,
+                resultType: "DUPLICATE",
+                medicine: pill.batch.medicine,
+                manufacturer: pill.batch.medicine.manufacturer,
+                batch: pill.batch,
+                pill: {
+                    serialNumber: pill.pillNumber,
+                    status: pill.status
+                },
+                verification: {
+                    id: dupLog.id,
+                    scanTime: dupLog.createdAt,
+                    scanLocation: req.location || "Unknown",
+                    deviceInfo: req.deviceInfo || "Web Browser",
+                    blockchainStatus: pill.batch.blockchainStatus
+                },
+                blockchain: {
+                    txHash: pill.blockchainTx || pill.batch.txHash,
+                    status: pill.batch.blockchainStatus,
+                    verifiedOnChain: !!(pill.blockchainTx || pill.batch.txHash)
+                },
+                warnings: ["POTENTIAL_PACKAGING_REUSE"],
+                riskScore: 40,
+                message: dupMsg,
+                pillInfo: {
+                    pillNumber: pill.pillNumber,
+                    boxNumber: pill.box?.boxNumber ?? null,
+                    sequencePosition: "Pill " + pill.pillNumber + " from batch " + pill.batch.batchNumber
+                }
+            };
         }
 
         await prisma.pill.update({
@@ -498,15 +659,13 @@ export class VerificationEngine {
         };
         const dbStatus = statusMap[status] ?? "INVALID";
 
-        let type = "BATCH";
-        if (req.code.startsWith("CARTON-")) type = "CARTON";
-        else if (req.code.startsWith("BOX-")) type = "BOX";
-        else if (req.code.startsWith("PILL-")) type = "PILL";
+        const type = this.classifyCodeType(req.code);
 
         return await prisma.verificationLog.create({
             data: {
                 userId: req.userId,
-                medicineId,
+                // Note: The VerificationLog model in schema.prisma has no medicineId column,
+                // so we do not persist it to the database to prevent database creation crashes.
                 pillId,
                 code: req.code,
                 type,

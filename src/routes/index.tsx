@@ -47,7 +47,17 @@ function Landing() {
   const ctaRef = useGlowOnScroll();
   useHeroTimeline(heroRef);
 
-
+  // Redirect manufacturer or pharmacy users to their respective dashboards.
+  // We place this check AFTER all hook invocations to ensure hooks are called 
+  // unconditionally on every render, adhering strictly to the Rules of Hooks.
+  if (isAuthenticated) {
+    if (user?.role === "manufacturer") {
+      return <Navigate to="/dashboard/manufacturer" />;
+    }
+    if (user?.role === "pharmacy") {
+      return <Navigate to="/dashboard/pharmacy" />;
+    }
+  }
 
   return (
     <SiteLayout>

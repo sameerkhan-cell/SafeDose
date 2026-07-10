@@ -11,6 +11,7 @@ import { DashShell } from "@/components/dashboard/DashShell";
 import { Button } from "@/components/ui/button";
 import { DocumentReviewPanel } from "@/components/dashboard/admin/DocumentReviewPanel";
 import { ManufacturersPanel } from "@/components/dashboard/admin/ManufacturersPanel";
+import { ReportsPanel } from "@/components/dashboard/admin/ReportsPanel";
 
 export const Route = createFileRoute("/dashboard/admin")({
   component: Page,
@@ -400,7 +401,7 @@ function Page() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers">("medicines");
+  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers" | "reports">("medicines");
   const [showMedicineForm, setShowMedicineForm] = useState(false);
   const [showSequenceForm, setShowSequenceForm] = useState(false);
   const [showRecallForm, setShowRecallForm] = useState(false);
@@ -464,10 +465,10 @@ function Page() {
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-secondary/30 rounded-xl p-1 w-fit">
-          {(["medicines", "sequences", "recalls", "documents", "manufacturers"] as const).map(tab => (
+        <div className="flex gap-1 bg-secondary/30 rounded-xl p-1 w-fit flex-wrap">
+          {(["medicines", "sequences", "recalls", "documents", "manufacturers", "reports"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${activeTab === tab ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : tab === "recalls" ? "Recall Alerts" : tab === "documents" ? "Document Review" : "Manufacturers"}
+              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : tab === "recalls" ? "Recall Alerts" : tab === "documents" ? "Document Review" : tab === "manufacturers" ? "Manufacturers" : "Reports"}
             </button>
           ))}
         </div>
@@ -594,6 +595,11 @@ function Page() {
         {/* ── MANUFACTURERS TAB ── */}
         {activeTab === "manufacturers" && (
           <ManufacturersPanel />
+        )}
+
+        {/* ── REPORTS TAB ── */}
+        {activeTab === "reports" && (
+          <ReportsPanel />
         )}
       </div>
 

@@ -403,7 +403,7 @@ export class BatchService {
             },
             include: {
                 medicine: { include: { manufacturer: true } },
-                _count: { select: { pills: true } },
+                _count: { select: { pills: true, cartons: true } },
             },
             orderBy: { createdAt: "desc" },
         });
@@ -422,7 +422,8 @@ export class BatchService {
                 medicine: { include: { manufacturer: true } },
                 pills: options.allPills ? true : { take: 50 },
                 qrAssets: { orderBy: { createdAt: "desc" } },
-                _count: { select: { pills: true } },
+                cartons: { orderBy: { createdAt: "asc" } },
+                _count: { select: { pills: true, cartons: true } },
                 boxes: true,
             },
         });

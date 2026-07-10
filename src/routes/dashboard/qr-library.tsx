@@ -59,9 +59,6 @@ function BatchDetailPanel({
     const [batchPills, setBatchPills] = useState<PillRecord[]>([]);
     const [isLoading, setIsLoading] = useState(true);
 
-    const boxQrRef = useRef<HTMLDivElement>(null);
-    const pillQrRef = useRef<HTMLDivElement>(null);
-    const samplePill = batchPills[0];
     const status = STATUS_CFG[batch.status as keyof typeof STATUS_CFG] ?? STATUS_CFG.Active;
 
     useEffect(() => {
@@ -83,6 +80,18 @@ function BatchDetailPanel({
                         txHash: b.txHash || initialBatch.txHash,
                         qrGenerationStatus: (b.blockchainStatus || "completed").toLowerCase(),
                         totalPills: b._count?.pills ?? b.totalPillsGenerated ?? initialBatch.totalPills,
+                        cartons: Array.isArray(b.cartons) ? b.cartons.map((c: any) => ({
+                            id: c.id,
+                            cartonNumber: c.cartonNumber,
+                            qrCode: c.qrCode,
+                            boxesCount: c.boxesCount ?? 0,
+                        })) : initialBatch.cartons ?? [],
+                        boxes: Array.isArray(b.boxes) ? b.boxes.map((bx: any) => ({
+                            id: bx.id,
+                            boxNumber: bx.boxNumber,
+                            qrCode: bx.qrCode,
+                            pillsCount: bx.pillsCount ?? 0,
+                        })) : initialBatch.boxes ?? [],
                     });
 
                     if (b.pills) {
@@ -106,33 +115,40 @@ function BatchDetailPanel({
         fetchFullDetails();
     }, [initialBatch.id]);
 
-    const getCanvas = (ref: React.RefObject<HTMLDivElement>) =>
-        ref.current?.querySelector("canvas") as HTMLCanvasElement | null;
-
-    const downloadPng = (ref: React.RefObject<HTMLDivElement>, filename: string) => {
-        const canvas = getCanvas(ref);
-        if (!canvas) { toast.error("QR canvas not ready"); return; }
-        canvas.toBlob((blob) => {
-            if (blob) saveAs(blob, `${filename}.png`);
-        });
-        toast.success("PNG downloaded!");
-    };
-
     const downloadBoxPdf = async () => {
-        const canvas = getCanvas(boxQrRef);
-        if (!canvas) { toast.error("QR canvas not ready"); return; }
-        const dataUrl = canvas.toDataURL("image/png");
-        const t = toast.loading("Generating PDF…");
+        if (!batch.boxes || batch.boxes.length === 0) {
+            toast.error("No boxes found for this batch yet.");
+            return;
+        }
+        const t = toast.loading("Generating All Box QRs Sheet PDF…");
         try {
-            const blob = await PrintingService.generateBoxQrPdf(batch, dataUrl);
-            saveAs(blob, `BoxQR_${batch.batchNumber}.pdf`);
+            const blob = await PrintingService.generateBoxQrSheetPdf(batch, batch.boxes as { id: string; boxNumber: string; qrCode: string }[]);
+            saveAs(blob, `AllBoxQRs_${batch.batchNumber}.pdf`);
             toast.dismiss(t);
-            toast.success("Box QR PDF downloaded!");
+            toast.success("All Box QRs Sheet downloaded!");
         } catch {
             toast.dismiss(t);
             toast.error("PDF generation failed");
         }
     };
+
+    const downloadCartonSheetPdf = async () => {
+        if (!batch.cartons || batch.cartons.length === 0) {
+            toast.error("No cartons generated for this batch yet.");
+            return;
+        }
+        const t = toast.loading("Generating All Carton QRs Sheet PDF…");
+        try {
+            const blob = await PrintingService.generateCartonQrSheetPdf(batch, batch.cartons as { id: string; cartonNumber: string; qrCode: string }[]);
+            saveAs(blob, `AllCartonQRs_${batch.batchNumber}.pdf`);
+            toast.dismiss(t);
+            toast.success("All Carton QRs Sheet downloaded!");
+        } catch {
+            toast.dismiss(t);
+            toast.error("PDF generation failed");
+        }
+    };
+
 
     const downloadPillSheetPdf = async () => {
         const pillCount = batch.totalPills || batchPills.length;
@@ -247,20 +263,7 @@ function BatchDetailPanel({
         }
     };
 
-    const printQR = (ref: React.RefObject<HTMLDivElement>, title: string) => {
-        const canvas = getCanvas(ref);
-        if (!canvas) { toast.error("QR canvas not ready"); return; }
-        const dataUrl = canvas.toDataURL("image/png");
-        const win = window.open("", "_blank");
-        if (!win) return;
-        win.document.write(`
-      <html><head><title>Print — ${title}</title>
-      <style>body{margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;background:#fff;}
-      img{max-width:300px;max-height:300px;}</style></head>
-      <body><img src="${dataUrl}" onload="window.print();window.close();"/></body></html>
-    `);
-        win.document.close();
-    };
+
 
     return (
         <motion.div
@@ -291,50 +294,6 @@ function BatchDetailPanel({
                     <span className="font-mono text-[12px] text-muted-foreground bg-secondary/40 px-3 py-1 rounded-lg">{batch.batchNumber}</span>
                 </div>
 
-                {/* QR Codes */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {/* Box QR */}
-                    <div className="rounded-2xl border border-border/40 bg-secondary/20 p-4 flex flex-col items-center gap-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                            <Box className="h-3 w-3" /> Box QR
-                        </p>
-                        <div ref={boxQrRef} className="rounded-xl overflow-hidden bg-white p-2 shadow-sm">
-                            <QRCodeCanvas value={batch.boxQrCode || `BOX-${batch.batchNumber}`} size={120} level="H" bgColor="#ffffff" fgColor="#0a0c18" />
-                        </div>
-                        <div className="flex gap-1.5 w-full">
-                            <Button size="sm" variant="outline" className="flex-1 rounded-lg text-[10px] h-7 gap-1" onClick={() => downloadPng(boxQrRef, `BoxQR_${batch.batchNumber}`)}>
-                                <Download className="h-3 w-3" /> PNG
-                            </Button>
-                            <Button size="sm" variant="outline" className="flex-1 rounded-lg text-[10px] h-7 gap-1" onClick={downloadBoxPdf}>
-                                <FileText className="h-3 w-3" /> PDF
-                            </Button>
-                            <Button size="sm" variant="outline" className="flex-1 rounded-lg text-[10px] h-7 gap-1" onClick={() => printQR(boxQrRef, `Box QR — ${batch.batchNumber}`)}>
-                                <Printer className="h-3 w-3" /> Print
-                            </Button>
-                        </div>
-                    </div>
-
-                    {/* Pill QR (sample) */}
-                    <div className="rounded-2xl border border-border/40 bg-secondary/20 p-4 flex flex-col items-center gap-3">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                            <Pill className="h-3 w-3" /> Pill #001
-                        </p>
-                        <div ref={pillQrRef} className="rounded-xl overflow-hidden bg-white p-2 shadow-sm">
-                            <QRCodeCanvas value={samplePill?.pillQrCode || `PILL-${batch.batchNumber}-001`} size={120} level="H" bgColor="#ffffff" fgColor="#0a0c18" />
-                        </div>
-                        <div className="flex gap-1.5 w-full">
-                            <Button size="sm" variant="outline" className="flex-1 rounded-lg text-[10px] h-7 gap-1" onClick={() => downloadPng(pillQrRef, `PillQR_${batch.batchNumber}_001`)}>
-                                <Download className="h-3 w-3" /> PNG
-                            </Button>
-                            <Button size="sm" variant="outline" className="flex-1 rounded-lg text-[10px] h-7 gap-1" onClick={downloadPillSheetPdf}>
-                                <FileText className="h-3 w-3" /> Sheet
-                            </Button>
-                            <Button size="sm" variant="outline" className="flex-1 rounded-lg text-[10px] h-7 gap-1" onClick={() => printQR(pillQrRef, `Pill QR — ${batch.batchNumber}`)}>
-                                <Printer className="h-3 w-3" /> Print
-                            </Button>
-                        </div>
-                    </div>
-                </div>
 
                 {/* Medicine Details */}
                 <div className="rounded-2xl border border-border/40 bg-secondary/20 p-5 space-y-3">
@@ -399,7 +358,10 @@ function BatchDetailPanel({
                 <div className="rounded-2xl border border-border/40 bg-secondary/20 p-5 space-y-2">
                     <h3 className="text-[12px] font-bold uppercase tracking-wider text-muted-foreground mb-3">Export Options</h3>
                     <Button className="w-full rounded-xl h-10 gap-2 text-[13px] bg-gradient-primary shadow-elegant" onClick={downloadBoxPdf}>
-                        <FileText className="h-4 w-4" /> Download Box QR Label PDF
+                        <FileText className="h-4 w-4" /> Download All Box QRs (Sheet PDF)
+                    </Button>
+                    <Button variant="outline" className="w-full rounded-xl h-10 gap-2 text-[13px]" onClick={downloadCartonSheetPdf}>
+                        <Archive className="h-4 w-4" /> Download All Carton QRs (Sheet PDF)
                     </Button>
                     <Button variant="outline" className="w-full rounded-xl h-10 gap-2 text-[13px]" onClick={downloadPillSheetPdf}>
                         <ArrowDown className="h-4 w-4" /> Download Pill QR Sheet PDF
@@ -454,9 +416,10 @@ function BatchCard({ batch, pills, onClick }: { batch: MedicineBatch; pills: Pil
                 </div>
 
                 {/* Stats row */}
-                <div className="grid grid-cols-3 gap-2 mb-4">
+                <div className="grid grid-cols-4 gap-2 mb-4">
                     {[
                         { icon: Package, label: "Boxes", value: (batch.quantityBoxes ?? 0).toLocaleString() },
+                        { icon: Archive, label: "Cartons", value: (batch.cartonsCount ?? 0).toLocaleString() },
                         { icon: Pill, label: "Pills", value: (batch.totalPills ?? 0).toLocaleString() },
                         { icon: suspectedCount > 0 ? AlertTriangle : CheckCircle2, label: "Alerts", value: suspectedCount.toString(), tone: suspectedCount > 0 ? "text-warning-foreground" : "text-success" },
                     ].map(({ icon: Icon, label, value, tone }) => (
@@ -536,12 +499,12 @@ function QRLibraryPage() {
                         id: b.id,
                         batchNumber: b.batchNumber,
                         medicineName: b.medicine?.name ?? "Unknown",
-                        status: b.medicineStatus === "MANUFACTURED" ? "Active" :
+                        status: (b.medicineStatus === "MANUFACTURED" ? "Active" :
                             b.medicineStatus === "RECALLED" ? "Recalled" :
                                 b.medicineStatus === "EXPIRED" ? "Expired" :
                                     b.status === "ACTIVE" ? "Active" :
                                         b.status === "RECALLED" ? "Recalled" :
-                                            b.status === "EXPIRED" ? "Expired" : "Active",
+                                            b.status === "EXPIRED" ? "Expired" : "Active") as "Active" | "Recalled" | "Expired",
                         createdAt: b.createdAt,
                         quantityBoxes: b.quantityBoxes ?? 0,
                         totalPills: b.totalPillsGenerated ?? 0,
@@ -554,11 +517,19 @@ function QRLibraryPage() {
                         txHash: b.txHash || "0x" + "0".repeat(40),
                         qrGenerationStatus: b.blockchainStatus?.toLowerCase() || "completed",
                         boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`,
-                        boxesPerCarton: b.boxesPerCarton || 10
+                        boxQrScanned: false,
+                        boxesPerCarton: b.boxesPerCarton || 10,
+                        cartonsCount: b._count?.cartons ?? 0,
                     }));
 
-                    // To merge without duplicates, we filter out batches that already exist in the store by ID
-                    setBatches([...batches, ...newBatches.filter(nb => !batches.some(eb => eb.id === nb.id))]);
+                    // Server data always wins: overwrite existing store entries by ID so that
+                    // fields added later (e.g. cartonsCount) are never stale from registration time.
+                    const newBatchMap = new Map(newBatches.map(nb => [nb.id, nb]));
+                    const merged = [
+                        ...newBatches,
+                        ...batches.filter(eb => !newBatchMap.has(eb.id)),
+                    ];
+                    setBatches(merged);
                 }
             } catch (err) {
                 console.error("Fetch error:", err);
