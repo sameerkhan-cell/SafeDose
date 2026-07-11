@@ -1,7 +1,8 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Upload, MapPin, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Shield, Loader2, Sparkles } from "lucide-react";
+import { Upload, MapPin, ShieldAlert, CheckCircle2, AlertTriangle, Clock, Shield, Loader2, Sparkles, RefreshCw } from "lucide-react";
+import { toast } from "sonner";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { DashShell } from "@/components/dashboard/DashShell";
 import { DASH_NAV } from "@/config/nav";
@@ -26,17 +27,86 @@ export const Route = createFileRoute("/report")({
   component: Page,
 });
 
-const STAGES = ["Submitted", "DRAP review", "Lab analysis", "Resolved"];
+// Stages are dynamically managed in Page component
 
 function Page() {
   const { medicineName, batchNumber, source } = Route.useSearch();
   const { isAuthenticated, isLoading } = useAuth();
+  const navigate = useNavigate();
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
+  const [reportData, setReportData] = useState<{ id: string; status: string; createdAt: string; medicineName: string } | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchReportStatus = async (id: string) => {
+    setIsRefreshing(true);
+    try {
+      const raw =
+        typeof window !== "undefined"
+          ? localStorage.getItem("mediverify_session") ??
+            sessionStorage.getItem("mediverify_session")
+          : null;
+      const token = raw ? JSON.parse(raw)?.token : null;
+
+      const res = await fetch(`/api/report/${id}`, {
+        method: "GET",
+        headers: {
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+      const result = await res.json();
+      if (res.ok && result.success) {
+        setReportData({
+          id,
+          status: result.data.status,
+          createdAt: result.data.createdAt,
+          medicineName: result.data.medicineName,
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch report status:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  const handleRefresh = () => {
+    if (reportData?.id) {
+      void fetchReportStatus(reportData.id);
+    }
+  };
+
+  const getStageState = (stageIndex: number) => {
+    if (!submitted || !reportData) return { active: false, label: "Pending" };
+    
+    const status = reportData.status || "PENDING";
+    
+    if (stageIndex === 0) {
+      return { active: true, label: "Auto-acknowledged" };
+    }
+    if (stageIndex === 1) {
+      const active = status === "REVIEWING" || status === "RESOLVED";
+      return { active, label: active ? "In progress" : "Pending" };
+    }
+    if (stageIndex === 2) {
+      const active = status === "RESOLVED";
+      return { active, label: active ? "Completed" : "Pending" };
+    }
+    
+    return { active: false, label: "Pending" };
+  };
+
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!isAuthenticated) {
+      toast.error("Please log in or sign up to submit your report");
+      navigate({ to: "/auth/login" });
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
 
@@ -74,6 +144,9 @@ function Page() {
       }
 
       setSubmitted(true);
+      if (result.data?.reportId) {
+        void fetchReportStatus(result.data.reportId);
+      }
     } catch {
       setSubmitError("Network error. Please check your connection and try again.");
     } finally {
@@ -216,18 +289,52 @@ function Page() {
             transition={{ delay: 0.2, duration: 0.6, ease }}
             className="card-premium p-6 h-fit"
           >
-            <h3 className="text-[14px] font-semibold">Status tracker</h3>
-            <ol className="mt-5 space-y-5">
-              {STAGES.map((s, i) => (
-                <li key={s} className="flex items-start gap-3">
-                  <span className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[10px] font-bold transition-colors duration-300 ${i === 0 && submitted ? "bg-gradient-primary text-primary-foreground shadow-elegant" : "bg-secondary/70 text-muted-foreground"}`}>{i + 1}</span>
-                  <div>
-                    <p className="text-[13px] font-medium">{s}</p>
-                    <p className="text-[11px] text-muted-foreground">{i === 0 ? "Auto-acknowledged" : "Pending"}</p>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <div className="flex items-center justify-between">
+              <h3 className="text-[14px] font-semibold">Status tracker</h3>
+              {submitted && reportData && (
+                <button
+                  type="button"
+                  onClick={handleRefresh}
+                  disabled={isRefreshing}
+                  className="text-xs text-primary hover:underline flex items-center gap-1 disabled:opacity-50"
+                >
+                  <RefreshCw className={`h-3 w-3 ${isRefreshing ? "animate-spin" : ""}`} /> Refresh
+                </button>
+              )}
+            </div>
+
+            {submitted && reportData?.status === "DISMISSED" ? (
+              <div className="mt-5 rounded-xl border border-border/40 bg-secondary/20 p-4 text-center">
+                <AlertTriangle className="mx-auto h-8 w-8 text-muted-foreground opacity-60 animate-pulse" />
+                <p className="mt-3 text-[13px] font-semibold text-foreground">Report Closed</p>
+                <p className="mt-1.5 text-[11px] text-muted-foreground leading-relaxed">
+                  This report was reviewed and closed — no further action needed.
+                </p>
+              </div>
+            ) : (
+              <ol className="mt-5 space-y-5">
+                {["Submitted", "Under DRAP Review", "Resolved"].map((s, i) => {
+                  const state = getStageState(i);
+                  return (
+                    <li key={s} className="flex items-start gap-3">
+                      <span
+                        className={`grid h-7 w-7 shrink-0 place-items-center rounded-full text-[10px] font-bold transition-colors duration-300 ${
+                          state.active
+                            ? "bg-gradient-primary text-primary-foreground shadow-elegant"
+                            : "bg-secondary/70 text-muted-foreground"
+                        }`}
+                      >
+                        {i + 1}
+                      </span>
+                      <div>
+                        <p className="text-[13px] font-medium">{s}</p>
+                        <p className="text-[11px] text-muted-foreground">{state.label}</p>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ol>
+            )}
             <div className="mt-6 rounded-xl border border-border/40 bg-secondary/25 p-4 text-[12px] text-muted-foreground leading-relaxed">
               All reports are anonymous and reviewed within 48 hours by DRAP-certified pharmacists.
             </div>

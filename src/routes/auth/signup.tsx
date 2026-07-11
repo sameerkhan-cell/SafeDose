@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Loader2, AlertCircle, User, Building2, Stethoscope, CheckCircle2 } from "lucide-react";
+import { Eye, EyeOff, Loader2, AlertCircle, User, Stethoscope, CheckCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { PasswordStrength } from "@/components/auth/PasswordStrength";
@@ -57,7 +57,6 @@ type FormData = z.infer<typeof schema>;
 const ROLES: { value: UserRole; label: string; description: string; icon: React.ElementType }[] = [
   { value: "customer", label: "Patient / Customer", description: "Verify medicines you purchase", icon: User },
   { value: "pharmacy", label: "Pharmacy", description: "Bulk verify incoming stock", icon: Stethoscope },
-  { value: "manufacturer", label: "Manufacturer", description: "Register and manage batches", icon: Building2 },
 ];
 
 function SignUpPage() {

@@ -118,5 +118,11 @@ export const adminManufacturersService = {
             method: "POST",
         });
     },
+    createManufacturer: (data: { companyName: string; email: string; password: string }) => {
+        return authFetch<{ companyCode: string; email: string }>("/api/admin/manufacturers/create", {
+            method: "POST",
+            body: JSON.stringify(data),
+        });
+    },
 };
 

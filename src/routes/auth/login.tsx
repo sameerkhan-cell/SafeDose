@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Eye, EyeOff, Loader2, ShieldCheck, AlertCircle, User, Building2, Stethoscope } from "lucide-react";
+import { Eye, EyeOff, Loader2, ShieldCheck, AlertCircle, User, Stethoscope } from "lucide-react";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/auth/AuthLayout";
 import { authService } from "@/services/auth";
@@ -60,7 +60,6 @@ function LoginPage() {
   const ROLES: { value: string; label: string; description: string; icon: any }[] = [
     { value: "customer", label: "Patient", description: "Verify medicines", icon: User },
     { value: "pharmacy", label: "Pharmacy", description: "Bulk verification", icon: Stethoscope },
-    { value: "manufacturer", label: "Manufacturer", description: "Register batches", icon: Building2 },
   ];
 
   useEffect(() => {
@@ -386,7 +385,7 @@ function LoginPage() {
         </div>
 
         {/* Role selector for Google Login */}
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {ROLES.map((role) => {
             const Icon = role.icon;
             const selected = selectedRole === role.value;

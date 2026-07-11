@@ -35,6 +35,7 @@ import { Route as ApiHealthRouteImport } from './routes/api/health'
 import { Route as ApiVerifyIndexRouteImport } from './routes/api/verify/index'
 import { Route as ApiReportIndexRouteImport } from './routes/api/report/index'
 import { Route as ApiVerifyHistoryRouteImport } from './routes/api/verify/history'
+import { Route as ApiReportIdRouteImport } from './routes/api/report.$id'
 import { Route as ApiRegulatorStatsRouteImport } from './routes/api/regulator/stats'
 import { Route as ApiRegulatorRecallsRouteImport } from './routes/api/regulator/recalls'
 import { Route as ApiRegulatorHeatmapRouteImport } from './routes/api/regulator/heatmap'
@@ -84,6 +85,7 @@ import { Route as ApiAdminRecallsIdRouteImport } from './routes/api/admin/recall
 import { Route as ApiAdminRecallCreateRouteImport } from './routes/api/admin/recall/create'
 import { Route as ApiAdminPharmacyBlacklistRouteImport } from './routes/api/admin/pharmacy/blacklist'
 import { Route as ApiAdminMedicinesIdRouteImport } from './routes/api/admin/medicines.$id'
+import { Route as ApiAdminManufacturersCreateRouteImport } from './routes/api/admin/manufacturers/create'
 import { Route as ApiManufacturerBatchIdAssetsRouteImport } from './routes/api/manufacturer/batch.$id.assets'
 import { Route as ApiAdminReportsIdStatusRouteImport } from './routes/api/admin/reports.$id.status'
 import { Route as ApiAdminManufacturersIdUnverifyRouteImport } from './routes/api/admin/manufacturers.$id.unverify'
@@ -223,6 +225,11 @@ const ApiReportIndexRoute = ApiReportIndexRouteImport.update({
 const ApiVerifyHistoryRoute = ApiVerifyHistoryRouteImport.update({
   id: '/api/verify/history',
   path: '/api/verify/history',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiReportIdRoute = ApiReportIdRouteImport.update({
+  id: '/api/report/$id',
+  path: '/api/report/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiRegulatorStatsRoute = ApiRegulatorStatsRouteImport.update({
@@ -481,6 +488,12 @@ const ApiAdminMedicinesIdRoute = ApiAdminMedicinesIdRouteImport.update({
   path: '/$id',
   getParentRoute: () => ApiAdminMedicinesRoute,
 } as any)
+const ApiAdminManufacturersCreateRoute =
+  ApiAdminManufacturersCreateRouteImport.update({
+    id: '/create',
+    path: '/create',
+    getParentRoute: () => ApiAdminManufacturersRoute,
+  } as any)
 const ApiManufacturerBatchIdAssetsRoute =
   ApiManufacturerBatchIdAssetsRouteImport.update({
     id: '/assets',
@@ -603,9 +616,11 @@ export interface FileRoutesByFullPath {
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
   '/api/regulator/recalls': typeof ApiRegulatorRecallsRoute
   '/api/regulator/stats': typeof ApiRegulatorStatsRoute
+  '/api/report/$id': typeof ApiReportIdRoute
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
   '/api/admin/medicines/$id': typeof ApiAdminMedicinesIdRoute
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
   '/api/admin/recall/create': typeof ApiAdminRecallCreateRoute
@@ -690,9 +705,11 @@ export interface FileRoutesByTo {
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
   '/api/regulator/recalls': typeof ApiRegulatorRecallsRoute
   '/api/regulator/stats': typeof ApiRegulatorStatsRoute
+  '/api/report/$id': typeof ApiReportIdRoute
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report': typeof ApiReportIndexRoute
   '/api/verify': typeof ApiVerifyIndexRoute
+  '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
   '/api/admin/medicines/$id': typeof ApiAdminMedicinesIdRoute
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
   '/api/admin/recall/create': typeof ApiAdminRecallCreateRoute
@@ -778,9 +795,11 @@ export interface FileRoutesById {
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
   '/api/regulator/recalls': typeof ApiRegulatorRecallsRoute
   '/api/regulator/stats': typeof ApiRegulatorStatsRoute
+  '/api/report/$id': typeof ApiReportIdRoute
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
   '/api/admin/medicines/$id': typeof ApiAdminMedicinesIdRoute
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
   '/api/admin/recall/create': typeof ApiAdminRecallCreateRoute
@@ -867,9 +886,11 @@ export interface FileRouteTypes {
     | '/api/regulator/heatmap'
     | '/api/regulator/recalls'
     | '/api/regulator/stats'
+    | '/api/report/$id'
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/manufacturers/create'
     | '/api/admin/medicines/$id'
     | '/api/admin/pharmacy/blacklist'
     | '/api/admin/recall/create'
@@ -954,9 +975,11 @@ export interface FileRouteTypes {
     | '/api/regulator/heatmap'
     | '/api/regulator/recalls'
     | '/api/regulator/stats'
+    | '/api/report/$id'
     | '/api/verify/history'
     | '/api/report'
     | '/api/verify'
+    | '/api/admin/manufacturers/create'
     | '/api/admin/medicines/$id'
     | '/api/admin/pharmacy/blacklist'
     | '/api/admin/recall/create'
@@ -1041,9 +1064,11 @@ export interface FileRouteTypes {
     | '/api/regulator/heatmap'
     | '/api/regulator/recalls'
     | '/api/regulator/stats'
+    | '/api/report/$id'
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/manufacturers/create'
     | '/api/admin/medicines/$id'
     | '/api/admin/pharmacy/blacklist'
     | '/api/admin/recall/create'
@@ -1123,6 +1148,7 @@ export interface RootRouteChildren {
   ApiRegulatorHeatmapRoute: typeof ApiRegulatorHeatmapRoute
   ApiRegulatorRecallsRoute: typeof ApiRegulatorRecallsRoute
   ApiRegulatorStatsRoute: typeof ApiRegulatorStatsRoute
+  ApiReportIdRoute: typeof ApiReportIdRoute
   ApiVerifyHistoryRoute: typeof ApiVerifyHistoryRoute
   ApiReportIndexRoute: typeof ApiReportIndexRoute
   ApiVerifyIndexRoute: typeof ApiVerifyIndexRoute
@@ -1313,6 +1339,13 @@ declare module '@tanstack/react-router' {
       path: '/api/verify/history'
       fullPath: '/api/verify/history'
       preLoaderRoute: typeof ApiVerifyHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/report/$id': {
+      id: '/api/report/$id'
+      path: '/api/report/$id'
+      fullPath: '/api/report/$id'
+      preLoaderRoute: typeof ApiReportIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/regulator/stats': {
@@ -1658,6 +1691,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminMedicinesIdRouteImport
       parentRoute: typeof ApiAdminMedicinesRoute
     }
+    '/api/admin/manufacturers/create': {
+      id: '/api/admin/manufacturers/create'
+      path: '/create'
+      fullPath: '/api/admin/manufacturers/create'
+      preLoaderRoute: typeof ApiAdminManufacturersCreateRouteImport
+      parentRoute: typeof ApiAdminManufacturersRoute
+    }
     '/api/manufacturer/batch/$id/assets': {
       id: '/api/manufacturer/batch/$id/assets'
       path: '/assets'
@@ -1779,6 +1819,7 @@ const ApiAdminDocumentsRouteWithChildren =
   ApiAdminDocumentsRoute._addFileChildren(ApiAdminDocumentsRouteChildren)
 
 interface ApiAdminManufacturersRouteChildren {
+  ApiAdminManufacturersCreateRoute: typeof ApiAdminManufacturersCreateRoute
   ApiAdminManufacturersIdReportRoute: typeof ApiAdminManufacturersIdReportRoute
   ApiAdminManufacturersIdRestoreRoute: typeof ApiAdminManufacturersIdRestoreRoute
   ApiAdminManufacturersIdSuspendRoute: typeof ApiAdminManufacturersIdSuspendRoute
@@ -1786,6 +1827,7 @@ interface ApiAdminManufacturersRouteChildren {
 }
 
 const ApiAdminManufacturersRouteChildren: ApiAdminManufacturersRouteChildren = {
+  ApiAdminManufacturersCreateRoute: ApiAdminManufacturersCreateRoute,
   ApiAdminManufacturersIdReportRoute: ApiAdminManufacturersIdReportRoute,
   ApiAdminManufacturersIdRestoreRoute: ApiAdminManufacturersIdRestoreRoute,
   ApiAdminManufacturersIdSuspendRoute: ApiAdminManufacturersIdSuspendRoute,
@@ -1940,6 +1982,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiRegulatorHeatmapRoute: ApiRegulatorHeatmapRoute,
   ApiRegulatorRecallsRoute: ApiRegulatorRecallsRoute,
   ApiRegulatorStatsRoute: ApiRegulatorStatsRoute,
+  ApiReportIdRoute: ApiReportIdRoute,
   ApiVerifyHistoryRoute: ApiVerifyHistoryRoute,
   ApiReportIndexRoute: ApiReportIndexRoute,
   ApiVerifyIndexRoute: ApiVerifyIndexRoute,

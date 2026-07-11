@@ -25,6 +25,7 @@ import {
     Eye,
     Link2,
     Hash,
+    Plus,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -317,7 +318,109 @@ function ConfirmModal({
     );
 }
 
+// ─── Create Manufacturer Modal ───────────────────────────────────────────────
+
+function CreateManufacturerModal({ onClose, onCreated }: { onClose: () => void; onCreated: () => void }) {
+    const [form, setForm] = useState({ companyName: "", email: "", password: "" });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [success, setSuccess] = useState<{ companyCode: string; email: string; companyName: string } | null>(null);
+
+    const set = (k: string, v: string) => setForm((p) => ({ ...p, [k]: v }));
+
+    const handleCreate = async () => {
+        if (!form.companyName.trim() || !form.email.trim() || !form.password.trim()) {
+            setError("All fields are required.");
+            return;
+        }
+        setLoading(true);
+        setError(null);
+        try {
+            const data = await adminManufacturersService.createManufacturer(form);
+            if (!data.success) throw new Error(data.error?.message ?? "Failed to create account");
+            setSuccess({ companyCode: data.data!.companyCode, email: form.email, companyName: form.companyName });
+            onCreated();
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-card border border-border rounded-2xl w-full max-w-md shadow-2xl">
+                <div className="flex items-center justify-between p-5 border-b border-border/50">
+                    <div>
+                        <h2 className="font-semibold">Create Manufacturer Account</h2>
+                        <p className="text-xs text-muted-foreground mt-0.5">Company will verify their email with a code on first login</p>
+                    </div>
+                    <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                {!success ? (
+                    <div className="p-5 space-y-4">
+                        <div>
+                            <label className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1 block">Company Name</label>
+                            <input
+                                value={form.companyName}
+                                onChange={(e) => set("companyName", e.target.value)}
+                                placeholder="e.g. GSK Pakistan"
+                                className="w-full h-10 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1 block">Company Email</label>
+                            <input
+                                type="email"
+                                value={form.email}
+                                onChange={(e) => set("email", e.target.value)}
+                                placeholder="official@company.com"
+                                className="w-full h-10 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                        </div>
+                        <div>
+                            <label className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1 block">Temporary Password</label>
+                            <input
+                                type="text"
+                                value={form.password}
+                                onChange={(e) => set("password", e.target.value)}
+                                placeholder="Set a password to share with them"
+                                className="w-full h-10 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+                            />
+                            <p className="text-[10px] text-muted-foreground mt-1">Min 8 chars, with uppercase, lowercase, and a number.</p>
+                        </div>
+                        {error && <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
+                        <div className="flex gap-2 pt-2">
+                            <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
+                            <Button onClick={handleCreate} disabled={loading} className="flex-1">
+                                {loading ? "Creating..." : "Create Account"}
+                            </Button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="p-5 space-y-3">
+                        <div className="rounded-xl bg-green-500/10 border border-green-500/20 p-4 text-center">
+                            <p className="text-sm font-medium text-green-600">Account Created Successfully</p>
+                            <p className="text-xs text-muted-foreground mt-2">
+                                Company Code: <span className="font-mono font-semibold">{success.companyCode}</span>
+                            </p>
+                            <p className="text-xs text-muted-foreground mt-1">
+                                Share the email and password with {success.companyName}. They will verify their email with a code on first login.
+                            </p>
+                        </div>
+                        <Button onClick={onClose} className="w-full">Done</Button>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}
+
 // ─── Main Panel ──────────────────────────────────────────────────────────────
+
 
 type ModalState =
     | { type: "suspend"; id: string; companyName: string }
@@ -332,6 +435,7 @@ export function ManufacturersPanel() {
     const [report, setReport] = useState<AdminManufacturerReport | null>(null);
     const [reportLoading, setReportLoading] = useState(false);
     const [showSuspended, setShowSuspended] = useState(false);
+    const [showCreateModal, setShowCreateModal] = useState(false);
     const [modal, setModal] = useState<ModalState>(null);
     const [actionLoading, setActionLoading] = useState(false);
     const [complianceBatch, setComplianceBatch] = useState<ComplianceBatch | null>(null);
@@ -840,17 +944,26 @@ ${report.medicines.length === 0 ? "<p style='color:#9ca3af;font-size:11px;'>No r
                             Select a manufacturer to inspect registered pharmaceutical assets and QR code verification statistics
                         </p>
                     </div>
-                    <button
-                        onClick={() => setShowSuspended((v) => !v)}
-                        className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
-                            showSuspended
-                                ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
-                                : "border-border/50 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
-                        }`}
-                    >
-                        <Ban className="h-3.5 w-3.5" />
-                        {showSuspended ? "Showing Suspended Companies" : "Show Suspended Companies"}
-                    </button>
+                    <div className="flex items-center gap-2">
+                        <button
+                            onClick={() => setShowCreateModal(true)}
+                            className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-primary text-primary-foreground text-xs font-semibold transition-all hover:bg-primary/90"
+                        >
+                            <Plus className="h-3.5 w-3.5" />
+                            Create Manufacturer Account
+                        </button>
+                        <button
+                            onClick={() => setShowSuspended((v) => !v)}
+                            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                                showSuspended
+                                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/15"
+                                    : "border-border/50 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 hover:text-foreground"
+                            }`}
+                        >
+                            <Ban className="h-3.5 w-3.5" />
+                            {showSuspended ? "Showing Suspended Companies" : "Show Suspended Companies"}
+                        </button>
+                    </div>
                 </div>
 
                 {loading ? (
@@ -982,6 +1095,14 @@ ${report.medicines.length === 0 ? "<p style='color:#9ca3af;font-size:11px;'>No r
                     </div>
                 )}
             </div>
+
+            {/* Create Manufacturer Modal */}
+            {showCreateModal && (
+                <CreateManufacturerModal
+                    onClose={() => setShowCreateModal(false)}
+                    onCreated={() => { void loadManufacturers(showSuspended); }}
+                />
+            )}
         </>
     );
 }
