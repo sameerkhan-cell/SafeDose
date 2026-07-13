@@ -71,6 +71,7 @@ import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAdminRecallsRouteImport } from './routes/api/admin/recalls'
 import { Route as ApiAdminMedicinesRouteImport } from './routes/api/admin/medicines'
 import { Route as ApiAdminManufacturersRouteImport } from './routes/api/admin/manufacturers'
+import { Route as ApiAdminDrapBatchesRouteImport } from './routes/api/admin/drap-batches'
 import { Route as ApiAdminDocumentsRouteImport } from './routes/api/admin/documents'
 import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
 import { Route as ApiAdminBatchSequencesRouteImport } from './routes/api/admin/batch-sequences'
@@ -411,6 +412,11 @@ const ApiAdminManufacturersRoute = ApiAdminManufacturersRouteImport.update({
   path: '/api/admin/manufacturers',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminDrapBatchesRoute = ApiAdminDrapBatchesRouteImport.update({
+  id: '/api/admin/drap-batches',
+  path: '/api/admin/drap-batches',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminDocumentsRoute = ApiAdminDocumentsRouteImport.update({
   id: '/api/admin/documents',
   path: '/api/admin/documents',
@@ -581,6 +587,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
+  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
@@ -670,6 +677,7 @@ export interface FileRoutesByTo {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
+  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
@@ -760,6 +768,7 @@ export interface FileRoutesById {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
+  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
@@ -851,6 +860,7 @@ export interface FileRouteTypes {
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
     | '/api/admin/documents'
+    | '/api/admin/drap-batches'
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
@@ -940,6 +950,7 @@ export interface FileRouteTypes {
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
     | '/api/admin/documents'
+    | '/api/admin/drap-batches'
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
@@ -1029,6 +1040,7 @@ export interface FileRouteTypes {
     | '/api/admin/batch-sequences'
     | '/api/admin/dashboard'
     | '/api/admin/documents'
+    | '/api/admin/drap-batches'
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
     | '/api/admin/recalls'
@@ -1114,6 +1126,7 @@ export interface RootRouteChildren {
   ApiAdminBatchSequencesRoute: typeof ApiAdminBatchSequencesRoute
   ApiAdminDashboardRoute: typeof ApiAdminDashboardRoute
   ApiAdminDocumentsRoute: typeof ApiAdminDocumentsRouteWithChildren
+  ApiAdminDrapBatchesRoute: typeof ApiAdminDrapBatchesRoute
   ApiAdminManufacturersRoute: typeof ApiAdminManufacturersRouteWithChildren
   ApiAdminMedicinesRoute: typeof ApiAdminMedicinesRouteWithChildren
   ApiAdminRecallsRoute: typeof ApiAdminRecallsRouteWithChildren
@@ -1593,6 +1606,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminManufacturersRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/drap-batches': {
+      id: '/api/admin/drap-batches'
+      path: '/api/admin/drap-batches'
+      fullPath: '/api/admin/drap-batches'
+      preLoaderRoute: typeof ApiAdminDrapBatchesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/documents': {
       id: '/api/admin/documents'
       path: '/api/admin/documents'
@@ -1948,6 +1968,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminBatchSequencesRoute: ApiAdminBatchSequencesRoute,
   ApiAdminDashboardRoute: ApiAdminDashboardRoute,
   ApiAdminDocumentsRoute: ApiAdminDocumentsRouteWithChildren,
+  ApiAdminDrapBatchesRoute: ApiAdminDrapBatchesRoute,
   ApiAdminManufacturersRoute: ApiAdminManufacturersRouteWithChildren,
   ApiAdminMedicinesRoute: ApiAdminMedicinesRouteWithChildren,
   ApiAdminRecallsRoute: ApiAdminRecallsRouteWithChildren,

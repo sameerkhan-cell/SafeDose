@@ -131,7 +131,12 @@ export function UserProfileMenu({ name = "MediVerify User", email = "user@medive
 
             {/* Menu items */}
             <nav className="p-1.5">
-              {MENU_ITEMS.map(item => {
+              {MENU_ITEMS.filter(item => {
+                if (item.label === "API Access") {
+                  return role !== "customer" && role !== "pharmacy" && role !== "manufacturer";
+                }
+                return true;
+              }).map(item => {
                 const Icon = item.icon;
                 return (
                   <Link

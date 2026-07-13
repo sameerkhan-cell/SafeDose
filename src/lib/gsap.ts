@@ -53,6 +53,11 @@ export function useScrollReveal(
     const targets = el.querySelectorAll("[data-reveal]");
     const animate = targets.length > 0 ? targets : [el];
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set(animate, { opacity: 1, y: 0 });
+      return;
+    }
+
     const ctx = gsap.context(() => {
       gsap.fromTo(
         animate,
@@ -90,6 +95,10 @@ export function useSplitReveal(options: { delay?: number; stagger?: number; ease
 
     const { delay = 0.1, stagger = 0.07, ease = EASE_CINEMATIC } = options;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
+
     // Split into word spans
     const original = el.innerHTML;
     const words = el.innerText.split(" ");
@@ -102,7 +111,7 @@ export function useSplitReveal(options: { delay?: number; stagger?: number; ease
     const ctx = gsap.context(() => {
       gsap.fromTo(
         inners,
-        { y: "105%", opacity: 0 },
+        { y: "105%", opacity: 0, willChange: "transform, opacity" },
         {
           y: "0%",
           opacity: 1,
@@ -110,6 +119,7 @@ export function useSplitReveal(options: { delay?: number; stagger?: number; ease
           delay,
           stagger,
           ease,
+          clearProps: "willChange",
           scrollTrigger: {
             trigger: el,
             start: "top 90%",
@@ -135,6 +145,10 @@ export function useParallax(speed: number = 0.3) {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
 
     const ctx = gsap.context(() => {
       gsap.to(el, {
@@ -169,6 +183,11 @@ export function useStaggerReveal(
     const { y = 32, duration = 0.8, stagger = 0.12, start = "top 85%" } = options;
     const items = el.querySelectorAll(selector);
     if (!items.length) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set(items, { opacity: 1, y: 0, scale: 1 });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -205,6 +224,11 @@ export function useCounterOnScroll(target: number, duration: number = 2) {
     const el = ref.current;
     if (!el) return;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      el.textContent = target.toLocaleString();
+      return;
+    }
+
     const obj = { val: 0 };
     const ctx = gsap.context(() => {
       gsap.to(obj, {
@@ -234,15 +258,24 @@ export function useHeroTimeline(containerRef: React.RefObject<HTMLElement | null
     const el = containerRef.current;
     if (!el) return;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set("[data-hero-badge], [data-hero-h1], [data-hero-sub], [data-hero-badges], [data-hero-cta], [data-hero-mock]", {
+        opacity: 1,
+        y: 0,
+        scale: 1,
+      });
+      return;
+    }
+
     const ctx = gsap.context(() => {
       const tl = gsap.timeline({ defaults: { ease: EASE_CINEMATIC } });
 
-      tl.fromTo("[data-hero-badge]",  { opacity: 0, y: 20, scale: 0.9 }, { opacity: 1, y: 0, scale: 1, duration: 0.7 })
-        .fromTo("[data-hero-h1]",     { opacity: 0, y: 40 },             { opacity: 1, y: 0, duration: 0.9 }, "-=0.4")
-        .fromTo("[data-hero-sub]",    { opacity: 0, y: 24 },             { opacity: 1, y: 0, duration: 0.8 }, "-=0.6")
-        .fromTo("[data-hero-badges]", { opacity: 0, y: 16 },             { opacity: 1, y: 0, duration: 0.6 }, "-=0.5")
-        .fromTo("[data-hero-cta]",    { opacity: 0, y: 16, scale: 0.95 }, { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08 }, "-=0.4")
-        .fromTo("[data-hero-mock]",   { opacity: 0, y: 64, scale: 0.96 }, { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: "expo.out" }, "-=0.3");
+      tl.fromTo("[data-hero-badge]",  { opacity: 0, y: 20, scale: 0.9, willChange: "transform, opacity" }, { opacity: 1, y: 0, scale: 1, duration: 0.7, clearProps: "willChange" })
+        .fromTo("[data-hero-h1]",     { opacity: 0, y: 40, rotateX: 8, transformPerspective: 600, willChange: "transform, opacity" },             { opacity: 1, y: 0, rotateX: 0, duration: 0.9, clearProps: "transform,willChange" }, "-=0.4")
+        .fromTo("[data-hero-sub]",    { opacity: 0, y: 24, willChange: "transform, opacity" },             { opacity: 1, y: 0, duration: 0.8, clearProps: "willChange" }, "-=0.6")
+        .fromTo("[data-hero-badges]", { opacity: 0, y: 16, willChange: "transform, opacity" },             { opacity: 1, y: 0, duration: 0.6, clearProps: "willChange" }, "-=0.5")
+        .fromTo("[data-hero-cta]",    { opacity: 0, y: 16, scale: 0.95, willChange: "transform, opacity" }, { opacity: 1, y: 0, scale: 1, duration: 0.6, stagger: 0.08, clearProps: "willChange" }, "-=0.4")
+        .fromTo("[data-hero-mock]",   { opacity: 0, y: 64, scale: 0.96, willChange: "transform, opacity" }, { opacity: 1, y: 0, scale: 1, duration: 1.1, ease: "expo.out", clearProps: "willChange" }, "-=0.3");
 
       // Parallax on orbs
       gsap.to("[data-orb-1]", { y: -80, ease: "none", scrollTrigger: { trigger: el, start: "top top", end: "bottom top", scrub: 1.5 } });
@@ -265,10 +298,15 @@ export function useHorizontalStagger(options: { stagger?: number; start?: string
     const { stagger = 0.15, start = "top 80%" } = options;
     const cards = el.children;
 
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      gsap.set(cards, { opacity: 1, x: 0, rotateY: 0 });
+      return;
+    }
+
     const ctx = gsap.context(() => {
       gsap.fromTo(
         cards,
-        { opacity: 0, x: -30, rotateY: 8 },
+        { opacity: 0, x: -30, rotateY: 8, willChange: "transform, opacity" },
         {
           opacity: 1,
           x: 0,
@@ -276,6 +314,7 @@ export function useHorizontalStagger(options: { stagger?: number; start?: string
           duration: 0.85,
           stagger,
           ease: EASE_CINEMATIC,
+          clearProps: "all",
           scrollTrigger: {
             trigger: el,
             start,
@@ -298,6 +337,10 @@ export function useGlowOnScroll() {
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      return;
+    }
 
     const ctx = gsap.context(() => {
       gsap.fromTo(
@@ -331,6 +374,14 @@ export function useStatCounters() {
     if (!el) return;
 
     const counters = el.querySelectorAll<HTMLElement>("[data-count]");
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      counters.forEach((counter) => {
+        const target = Number(counter.dataset.count ?? 0);
+        counter.textContent = target.toLocaleString() + (counter.dataset.suffix ?? "");
+      });
+      return;
+    }
 
     const ctx = gsap.context(() => {
       counters.forEach((counter) => {

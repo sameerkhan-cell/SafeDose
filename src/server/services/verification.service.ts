@@ -190,46 +190,86 @@ export class VerificationEngine {
         });
 
         if (!batch) {
-            // ── STEP 4: DRAP Medicine check when batch not in our system ──────────
-            const drapEntry = await prisma.medicine.findFirst({
-                where: {
-                    isPublicDRAPEntry: true,
-                    OR: [
-                        { drapRegNumber: { contains: req.code } },
-                        { name: { contains: req.code.split("-")[0] } }
-                    ]
-                }
-            });
-
+            // ── STEP 3: Anomaly gate (format / sequence violations) ───────────────
+            // Run this before the registry lookup — a structurally impossible code
+            // cannot be in any legitimate registry, so fail fast.
             if (check.anomalous) {
                 return this.handleFakeResult(req, "SUSPICIOUS: " + check.reason + " Additionally, this batch was not found in the MediVerify database.");
             }
 
-            if (drapEntry) {
-                // Medicine is DRAP-registered but batch not in our system
+            // ── STEP 4: Exact batch-code lookup in DrapBatchRegistry ─────────────
+            // This registry holds specific, admin-confirmed batch codes for DRAP-
+            // entered legacy medicines (uploaded via CSV bulk-upload).
+            const drapBatch = await prisma.drapBatchRegistry.findUnique({
+                where: { batchCode: req.code },
+                include: { medicine: true },
+            });
+
+            if (drapBatch) {
+                // Check for any prior scan of this exact batch code (informational only —
+                // the same batch code legitimately appears on many physical units, so we
+                // never block re-scans; this is purely for the message to the user).
+                const priorScan = await prisma.drapBatchScanLog.findFirst({
+                    where: { drapBatchId: drapBatch.id },
+                    orderBy: { scannedAt: "asc" },
+                });
+
+                // Log this scan — fire-and-forget, never blocks the result.
+                prisma.drapBatchScanLog.create({
+                    data: {
+                        drapBatchId: drapBatch.id,
+                        scannedByUserId: req.userId ?? null,
+                    },
+                }).catch(console.error);
+
+                // Log to the standard verification audit trail.
+                const log = await this.logVerification(req, "GENUINE", drapBatch.medicineId, null);
+
+                // Side-effects (non-blocking).
+                BlockchainService.anchorVerification(req.code, req.location || "Unknown", "GENUINE").catch(console.error);
+                RealtimeService.broadcastVerification({ ...log, status: "GENUINE" } as any);
+                if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
+
+                const drapManufacturer = {
+                    companyName: drapBatch.companyName ?? drapBatch.medicine.manufacturer_name ?? "Not provided",
+                    licenseNumber: null,
+                    address: null,
+                    businessPhone: null,
+                    businessEmail: null,
+                };
+
+                const message = priorScan
+                    ? `This batch was previously scanned on ${priorScan.scannedAt.toISOString()}. This is expected — the same batch code can appear on multiple genuine units.`
+                    : `${drapBatch.medicine.name} — DRAP-confirmed batch. This is a genuine, registered product.`;
+
                 return {
                     success: true,
-                    resultType: "UNVERIFIED",
-                    medicine: drapEntry,
-                    manufacturer: null,
+                    resultType: "GENUINE",
+                    medicine: drapBatch.medicine,
+                    manufacturer: drapManufacturer,
                     batch: null,
                     pill: null,
                     verification: {
-                        id: "public-" + Date.now(),
-                        scanTime: new Date(),
+                        id: log.id,
+                        scanTime: log.createdAt,
                         scanLocation: req.location || "Unknown",
                         deviceInfo: req.deviceInfo || "Web",
-                        blockchainStatus: "NOT_APPLICABLE"
+                        blockchainStatus: "NOT_APPLICABLE",
                     },
                     blockchain: { txHash: null, status: "NOT_APPLICABLE", verifiedOnChain: false },
-                    warnings: ["This medicine is registered with DRAP but this specific batch is not tracked in MediVerify. The medicine itself is legitimate but batch authenticity cannot be fully confirmed."],
-                    riskScore: 30,
-                    message: `${drapEntry.name} is DRAP registered (${drapEntry.drapRegNumber ?? "N/A"}) but this batch is not in MediVerify's blockchain registry. Exercise caution.`
+                    warnings: [],
+                    riskScore: 10,
+                    message,
                 };
             }
 
-            return this.handleFakeResult(req, "This batch number was not found in the MediVerify database. The medicine may be unregistered — verify with DRAP at 0800-22222.");
+            // ── STEP 5: Not in registry, not in MediVerify — definitive FAKE ─────
+            return this.handleFakeResult(
+                req,
+                "This batch code was not found in DRAP's confirmed registry or the MediVerify database. This product cannot be verified — contact DRAP at 0800-22222."
+            );
         }
+
 
         const now = new Date();
         const isExpired = batch.expiryDate < now;

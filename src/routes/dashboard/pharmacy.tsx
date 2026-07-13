@@ -109,7 +109,7 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
           <div className="absolute inset-x-0 top-1/2 h-0.5 bg-primary/50 shadow-[0_0_10px_2px_rgba(var(--primary-rgb),0.5)] animate-scan-y" />
         </div>
       </div>
-      <p className="text-white text-center font-bold text-sm mt-8 px-6">Point camera at the Carton, Box, or Batch QR code</p>
+      <p className="text-white text-center font-bold text-sm mt-8 px-6">Point camera at the Carton or box</p>
       {error && <p className="text-destructive font-bold text-sm mt-4">{error}</p>}
       <Button onClick={onClose} className="mt-8 rounded-xl px-12" variant="secondary">Cancel</Button>
     </div>
@@ -129,11 +129,24 @@ function PharmacyDetailRow({ icon, label, value, bold, mono }: { icon?: React.Re
 }
 
 function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; session: any; user: any }) {
+  const [activeMode, setActiveMode] = useState<"carton" | "box" | "batch">("carton");
   const [input, setInput] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Attempt GPS capture with a 5-second timeout; resolves null on any failure.
+  const getCoords = (): Promise<{ lat: number; lng: number } | null> =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return; }
+      const timer = setTimeout(() => resolve(null), 5000);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { clearTimeout(timer); resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+        ()    => { clearTimeout(timer); resolve(null); },
+        { timeout: 5000, maximumAge: 60000 }
+      );
+    });
 
   const handleVerify = async (code?: string) => {
     const verifyCode = (code ?? input).trim();
@@ -142,6 +155,8 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
     setError(null);
     setResult(null);
     try {
+      // Capture GPS in parallel — never blocks the scan if denied or slow.
+      const coords = await getCoords();
       const res = await fetch("/api/verify", {
         method: "POST",
         headers: {
@@ -152,7 +167,8 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
           code: verifyCode,
           userId: user?.id,
           location: "Pharmacy Scanner",
-          deviceInfo: "Pharmacy Dashboard"
+          deviceInfo: "Pharmacy Dashboard",
+          ...(coords ? { lat: coords.lat, lng: coords.lng } : {})
         })
       });
       const data = await res.json();
@@ -175,7 +191,7 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
     const isDuplicate = result.resultType === "DUPLICATE";
     return {
       icon: isGenuine ? <CheckCircle className="text-green-500" /> : isFake ? <XCircle className="text-red-500" /> : <AlertTriangle className="text-orange-500" />,
-      label: isGenuine ? "GENUINE" : isFake ? "FAKE DETECTED" : isDuplicate ? "ALREADY SCANNED" : result.resultType ?? "UNKNOWN",
+      label: isGenuine ? "✓ Verified — Genuine" : isFake ? "FAKE DETECTED" : isDuplicate ? "ALREADY SCANNED" : result.resultType ?? "UNKNOWN",
       color: isGenuine ? "green" : isFake ? "red" : isDuplicate ? "orange" : "yellow"
     };
   };
@@ -197,15 +213,27 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
         <div className="px-5 pt-4">
           <div className="grid grid-cols-3 gap-2 mb-4">
             {[
-              { label: "Carton QR", color: "blue", desc: "Outer carton" },
-              { label: "Box QR", color: "green", desc: "Individual box" },
-              { label: "Batch No.", color: "purple", desc: "Manual entry" }
-            ].map(item => (
-              <div key={item.label} className={`rounded-lg border border-${item.color}-500/20 bg-${item.color}-500/5 p-2 text-center`}>
-                <p className={`text-[10px] font-semibold text-${item.color}-500`}>{item.label}</p>
-                <p className="text-[9px] text-muted-foreground mt-0.5">{item.desc}</p>
-              </div>
-            ))}
+              { key: "carton", label: "Carton QR", color: "blue", desc: "Outer carton" },
+              { key: "box", label: "Box QR", color: "green", desc: "Individual box" },
+              { key: "batch", label: "Batch No.", color: "purple", desc: "Manual entry" }
+            ].map(item => {
+              const isActive = activeMode === item.key;
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  onClick={() => { setActiveMode(item.key as typeof activeMode); setInput(""); setResult(null); }}
+                  className={`rounded-lg border p-2 text-center transition-all cursor-pointer ${
+                    isActive
+                      ? `border-${item.color}-500 bg-${item.color}-500/15 ring-1 ring-${item.color}-500/40`
+                      : `border-${item.color}-500/20 bg-${item.color}-500/5 hover:bg-${item.color}-500/10`
+                  }`}
+                >
+                  <p className={`text-[10px] font-semibold text-${item.color}-500`}>{item.label}</p>
+                  <p className="text-[9px] text-muted-foreground mt-0.5">{item.desc}</p>
+                </button>
+              );
+            })}
           </div>
         </div>
 
@@ -215,22 +243,29 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={e => e.key === "Enter" && handleVerify()}
-              placeholder="Scan QR or type code..."
+              placeholder={
+                activeMode === "carton" ? "Scan Carton QR or type CARTON-..." :
+                activeMode === "box" ? "Scan Box QR or type BOX-..." :
+                "Type batch number e.g. PND-2024-001"
+              }
               className="flex-1 h-11 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
               autoFocus
             />
-            <button onClick={() => setShowCamera(true)} className="h-11 w-11 rounded-xl border border-border bg-secondary/20 flex items-center justify-center hover:bg-secondary transition-colors flex-shrink-0">
+            <button onClick={() => setShowCamera(true)} className="h-11 w-11 rounded-xl border border-border bg-secondary/20 flex items-center justify-center hover:bg-secondary transition-colors flex-shrink-0 cursor-pointer">
               <Camera className="h-4 w-4" />
             </button>
           </div>
           <button
             onClick={() => handleVerify()}
             disabled={loading || !input.trim()}
-            className="w-full h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2 transition-transform active:scale-95"
+            className="w-full h-11 rounded-xl bg-primary text-primary-foreground text-sm font-medium disabled:opacity-50 flex items-center justify-center gap-2 transition-transform active:scale-95 cursor-pointer"
           >
             {loading ? (<><Loader2 className="h-4 w-4 animate-spin" /> Verifying...</>) : (<><ScanLine className="h-4 w-4" /> Verify Stock</>)}
           </button>
           {error && <p className="text-red-500 text-[11px] font-medium text-center">{error}</p>}
+          <p className="text-[10px] text-muted-foreground/50 text-center">
+            Location access is optional and used for supply-chain tracking only.
+          </p>
         </div>
 
         {result && config && (
@@ -277,13 +312,13 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
             <div className="p-3 border-t border-border/30 bg-secondary/10 flex gap-2">
               <button
                 onClick={() => { setResult(null); setInput(""); }}
-                className="flex-1 h-9 rounded-lg bg-background border border-border text-[11px] font-bold hover:bg-secondary transition-colors"
+                className="flex-1 h-9 rounded-lg bg-background border border-border text-[11px] font-bold hover:bg-secondary transition-colors cursor-pointer"
               >
-                Scan Next
+                Scan Next {activeMode === "carton" ? "Carton" : activeMode === "box" ? "Box" : "Batch"}
               </button>
               <button
                 onClick={onClose}
-                className="px-4 h-9 rounded-lg bg-background border border-border text-[11px] font-bold hover:bg-secondary transition-colors text-muted-foreground"
+                className="px-4 h-9 rounded-lg bg-background border border-border text-[11px] font-bold hover:bg-secondary transition-colors text-muted-foreground cursor-pointer"
               >
                 Close
               </button>
@@ -294,7 +329,7 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
 
       {showCamera && (
         <LiveScanner
-          mode="qr"
+          mode={activeMode === "batch" ? "barcode" : "qr"}
           onResult={(code) => { setShowCamera(false); setInput(code); handleVerify(code); }}
           onClose={() => setShowCamera(false)}
         />

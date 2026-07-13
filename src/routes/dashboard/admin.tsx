@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { DocumentReviewPanel } from "@/components/dashboard/admin/DocumentReviewPanel";
 import { ManufacturersPanel } from "@/components/dashboard/admin/ManufacturersPanel";
 import { ReportsPanel } from "@/components/dashboard/admin/ReportsPanel";
+import { DrapBatchRegistryPanel } from "@/components/dashboard/admin/DrapBatchRegistryPanel";
 
 export const Route = createFileRoute("/dashboard/admin")({
   component: Page,
@@ -401,7 +402,7 @@ function Page() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers" | "reports">("medicines");
+  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers" | "reports" | "batch-registry">("medicines");
   const [showMedicineForm, setShowMedicineForm] = useState(false);
   const [showSequenceForm, setShowSequenceForm] = useState(false);
   const [showRecallForm, setShowRecallForm] = useState(false);
@@ -466,9 +467,9 @@ function Page() {
 
         {/* Tabs */}
         <div className="flex gap-1 bg-secondary/30 rounded-xl p-1 w-fit flex-wrap">
-          {(["medicines", "sequences", "recalls", "documents", "manufacturers", "reports"] as const).map(tab => (
+          {(["medicines", "sequences", "recalls", "documents", "manufacturers", "reports", "batch-registry"] as const).map(tab => (
             <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${activeTab === tab ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : tab === "recalls" ? "Recall Alerts" : tab === "documents" ? "Document Review" : tab === "manufacturers" ? "Manufacturers" : "Reports"}
+              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : tab === "recalls" ? "Recall Alerts" : tab === "documents" ? "Document Review" : tab === "manufacturers" ? "Manufacturers" : tab === "reports" ? "Reports" : "Batch Registry"}
             </button>
           ))}
         </div>
@@ -600,6 +601,11 @@ function Page() {
         {/* ── REPORTS TAB ── */}
         {activeTab === "reports" && (
           <ReportsPanel />
+        )}
+
+        {/* ── BATCH REGISTRY TAB ── */}
+        {activeTab === "batch-registry" && (
+          <DrapBatchRegistryPanel />
         )}
       </div>
 

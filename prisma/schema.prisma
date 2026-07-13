@@ -219,6 +219,7 @@ model Medicine {
 
   batches        Batch[]
   batchSequences BatchSequence[]
+  drapBatchRegistrations DrapBatchRegistry[]
   createdAt      DateTime  @default(now())
 
   @@index([manufacturerId])
@@ -573,4 +574,30 @@ model BlockchainTransaction {
   createdAt     DateTime  @default(now())
 
   @@map("blockchaintransaction")
+}
+
+model DrapBatchRegistry {
+  id            String    @id @default(cuid())
+  medicineId    String
+  medicine      Medicine  @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  batchCode     String    @unique
+  companyName   String?   // denormalized snapshot of the medicine's manufacturer_name at registration time
+  registeredBy  String?   // admin userId who uploaded this record
+  registeredAt  DateTime  @default(now())
+
+  scans         DrapBatchScanLog[]
+
+  @@index([batchCode])
+  @@map("drap_batch_registry")
+}
+
+model DrapBatchScanLog {
+  id              String            @id @default(cuid())
+  drapBatchId     String
+  drapBatch       DrapBatchRegistry @relation(fields: [drapBatchId], references: [id], onDelete: Cascade)
+  scannedByUserId String?
+  scannedAt       DateTime          @default(now())
+
+  @@index([drapBatchId])
+  @@map("drap_batch_scan_log")
 }

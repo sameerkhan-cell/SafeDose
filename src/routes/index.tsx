@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { motion } from "framer-motion";
+import { motion, useReducedMotion } from "framer-motion";
 import {
   ShieldCheck, ScanLine, QrCode, Activity, Globe2, Lock, ArrowRight,
   CheckCircle2, AlertTriangle, Building2, Stethoscope, Sparkles, Zap, Cpu, Shield,
@@ -40,6 +40,7 @@ const fadeUp = {
 
 function Landing() {
   const { user, isAuthenticated } = useAuth();
+  const shouldReduceMotion = useReducedMotion();
   const heroRef = useRef<HTMLElement | null>(null);
   const statsRef = useStatCounters();
   const featuresRef = useStaggerReveal("[data-stagger]", { y: 28, stagger: 0.1 });
@@ -82,7 +83,7 @@ function Landing() {
               AI + Blockchain · Verified by DRAP & WHO standards
             </span>
 
-            <h1 data-hero-h1 style={{ opacity: 0 }} className="mt-8 heading-xl text-balance">
+            <h1 data-hero-h1 style={{ opacity: 0 }} className="mt-8 heading-xl text-balance hero-depth-text">
               Is your medicine{" "}
               <span className="text-gradient-vivid">real or fake?</span>
             </h1>
@@ -129,29 +130,33 @@ function Landing() {
                         <span className="h-2 w-2 rounded-full bg-success pulse-dot" />
                         Live verification · 0.6s
                       </div>
-                      <div
-                        className="card-premium p-5 glow-genuine"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Batch</p>
-                            <p className="font-mono text-[13px] font-medium">PNX-49281-A</p>
+                      <TiltCard intensity={6} glow>
+                        <div
+                          className="card-premium p-5 glow-genuine relative overflow-hidden"
+                        >
+                          {/* Scan-line sweep */}
+                          <div className="absolute left-0 right-0 h-[2px] bg-gradient-to-r from-transparent via-success/70 to-transparent shadow-[0_0_8px_1px_var(--color-success)] animate-scan-sweep pointer-events-none" />
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground">Batch</p>
+                              <p className="font-mono text-[13px] font-medium">PNX-49281-A</p>
+                            </div>
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-success/8 px-2.5 py-1 text-[11px] font-semibold text-success">
+                              <CheckCircle2 className="h-3.5 w-3.5" /> Genuine
+                            </span>
                           </div>
-                          <span className="inline-flex items-center gap-1.5 rounded-full bg-success/8 px-2.5 py-1 text-[11px] font-semibold text-success">
-                            <CheckCircle2 className="h-3.5 w-3.5" /> Genuine
-                          </span>
+                          <div className="mt-4 grid grid-cols-2 gap-3 text-[12px]">
+                            <div className="rounded-xl bg-secondary/50 p-3">
+                              <p className="text-muted-foreground">Manufacturer</p>
+                              <p className="mt-1 font-medium">GlaxoSmithKline</p>
+                            </div>
+                            <div className="rounded-xl bg-secondary/50 p-3">
+                              <p className="text-muted-foreground">Expiry</p>
+                              <p className="mt-1 font-medium">Mar 2027</p>
+                            </div>
+                          </div>
                         </div>
-                        <div className="mt-4 grid grid-cols-2 gap-3 text-[12px]">
-                          <div className="rounded-xl bg-secondary/50 p-3">
-                            <p className="text-muted-foreground">Manufacturer</p>
-                            <p className="mt-1 font-medium">GlaxoSmithKline</p>
-                          </div>
-                          <div className="rounded-xl bg-secondary/50 p-3">
-                            <p className="text-muted-foreground">Expiry</p>
-                            <p className="mt-1 font-medium">Mar 2027</p>
-                          </div>
-                        </div>
-                      </div>
+                      </TiltCard>
                       <div
                         className="card-premium p-5"
                       >
@@ -179,8 +184,7 @@ function Landing() {
                         <QrCode className="h-24 w-24" strokeWidth={1.5} />
                         {/* Scan beam on QR */}
                         <div
-                          className="absolute inset-x-0 h-0.5 bg-white/60 shadow-[0_0_8px_2px_rgba(255,255,255,0.5)]"
-                          style={{ top: 8 }}
+                          className="absolute inset-x-0 h-[2px] bg-white/70 shadow-[0_0_8px_2px_rgba(255,255,255,0.6)] animate-scan-sweep pointer-events-none"
                         />
                       </div>
                       <p className="relative mt-6 text-[13px] text-muted-foreground text-center">
@@ -295,10 +299,10 @@ function Landing() {
           ].map((t, idx) => (
             <motion.figure
               key={t.n}
-              initial={{ opacity: 0, y: 20 }}
-              whileInView={{ opacity: 1, y: 0 }}
+              initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
+              whileInView={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
               viewport={{ once: true }}
-              transition={{ delay: idx * 0.08, duration: 0.5, ease }}
+              transition={shouldReduceMotion ? { duration: 0 } : { delay: idx * 0.08, duration: 0.5, ease }}
               className="card-premium p-7"
             >
               {/* Stars */}
@@ -325,10 +329,10 @@ function Landing() {
 
         {/* Partners */}
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 0, y: 16 }}
+          whileInView={shouldReduceMotion ? { opacity: 1, y: 0 } : { opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          transition={{ duration: 0.6, ease }}
+          transition={shouldReduceMotion ? { duration: 0 } : { duration: 0.6, ease }}
           className="mt-20 card-premium p-8 sm:p-10"
         >
           <p className="text-center section-label">Trusted by leading health organizations</p>

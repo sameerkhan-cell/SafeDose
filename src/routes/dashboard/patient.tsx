@@ -97,6 +97,18 @@ function VerifyPage() {
     return <Navigate to="/auth/login" />;
   }
 
+  // Attempt GPS capture with a 5-second timeout; resolves null on any failure.
+  const getCoords = (): Promise<{ lat: number; lng: number } | null> =>
+    new Promise((resolve) => {
+      if (!navigator.geolocation) { resolve(null); return; }
+      const timer = setTimeout(() => resolve(null), 5000);
+      navigator.geolocation.getCurrentPosition(
+        (pos) => { clearTimeout(timer); resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+        ()    => { clearTimeout(timer); resolve(null); },
+        { timeout: 5000, maximumAge: 60000 }
+      );
+    });
+
   const verify = async (val?: string) => {
     const code = (val ?? batch).trim().toUpperCase();
     if (!code) return;
@@ -112,6 +124,9 @@ function VerifyPage() {
       await new Promise(r => setTimeout(r, 350));
     }
 
+    // Capture GPS in parallel — never blocks the scan if denied or slow.
+    const coords = await getCoords();
+
     try {
       const res = await fetch("/api/verify", {
         method: "POST",
@@ -120,6 +135,7 @@ function VerifyPage() {
           code,
           location: "Patient Portal",
           deviceInfo: navigator.userAgent || "Web",
+          ...(coords ? { lat: coords.lat, lng: coords.lng } : {})
         }),
       });
       const data = await res.json();
@@ -252,6 +268,9 @@ function VerifyPage() {
                             <ScanLine className="mr-2 h-4 w-4" /> Verify Now
                           </Button>
                         </div>
+                        <p className="mt-2 text-[10px] text-muted-foreground/50 text-center">
+                          Location access is optional and used for supply-chain tracking only.
+                        </p>
                         <div className="mt-4 flex flex-wrap items-center gap-2 text-[12px]">
                           <span className="text-muted-foreground font-medium">Quick Test:</span>
                           {[
@@ -454,7 +473,7 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
         </div>
       </div>
       <p className="text-white text-center font-bold text-sm mt-8 px-6">
-        {mode === "qr" ? "Point camera at the QR code on the carton, box, or pill strip" : "Point camera at the barcode on the package"}
+        {mode === "qr" ? "Point camera at the QR code on the box, or pill strip" : "Point camera at the barcode on the package"}
       </p>
       {error && <p className="text-destructive font-bold text-sm mt-4">{error}</p>}
       <Button onClick={onClose} className="mt-8 rounded-xl px-12" variant="secondary">Cancel</Button>
