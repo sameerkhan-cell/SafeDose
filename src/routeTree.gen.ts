@@ -41,13 +41,19 @@ import { Route as ApiRegulatorRecallsRouteImport } from './routes/api/regulator/
 import { Route as ApiRegulatorHeatmapRouteImport } from './routes/api/regulator/heatmap'
 import { Route as ApiRealtimeFeedRouteImport } from './routes/api/realtime/feed'
 import { Route as ApiPharmacyScanLogsRouteImport } from './routes/api/pharmacy/scan-logs'
+import { Route as ApiPharmacyScanLocationsRouteImport } from './routes/api/pharmacy/scan-locations'
+import { Route as ApiPharmacyProfileRouteImport } from './routes/api/pharmacy/profile'
+import { Route as ApiPharmacyLicenseUploadRouteImport } from './routes/api/pharmacy/license-upload'
 import { Route as ApiManufacturerStatsRouteImport } from './routes/api/manufacturer/stats'
+import { Route as ApiManufacturerScanLocationsRouteImport } from './routes/api/manufacturer/scan-locations'
 import { Route as ApiManufacturerRegisterBatchRouteImport } from './routes/api/manufacturer/register-batch'
 import { Route as ApiManufacturerProfileRouteImport } from './routes/api/manufacturer/profile'
 import { Route as ApiManufacturerDocumentsRouteImport } from './routes/api/manufacturer/documents'
 import { Route as ApiManufacturerComplianceRouteImport } from './routes/api/manufacturer/compliance'
 import { Route as ApiManufacturerBatchesRouteImport } from './routes/api/manufacturer/batches'
 import { Route as ApiManufacturerAuditLogsRouteImport } from './routes/api/manufacturer/audit-logs'
+import { Route as ApiInternalRetryBlockchainJobsRouteImport } from './routes/api/internal/retry-blockchain-jobs'
+import { Route as ApiInternalProcessBlockchainQueueRouteImport } from './routes/api/internal/process-blockchain-queue'
 import { Route as ApiHealthDatabaseRouteImport } from './routes/api/health/database'
 import { Route as ApiFraudMetricsRouteImport } from './routes/api/fraud/metrics'
 import { Route as ApiFraudAnalyzeRouteImport } from './routes/api/fraud/analyze'
@@ -69,12 +75,14 @@ import { Route as ApiAiMedicineChatRouteImport } from './routes/api/ai/medicine-
 import { Route as ApiAiInsightsRouteImport } from './routes/api/ai/insights'
 import { Route as ApiAdminReportsRouteImport } from './routes/api/admin/reports'
 import { Route as ApiAdminRecallsRouteImport } from './routes/api/admin/recalls'
+import { Route as ApiAdminPharmaciesRouteImport } from './routes/api/admin/pharmacies'
 import { Route as ApiAdminMedicinesRouteImport } from './routes/api/admin/medicines'
 import { Route as ApiAdminManufacturersRouteImport } from './routes/api/admin/manufacturers'
 import { Route as ApiAdminDrapBatchesRouteImport } from './routes/api/admin/drap-batches'
 import { Route as ApiAdminDocumentsRouteImport } from './routes/api/admin/documents'
 import { Route as ApiAdminDashboardRouteImport } from './routes/api/admin/dashboard'
 import { Route as ApiAdminBatchSequencesRouteImport } from './routes/api/admin/batch-sequences'
+import { Route as ApiPharmacyLicenseDownloadRouteImport } from './routes/api/pharmacy/license/download'
 import { Route as ApiManufacturerProfileLogoUploadRouteImport } from './routes/api/manufacturer/profile.logo-upload'
 import { Route as ApiManufacturerProfileLogoImageRouteImport } from './routes/api/manufacturer/profile.logo-image'
 import { Route as ApiManufacturerProfileLogoRouteImport } from './routes/api/manufacturer/profile.logo'
@@ -89,6 +97,9 @@ import { Route as ApiAdminMedicinesIdRouteImport } from './routes/api/admin/medi
 import { Route as ApiAdminManufacturersCreateRouteImport } from './routes/api/admin/manufacturers/create'
 import { Route as ApiManufacturerBatchIdAssetsRouteImport } from './routes/api/manufacturer/batch.$id.assets'
 import { Route as ApiAdminReportsIdStatusRouteImport } from './routes/api/admin/reports.$id.status'
+import { Route as ApiAdminPharmaciesIdUnverifyRouteImport } from './routes/api/admin/pharmacies.$id.unverify'
+import { Route as ApiAdminPharmaciesIdRejectRouteImport } from './routes/api/admin/pharmacies.$id.reject'
+import { Route as ApiAdminPharmaciesIdApproveRouteImport } from './routes/api/admin/pharmacies.$id.approve'
 import { Route as ApiAdminManufacturersIdUnverifyRouteImport } from './routes/api/admin/manufacturers.$id.unverify'
 import { Route as ApiAdminManufacturersIdSuspendRouteImport } from './routes/api/admin/manufacturers.$id.suspend'
 import { Route as ApiAdminManufacturersIdRestoreRouteImport } from './routes/api/admin/manufacturers.$id.restore'
@@ -258,11 +269,34 @@ const ApiPharmacyScanLogsRoute = ApiPharmacyScanLogsRouteImport.update({
   path: '/api/pharmacy/scan-logs',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPharmacyScanLocationsRoute =
+  ApiPharmacyScanLocationsRouteImport.update({
+    id: '/api/pharmacy/scan-locations',
+    path: '/api/pharmacy/scan-locations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiPharmacyProfileRoute = ApiPharmacyProfileRouteImport.update({
+  id: '/api/pharmacy/profile',
+  path: '/api/pharmacy/profile',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiPharmacyLicenseUploadRoute =
+  ApiPharmacyLicenseUploadRouteImport.update({
+    id: '/api/pharmacy/license-upload',
+    path: '/api/pharmacy/license-upload',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiManufacturerStatsRoute = ApiManufacturerStatsRouteImport.update({
   id: '/api/manufacturer/stats',
   path: '/api/manufacturer/stats',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiManufacturerScanLocationsRoute =
+  ApiManufacturerScanLocationsRouteImport.update({
+    id: '/api/manufacturer/scan-locations',
+    path: '/api/manufacturer/scan-locations',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiManufacturerRegisterBatchRoute =
   ApiManufacturerRegisterBatchRouteImport.update({
     id: '/api/manufacturer/register-batch',
@@ -295,6 +329,18 @@ const ApiManufacturerAuditLogsRoute =
   ApiManufacturerAuditLogsRouteImport.update({
     id: '/api/manufacturer/audit-logs',
     path: '/api/manufacturer/audit-logs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInternalRetryBlockchainJobsRoute =
+  ApiInternalRetryBlockchainJobsRouteImport.update({
+    id: '/api/internal/retry-blockchain-jobs',
+    path: '/api/internal/retry-blockchain-jobs',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiInternalProcessBlockchainQueueRoute =
+  ApiInternalProcessBlockchainQueueRouteImport.update({
+    id: '/api/internal/process-blockchain-queue',
+    path: '/api/internal/process-blockchain-queue',
     getParentRoute: () => rootRouteImport,
   } as any)
 const ApiHealthDatabaseRoute = ApiHealthDatabaseRouteImport.update({
@@ -402,6 +448,11 @@ const ApiAdminRecallsRoute = ApiAdminRecallsRouteImport.update({
   path: '/api/admin/recalls',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminPharmaciesRoute = ApiAdminPharmaciesRouteImport.update({
+  id: '/api/admin/pharmacies',
+  path: '/api/admin/pharmacies',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAdminMedicinesRoute = ApiAdminMedicinesRouteImport.update({
   id: '/api/admin/medicines',
   path: '/api/admin/medicines',
@@ -432,6 +483,12 @@ const ApiAdminBatchSequencesRoute = ApiAdminBatchSequencesRouteImport.update({
   path: '/api/admin/batch-sequences',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiPharmacyLicenseDownloadRoute =
+  ApiPharmacyLicenseDownloadRouteImport.update({
+    id: '/api/pharmacy/license/download',
+    path: '/api/pharmacy/license/download',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 const ApiManufacturerProfileLogoUploadRoute =
   ApiManufacturerProfileLogoUploadRouteImport.update({
     id: '/logo-upload',
@@ -511,6 +568,24 @@ const ApiAdminReportsIdStatusRoute = ApiAdminReportsIdStatusRouteImport.update({
   path: '/$id/status',
   getParentRoute: () => ApiAdminReportsRoute,
 } as any)
+const ApiAdminPharmaciesIdUnverifyRoute =
+  ApiAdminPharmaciesIdUnverifyRouteImport.update({
+    id: '/$id/unverify',
+    path: '/$id/unverify',
+    getParentRoute: () => ApiAdminPharmaciesRoute,
+  } as any)
+const ApiAdminPharmaciesIdRejectRoute =
+  ApiAdminPharmaciesIdRejectRouteImport.update({
+    id: '/$id/reject',
+    path: '/$id/reject',
+    getParentRoute: () => ApiAdminPharmaciesRoute,
+  } as any)
+const ApiAdminPharmaciesIdApproveRoute =
+  ApiAdminPharmaciesIdApproveRouteImport.update({
+    id: '/$id/approve',
+    path: '/$id/approve',
+    getParentRoute: () => ApiAdminPharmaciesRoute,
+  } as any)
 const ApiAdminManufacturersIdUnverifyRoute =
   ApiAdminManufacturersIdUnverifyRouteImport.update({
     id: '/$id/unverify',
@@ -590,6 +665,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
+  '/api/admin/pharmacies': typeof ApiAdminPharmaciesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/admin/reports': typeof ApiAdminReportsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -611,13 +687,19 @@ export interface FileRoutesByFullPath {
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
   '/api/fraud/metrics': typeof ApiFraudMetricsRoute
   '/api/health/database': typeof ApiHealthDatabaseRoute
+  '/api/internal/process-blockchain-queue': typeof ApiInternalProcessBlockchainQueueRoute
+  '/api/internal/retry-blockchain-jobs': typeof ApiInternalRetryBlockchainJobsRoute
   '/api/manufacturer/audit-logs': typeof ApiManufacturerAuditLogsRoute
   '/api/manufacturer/batches': typeof ApiManufacturerBatchesRoute
   '/api/manufacturer/compliance': typeof ApiManufacturerComplianceRoute
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
+  '/api/manufacturer/scan-locations': typeof ApiManufacturerScanLocationsRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
+  '/api/pharmacy/license-upload': typeof ApiPharmacyLicenseUploadRoute
+  '/api/pharmacy/profile': typeof ApiPharmacyProfileRoute
+  '/api/pharmacy/scan-locations': typeof ApiPharmacyScanLocationsRoute
   '/api/pharmacy/scan-logs': typeof ApiPharmacyScanLogsRoute
   '/api/realtime/feed': typeof ApiRealtimeFeedRoute
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
@@ -639,6 +721,7 @@ export interface FileRoutesByFullPath {
   '/api/manufacturer/profile/logo': typeof ApiManufacturerProfileLogoRoute
   '/api/manufacturer/profile/logo-image': typeof ApiManufacturerProfileLogoImageRoute
   '/api/manufacturer/profile/logo-upload': typeof ApiManufacturerProfileLogoUploadRoute
+  '/api/pharmacy/license/download': typeof ApiPharmacyLicenseDownloadRoute
   '/api/admin/documents/$id/approve': typeof ApiAdminDocumentsIdApproveRoute
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
@@ -647,6 +730,9 @@ export interface FileRoutesByFullPath {
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
   '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
+  '/api/admin/pharmacies/$id/approve': typeof ApiAdminPharmaciesIdApproveRoute
+  '/api/admin/pharmacies/$id/reject': typeof ApiAdminPharmaciesIdRejectRoute
+  '/api/admin/pharmacies/$id/unverify': typeof ApiAdminPharmaciesIdUnverifyRoute
   '/api/admin/reports/$id/status': typeof ApiAdminReportsIdStatusRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
@@ -680,6 +766,7 @@ export interface FileRoutesByTo {
   '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
+  '/api/admin/pharmacies': typeof ApiAdminPharmaciesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/admin/reports': typeof ApiAdminReportsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -701,13 +788,19 @@ export interface FileRoutesByTo {
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
   '/api/fraud/metrics': typeof ApiFraudMetricsRoute
   '/api/health/database': typeof ApiHealthDatabaseRoute
+  '/api/internal/process-blockchain-queue': typeof ApiInternalProcessBlockchainQueueRoute
+  '/api/internal/retry-blockchain-jobs': typeof ApiInternalRetryBlockchainJobsRoute
   '/api/manufacturer/audit-logs': typeof ApiManufacturerAuditLogsRoute
   '/api/manufacturer/batches': typeof ApiManufacturerBatchesRoute
   '/api/manufacturer/compliance': typeof ApiManufacturerComplianceRoute
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
+  '/api/manufacturer/scan-locations': typeof ApiManufacturerScanLocationsRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
+  '/api/pharmacy/license-upload': typeof ApiPharmacyLicenseUploadRoute
+  '/api/pharmacy/profile': typeof ApiPharmacyProfileRoute
+  '/api/pharmacy/scan-locations': typeof ApiPharmacyScanLocationsRoute
   '/api/pharmacy/scan-logs': typeof ApiPharmacyScanLogsRoute
   '/api/realtime/feed': typeof ApiRealtimeFeedRoute
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
@@ -729,6 +822,7 @@ export interface FileRoutesByTo {
   '/api/manufacturer/profile/logo': typeof ApiManufacturerProfileLogoRoute
   '/api/manufacturer/profile/logo-image': typeof ApiManufacturerProfileLogoImageRoute
   '/api/manufacturer/profile/logo-upload': typeof ApiManufacturerProfileLogoUploadRoute
+  '/api/pharmacy/license/download': typeof ApiPharmacyLicenseDownloadRoute
   '/api/admin/documents/$id/approve': typeof ApiAdminDocumentsIdApproveRoute
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
@@ -737,6 +831,9 @@ export interface FileRoutesByTo {
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
   '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
+  '/api/admin/pharmacies/$id/approve': typeof ApiAdminPharmaciesIdApproveRoute
+  '/api/admin/pharmacies/$id/reject': typeof ApiAdminPharmaciesIdRejectRoute
+  '/api/admin/pharmacies/$id/unverify': typeof ApiAdminPharmaciesIdUnverifyRoute
   '/api/admin/reports/$id/status': typeof ApiAdminReportsIdStatusRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
@@ -771,6 +868,7 @@ export interface FileRoutesById {
   '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
+  '/api/admin/pharmacies': typeof ApiAdminPharmaciesRouteWithChildren
   '/api/admin/recalls': typeof ApiAdminRecallsRouteWithChildren
   '/api/admin/reports': typeof ApiAdminReportsRouteWithChildren
   '/api/ai/insights': typeof ApiAiInsightsRoute
@@ -792,13 +890,19 @@ export interface FileRoutesById {
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
   '/api/fraud/metrics': typeof ApiFraudMetricsRoute
   '/api/health/database': typeof ApiHealthDatabaseRoute
+  '/api/internal/process-blockchain-queue': typeof ApiInternalProcessBlockchainQueueRoute
+  '/api/internal/retry-blockchain-jobs': typeof ApiInternalRetryBlockchainJobsRoute
   '/api/manufacturer/audit-logs': typeof ApiManufacturerAuditLogsRoute
   '/api/manufacturer/batches': typeof ApiManufacturerBatchesRoute
   '/api/manufacturer/compliance': typeof ApiManufacturerComplianceRoute
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
+  '/api/manufacturer/scan-locations': typeof ApiManufacturerScanLocationsRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
+  '/api/pharmacy/license-upload': typeof ApiPharmacyLicenseUploadRoute
+  '/api/pharmacy/profile': typeof ApiPharmacyProfileRoute
+  '/api/pharmacy/scan-locations': typeof ApiPharmacyScanLocationsRoute
   '/api/pharmacy/scan-logs': typeof ApiPharmacyScanLogsRoute
   '/api/realtime/feed': typeof ApiRealtimeFeedRoute
   '/api/regulator/heatmap': typeof ApiRegulatorHeatmapRoute
@@ -820,6 +924,7 @@ export interface FileRoutesById {
   '/api/manufacturer/profile/logo': typeof ApiManufacturerProfileLogoRoute
   '/api/manufacturer/profile/logo-image': typeof ApiManufacturerProfileLogoImageRoute
   '/api/manufacturer/profile/logo-upload': typeof ApiManufacturerProfileLogoUploadRoute
+  '/api/pharmacy/license/download': typeof ApiPharmacyLicenseDownloadRoute
   '/api/admin/documents/$id/approve': typeof ApiAdminDocumentsIdApproveRoute
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
@@ -828,6 +933,9 @@ export interface FileRoutesById {
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
   '/api/admin/manufacturers/$id/unverify': typeof ApiAdminManufacturersIdUnverifyRoute
+  '/api/admin/pharmacies/$id/approve': typeof ApiAdminPharmaciesIdApproveRoute
+  '/api/admin/pharmacies/$id/reject': typeof ApiAdminPharmaciesIdRejectRoute
+  '/api/admin/pharmacies/$id/unverify': typeof ApiAdminPharmaciesIdUnverifyRoute
   '/api/admin/reports/$id/status': typeof ApiAdminReportsIdStatusRoute
   '/api/manufacturer/batch/$id/assets': typeof ApiManufacturerBatchIdAssetsRoute
 }
@@ -863,6 +971,7 @@ export interface FileRouteTypes {
     | '/api/admin/drap-batches'
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
+    | '/api/admin/pharmacies'
     | '/api/admin/recalls'
     | '/api/admin/reports'
     | '/api/ai/insights'
@@ -884,13 +993,19 @@ export interface FileRouteTypes {
     | '/api/fraud/analyze'
     | '/api/fraud/metrics'
     | '/api/health/database'
+    | '/api/internal/process-blockchain-queue'
+    | '/api/internal/retry-blockchain-jobs'
     | '/api/manufacturer/audit-logs'
     | '/api/manufacturer/batches'
     | '/api/manufacturer/compliance'
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
     | '/api/manufacturer/register-batch'
+    | '/api/manufacturer/scan-locations'
     | '/api/manufacturer/stats'
+    | '/api/pharmacy/license-upload'
+    | '/api/pharmacy/profile'
+    | '/api/pharmacy/scan-locations'
     | '/api/pharmacy/scan-logs'
     | '/api/realtime/feed'
     | '/api/regulator/heatmap'
@@ -912,6 +1027,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/profile/logo'
     | '/api/manufacturer/profile/logo-image'
     | '/api/manufacturer/profile/logo-upload'
+    | '/api/pharmacy/license/download'
     | '/api/admin/documents/$id/approve'
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
@@ -920,6 +1036,9 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
     | '/api/admin/manufacturers/$id/unverify'
+    | '/api/admin/pharmacies/$id/approve'
+    | '/api/admin/pharmacies/$id/reject'
+    | '/api/admin/pharmacies/$id/unverify'
     | '/api/admin/reports/$id/status'
     | '/api/manufacturer/batch/$id/assets'
   fileRoutesByTo: FileRoutesByTo
@@ -953,6 +1072,7 @@ export interface FileRouteTypes {
     | '/api/admin/drap-batches'
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
+    | '/api/admin/pharmacies'
     | '/api/admin/recalls'
     | '/api/admin/reports'
     | '/api/ai/insights'
@@ -974,13 +1094,19 @@ export interface FileRouteTypes {
     | '/api/fraud/analyze'
     | '/api/fraud/metrics'
     | '/api/health/database'
+    | '/api/internal/process-blockchain-queue'
+    | '/api/internal/retry-blockchain-jobs'
     | '/api/manufacturer/audit-logs'
     | '/api/manufacturer/batches'
     | '/api/manufacturer/compliance'
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
     | '/api/manufacturer/register-batch'
+    | '/api/manufacturer/scan-locations'
     | '/api/manufacturer/stats'
+    | '/api/pharmacy/license-upload'
+    | '/api/pharmacy/profile'
+    | '/api/pharmacy/scan-locations'
     | '/api/pharmacy/scan-logs'
     | '/api/realtime/feed'
     | '/api/regulator/heatmap'
@@ -1002,6 +1128,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/profile/logo'
     | '/api/manufacturer/profile/logo-image'
     | '/api/manufacturer/profile/logo-upload'
+    | '/api/pharmacy/license/download'
     | '/api/admin/documents/$id/approve'
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
@@ -1010,6 +1137,9 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
     | '/api/admin/manufacturers/$id/unverify'
+    | '/api/admin/pharmacies/$id/approve'
+    | '/api/admin/pharmacies/$id/reject'
+    | '/api/admin/pharmacies/$id/unverify'
     | '/api/admin/reports/$id/status'
     | '/api/manufacturer/batch/$id/assets'
   id:
@@ -1043,6 +1173,7 @@ export interface FileRouteTypes {
     | '/api/admin/drap-batches'
     | '/api/admin/manufacturers'
     | '/api/admin/medicines'
+    | '/api/admin/pharmacies'
     | '/api/admin/recalls'
     | '/api/admin/reports'
     | '/api/ai/insights'
@@ -1064,13 +1195,19 @@ export interface FileRouteTypes {
     | '/api/fraud/analyze'
     | '/api/fraud/metrics'
     | '/api/health/database'
+    | '/api/internal/process-blockchain-queue'
+    | '/api/internal/retry-blockchain-jobs'
     | '/api/manufacturer/audit-logs'
     | '/api/manufacturer/batches'
     | '/api/manufacturer/compliance'
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
     | '/api/manufacturer/register-batch'
+    | '/api/manufacturer/scan-locations'
     | '/api/manufacturer/stats'
+    | '/api/pharmacy/license-upload'
+    | '/api/pharmacy/profile'
+    | '/api/pharmacy/scan-locations'
     | '/api/pharmacy/scan-logs'
     | '/api/realtime/feed'
     | '/api/regulator/heatmap'
@@ -1092,6 +1229,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/profile/logo'
     | '/api/manufacturer/profile/logo-image'
     | '/api/manufacturer/profile/logo-upload'
+    | '/api/pharmacy/license/download'
     | '/api/admin/documents/$id/approve'
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
@@ -1100,6 +1238,9 @@ export interface FileRouteTypes {
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
     | '/api/admin/manufacturers/$id/unverify'
+    | '/api/admin/pharmacies/$id/approve'
+    | '/api/admin/pharmacies/$id/reject'
+    | '/api/admin/pharmacies/$id/unverify'
     | '/api/admin/reports/$id/status'
     | '/api/manufacturer/batch/$id/assets'
   fileRoutesById: FileRoutesById
@@ -1129,6 +1270,7 @@ export interface RootRouteChildren {
   ApiAdminDrapBatchesRoute: typeof ApiAdminDrapBatchesRoute
   ApiAdminManufacturersRoute: typeof ApiAdminManufacturersRouteWithChildren
   ApiAdminMedicinesRoute: typeof ApiAdminMedicinesRouteWithChildren
+  ApiAdminPharmaciesRoute: typeof ApiAdminPharmaciesRouteWithChildren
   ApiAdminRecallsRoute: typeof ApiAdminRecallsRouteWithChildren
   ApiAdminReportsRoute: typeof ApiAdminReportsRouteWithChildren
   ApiAiInsightsRoute: typeof ApiAiInsightsRoute
@@ -1149,13 +1291,19 @@ export interface RootRouteChildren {
   ApiFraudAlertsRoute: typeof ApiFraudAlertsRoute
   ApiFraudAnalyzeRoute: typeof ApiFraudAnalyzeRoute
   ApiFraudMetricsRoute: typeof ApiFraudMetricsRoute
+  ApiInternalProcessBlockchainQueueRoute: typeof ApiInternalProcessBlockchainQueueRoute
+  ApiInternalRetryBlockchainJobsRoute: typeof ApiInternalRetryBlockchainJobsRoute
   ApiManufacturerAuditLogsRoute: typeof ApiManufacturerAuditLogsRoute
   ApiManufacturerBatchesRoute: typeof ApiManufacturerBatchesRoute
   ApiManufacturerComplianceRoute: typeof ApiManufacturerComplianceRoute
   ApiManufacturerDocumentsRoute: typeof ApiManufacturerDocumentsRouteWithChildren
   ApiManufacturerProfileRoute: typeof ApiManufacturerProfileRouteWithChildren
   ApiManufacturerRegisterBatchRoute: typeof ApiManufacturerRegisterBatchRoute
+  ApiManufacturerScanLocationsRoute: typeof ApiManufacturerScanLocationsRoute
   ApiManufacturerStatsRoute: typeof ApiManufacturerStatsRoute
+  ApiPharmacyLicenseUploadRoute: typeof ApiPharmacyLicenseUploadRoute
+  ApiPharmacyProfileRoute: typeof ApiPharmacyProfileRoute
+  ApiPharmacyScanLocationsRoute: typeof ApiPharmacyScanLocationsRoute
   ApiPharmacyScanLogsRoute: typeof ApiPharmacyScanLogsRoute
   ApiRealtimeFeedRoute: typeof ApiRealtimeFeedRoute
   ApiRegulatorHeatmapRoute: typeof ApiRegulatorHeatmapRoute
@@ -1168,6 +1316,7 @@ export interface RootRouteChildren {
   ApiAdminPharmacyBlacklistRoute: typeof ApiAdminPharmacyBlacklistRoute
   ApiAdminRecallCreateRoute: typeof ApiAdminRecallCreateRoute
   ApiManufacturerBatchIdRoute: typeof ApiManufacturerBatchIdRouteWithChildren
+  ApiPharmacyLicenseDownloadRoute: typeof ApiPharmacyLicenseDownloadRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -1396,11 +1545,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiPharmacyScanLogsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/pharmacy/scan-locations': {
+      id: '/api/pharmacy/scan-locations'
+      path: '/api/pharmacy/scan-locations'
+      fullPath: '/api/pharmacy/scan-locations'
+      preLoaderRoute: typeof ApiPharmacyScanLocationsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pharmacy/profile': {
+      id: '/api/pharmacy/profile'
+      path: '/api/pharmacy/profile'
+      fullPath: '/api/pharmacy/profile'
+      preLoaderRoute: typeof ApiPharmacyProfileRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pharmacy/license-upload': {
+      id: '/api/pharmacy/license-upload'
+      path: '/api/pharmacy/license-upload'
+      fullPath: '/api/pharmacy/license-upload'
+      preLoaderRoute: typeof ApiPharmacyLicenseUploadRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/manufacturer/stats': {
       id: '/api/manufacturer/stats'
       path: '/api/manufacturer/stats'
       fullPath: '/api/manufacturer/stats'
       preLoaderRoute: typeof ApiManufacturerStatsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/manufacturer/scan-locations': {
+      id: '/api/manufacturer/scan-locations'
+      path: '/api/manufacturer/scan-locations'
+      fullPath: '/api/manufacturer/scan-locations'
+      preLoaderRoute: typeof ApiManufacturerScanLocationsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/manufacturer/register-batch': {
@@ -1443,6 +1620,20 @@ declare module '@tanstack/react-router' {
       path: '/api/manufacturer/audit-logs'
       fullPath: '/api/manufacturer/audit-logs'
       preLoaderRoute: typeof ApiManufacturerAuditLogsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/retry-blockchain-jobs': {
+      id: '/api/internal/retry-blockchain-jobs'
+      path: '/api/internal/retry-blockchain-jobs'
+      fullPath: '/api/internal/retry-blockchain-jobs'
+      preLoaderRoute: typeof ApiInternalRetryBlockchainJobsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/internal/process-blockchain-queue': {
+      id: '/api/internal/process-blockchain-queue'
+      path: '/api/internal/process-blockchain-queue'
+      fullPath: '/api/internal/process-blockchain-queue'
+      preLoaderRoute: typeof ApiInternalProcessBlockchainQueueRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/health/database': {
@@ -1592,6 +1783,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminRecallsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/pharmacies': {
+      id: '/api/admin/pharmacies'
+      path: '/api/admin/pharmacies'
+      fullPath: '/api/admin/pharmacies'
+      preLoaderRoute: typeof ApiAdminPharmaciesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/admin/medicines': {
       id: '/api/admin/medicines'
       path: '/api/admin/medicines'
@@ -1632,6 +1830,13 @@ declare module '@tanstack/react-router' {
       path: '/api/admin/batch-sequences'
       fullPath: '/api/admin/batch-sequences'
       preLoaderRoute: typeof ApiAdminBatchSequencesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/pharmacy/license/download': {
+      id: '/api/pharmacy/license/download'
+      path: '/api/pharmacy/license/download'
+      fullPath: '/api/pharmacy/license/download'
+      preLoaderRoute: typeof ApiPharmacyLicenseDownloadRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/manufacturer/profile/logo-upload': {
@@ -1731,6 +1936,27 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/reports/$id/status'
       preLoaderRoute: typeof ApiAdminReportsIdStatusRouteImport
       parentRoute: typeof ApiAdminReportsRoute
+    }
+    '/api/admin/pharmacies/$id/unverify': {
+      id: '/api/admin/pharmacies/$id/unverify'
+      path: '/$id/unverify'
+      fullPath: '/api/admin/pharmacies/$id/unverify'
+      preLoaderRoute: typeof ApiAdminPharmaciesIdUnverifyRouteImport
+      parentRoute: typeof ApiAdminPharmaciesRoute
+    }
+    '/api/admin/pharmacies/$id/reject': {
+      id: '/api/admin/pharmacies/$id/reject'
+      path: '/$id/reject'
+      fullPath: '/api/admin/pharmacies/$id/reject'
+      preLoaderRoute: typeof ApiAdminPharmaciesIdRejectRouteImport
+      parentRoute: typeof ApiAdminPharmaciesRoute
+    }
+    '/api/admin/pharmacies/$id/approve': {
+      id: '/api/admin/pharmacies/$id/approve'
+      path: '/$id/approve'
+      fullPath: '/api/admin/pharmacies/$id/approve'
+      preLoaderRoute: typeof ApiAdminPharmaciesIdApproveRouteImport
+      parentRoute: typeof ApiAdminPharmaciesRoute
     }
     '/api/admin/manufacturers/$id/unverify': {
       id: '/api/admin/manufacturers/$id/unverify'
@@ -1870,6 +2096,21 @@ const ApiAdminMedicinesRouteChildren: ApiAdminMedicinesRouteChildren = {
 const ApiAdminMedicinesRouteWithChildren =
   ApiAdminMedicinesRoute._addFileChildren(ApiAdminMedicinesRouteChildren)
 
+interface ApiAdminPharmaciesRouteChildren {
+  ApiAdminPharmaciesIdApproveRoute: typeof ApiAdminPharmaciesIdApproveRoute
+  ApiAdminPharmaciesIdRejectRoute: typeof ApiAdminPharmaciesIdRejectRoute
+  ApiAdminPharmaciesIdUnverifyRoute: typeof ApiAdminPharmaciesIdUnverifyRoute
+}
+
+const ApiAdminPharmaciesRouteChildren: ApiAdminPharmaciesRouteChildren = {
+  ApiAdminPharmaciesIdApproveRoute: ApiAdminPharmaciesIdApproveRoute,
+  ApiAdminPharmaciesIdRejectRoute: ApiAdminPharmaciesIdRejectRoute,
+  ApiAdminPharmaciesIdUnverifyRoute: ApiAdminPharmaciesIdUnverifyRoute,
+}
+
+const ApiAdminPharmaciesRouteWithChildren =
+  ApiAdminPharmaciesRoute._addFileChildren(ApiAdminPharmaciesRouteChildren)
+
 interface ApiAdminRecallsRouteChildren {
   ApiAdminRecallsIdRoute: typeof ApiAdminRecallsIdRoute
 }
@@ -1971,6 +2212,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminDrapBatchesRoute: ApiAdminDrapBatchesRoute,
   ApiAdminManufacturersRoute: ApiAdminManufacturersRouteWithChildren,
   ApiAdminMedicinesRoute: ApiAdminMedicinesRouteWithChildren,
+  ApiAdminPharmaciesRoute: ApiAdminPharmaciesRouteWithChildren,
   ApiAdminRecallsRoute: ApiAdminRecallsRouteWithChildren,
   ApiAdminReportsRoute: ApiAdminReportsRouteWithChildren,
   ApiAiInsightsRoute: ApiAiInsightsRoute,
@@ -1991,13 +2233,20 @@ const rootRouteChildren: RootRouteChildren = {
   ApiFraudAlertsRoute: ApiFraudAlertsRoute,
   ApiFraudAnalyzeRoute: ApiFraudAnalyzeRoute,
   ApiFraudMetricsRoute: ApiFraudMetricsRoute,
+  ApiInternalProcessBlockchainQueueRoute:
+    ApiInternalProcessBlockchainQueueRoute,
+  ApiInternalRetryBlockchainJobsRoute: ApiInternalRetryBlockchainJobsRoute,
   ApiManufacturerAuditLogsRoute: ApiManufacturerAuditLogsRoute,
   ApiManufacturerBatchesRoute: ApiManufacturerBatchesRoute,
   ApiManufacturerComplianceRoute: ApiManufacturerComplianceRoute,
   ApiManufacturerDocumentsRoute: ApiManufacturerDocumentsRouteWithChildren,
   ApiManufacturerProfileRoute: ApiManufacturerProfileRouteWithChildren,
   ApiManufacturerRegisterBatchRoute: ApiManufacturerRegisterBatchRoute,
+  ApiManufacturerScanLocationsRoute: ApiManufacturerScanLocationsRoute,
   ApiManufacturerStatsRoute: ApiManufacturerStatsRoute,
+  ApiPharmacyLicenseUploadRoute: ApiPharmacyLicenseUploadRoute,
+  ApiPharmacyProfileRoute: ApiPharmacyProfileRoute,
+  ApiPharmacyScanLocationsRoute: ApiPharmacyScanLocationsRoute,
   ApiPharmacyScanLogsRoute: ApiPharmacyScanLogsRoute,
   ApiRealtimeFeedRoute: ApiRealtimeFeedRoute,
   ApiRegulatorHeatmapRoute: ApiRegulatorHeatmapRoute,
@@ -2010,6 +2259,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminPharmacyBlacklistRoute: ApiAdminPharmacyBlacklistRoute,
   ApiAdminRecallCreateRoute: ApiAdminRecallCreateRoute,
   ApiManufacturerBatchIdRoute: ApiManufacturerBatchIdRouteWithChildren,
+  ApiPharmacyLicenseDownloadRoute: ApiPharmacyLicenseDownloadRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -173,28 +173,53 @@ function SecuritySettings() {
 
   return (
     <div className="space-y-5">
-      <div className="card-premium p-6 space-y-4">
+      <form
+        className="card-premium p-6 space-y-4"
+        onSubmit={(e) => { e.preventDefault(); save(); }}
+        autoComplete="on"
+      >
         <h3 className="text-[16px] font-semibold flex items-center gap-2"><Lock className="h-4 w-4 text-primary" /> Change Password</h3>
         <div>
           <label className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-1.5 block">Current Password</label>
-          <Input value={curr} onChange={e => setCurr(e.target.value)} type="password" className="h-11 rounded-xl bg-secondary/20" />
+          <Input
+            value={curr}
+            onChange={e => setCurr(e.target.value)}
+            type="password"
+            autoComplete="current-password"
+            name="current-password"
+            className="h-11 rounded-xl bg-secondary/20"
+          />
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
             <label className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-1.5 block">New Password</label>
-            <Input value={next} onChange={e => setNext(e.target.value)} type="password" className="h-11 rounded-xl bg-secondary/20" />
+            <Input
+              value={next}
+              onChange={e => setNext(e.target.value)}
+              type="password"
+              autoComplete="new-password"
+              name="new-password"
+              className="h-11 rounded-xl bg-secondary/20"
+            />
           </div>
           <div>
             <label className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-1.5 block">Confirm Password</label>
-            <Input value={confirm} onChange={e => setConfirm(e.target.value)} type="password" className="h-11 rounded-xl bg-secondary/20" />
+            <Input
+              value={confirm}
+              onChange={e => setConfirm(e.target.value)}
+              type="password"
+              autoComplete="new-password"
+              name="confirm-password"
+              className="h-11 rounded-xl bg-secondary/20"
+            />
           </div>
         </div>
         <div className="flex justify-end">
-          <Button onClick={save} disabled={saving} className="rounded-xl bg-gradient-primary shadow-elegant text-[13px]">
+          <Button type="submit" disabled={saving} className="rounded-xl bg-gradient-primary shadow-elegant text-[13px]">
             {saving ? <><Loader2 className="mr-2 h-4 w-4 animate-spin" />Updating...</> : <><Key className="mr-2 h-4 w-4" />Update Password</>}
           </Button>
         </div>
-      </div>
+      </form>
       <div className="card-premium p-6 space-y-3">
         <h3 className="text-[16px] font-semibold flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /> Two-Factor Authentication</h3>
         <Toggle label="Enable 2FA" desc="Add an extra layer of security to your account" />

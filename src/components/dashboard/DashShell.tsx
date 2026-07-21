@@ -33,12 +33,14 @@ gsap.registerPlugin(ScrollTrigger);
 
 // ── Types ────────────────────────────────────────────────────────────────────
 
-interface NavItem {
-  to: string;
+export interface NavItem {
+  to?: string;
   label: string;
   icon: LucideIcon;
   group?: string;
   roles?: readonly string[];
+  onClick?: () => void;
+  isActive?: boolean;
 }
 
 interface DashShellProps {
@@ -99,79 +101,97 @@ function DesktopSidebar({ nav = [] }: { nav?: readonly NavItem[] }) {
       {/* Nav */}
       <nav className="flex-1 overflow-y-auto overflow-x-hidden py-3 px-2 space-y-0.5">
         {filteredNav.map((item, i) => {
-          const isActive = path === item.to;
+          const isActive = item.onClick ? (item.isActive ?? false) : path === item.to;
           const showDivider = i > 0 && item.group && filteredNav[i - 1].group !== item.group;
           const Icon = item.icon;
 
+          const content = (
+            <>
+              {/* Active background glow */}
+              {isActive && (
+                <>
+                  <motion.div
+                    layoutId="sidebar-active-bg"
+                    className="absolute inset-0 rounded-xl"
+                    style={{
+                      background: "oklch(0.50 0.20 265 / 0.10)",
+                      boxShadow: "inset 0 0 24px oklch(0.50 0.20 265 / 0.12)",
+                    }}
+                    transition={{ duration: 0.25, ease }}
+                  />
+                  {!collapsed && (
+                    <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-primary shadow-[0_0_8px_2px_oklch(0.50_0.20_265_/_0.5)]" />
+                  )}
+                </>
+              )}
+
+              {/* Icon */}
+              <span className={cn(
+                "relative z-10 grid shrink-0 place-items-center rounded-lg transition-all duration-200",
+                collapsed ? "h-8 w-8" : "h-7 w-7",
+                isActive
+                  ? "bg-primary/15 text-primary shadow-[0_0_12px_oklch(0.50_0.20_265_/_0.3)]"
+                  : "bg-border/40 text-muted-foreground"
+              )}>
+                <Icon className="h-3.5 w-3.5" />
+              </span>
+
+              {/* Label */}
+              <AnimatePresence initial={false}>
+                {!collapsed && (
+                  <motion.span
+                    initial={{ opacity: 0, width: 0 }}
+                    animate={{ opacity: 1, width: "auto" }}
+                    exit={{ opacity: 0, width: 0 }}
+                    transition={{ duration: 0.2, ease }}
+                    className="relative z-10 whitespace-nowrap overflow-hidden text-[13px] font-medium"
+                  >
+                    {item.label}
+                  </motion.span>
+                )}
+              </AnimatePresence>
+
+              {/* Active pulse dot */}
+              {isActive && !collapsed && (
+                <motion.span
+                  className="relative z-10 ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+                  animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                />
+              )}
+            </>
+          );
+
+          const linkClass = cn(
+            "relative flex items-center rounded-xl transition-all duration-200 overflow-hidden w-full text-left cursor-pointer",
+            collapsed ? "justify-center p-2.5 mx-1" : "gap-3 px-3.5 py-2.5",
+            isActive
+              ? "text-primary font-semibold"
+              : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+          );
+
           return (
-            <div key={item.to}>
+            <div key={item.to || item.label}>
               {showDivider && !collapsed && <div className="my-2 mx-1 border-t border-border/40" />}
               {showDivider && collapsed && <div className="my-2" />}
 
-              <Link
-                to={item.to}
-                title={collapsed ? item.label : undefined}
-                className={cn(
-                  "relative flex items-center rounded-xl transition-all duration-200 overflow-hidden",
-                  collapsed ? "justify-center p-2.5 mx-1" : "gap-3 px-3.5 py-2.5",
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                )}
-              >
-                {/* Active background glow */}
-                {isActive && (
-                  <>
-                    <motion.div
-                      layoutId="sidebar-active-bg"
-                      className="absolute inset-0 rounded-xl"
-                      style={{
-                        background: "oklch(0.50 0.20 265 / 0.10)",
-                        boxShadow: "inset 0 0 24px oklch(0.50 0.20 265 / 0.12)",
-                      }}
-                      transition={{ duration: 0.25, ease }}
-                    />
-                    {!collapsed && (
-                      <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-primary shadow-[0_0_8px_2px_oklch(0.50_0.20_265_/_0.5)]" />
-                    )}
-                  </>
-                )}
-
-                {/* Icon */}
-                <span className={cn(
-                  "relative z-10 grid shrink-0 place-items-center rounded-lg transition-all duration-200",
-                  collapsed ? "h-8 w-8" : "h-7 w-7",
-                  isActive
-                    ? "bg-primary/15 text-primary shadow-[0_0_12px_oklch(0.50_0.20_265_/_0.3)]"
-                    : "bg-border/40 text-muted-foreground"
-                )}>
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
-
-                {/* Label */}
-                <AnimatePresence initial={false}>
-                  {!collapsed && (
-                    <motion.span
-                      initial={{ opacity: 0, width: 0 }}
-                      animate={{ opacity: 1, width: "auto" }}
-                      exit={{ opacity: 0, width: 0 }}
-                      transition={{ duration: 0.2, ease }}
-                      className="relative z-10 whitespace-nowrap overflow-hidden text-[13px] font-medium"
-                    >
-                      {item.label}
-                    </motion.span>
-                  )}
-                </AnimatePresence>
-
-                {/* Active pulse dot */}
-                {isActive && !collapsed && (
-                  <motion.span
-                    className="relative z-10 ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
-                    animate={{ opacity: [1, 0.3, 1], scale: [1, 1.4, 1] }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                )}
-              </Link>
+              {item.onClick ? (
+                <button
+                  onClick={item.onClick}
+                  title={collapsed ? item.label : undefined}
+                  className={linkClass}
+                >
+                  {content}
+                </button>
+              ) : (
+                <Link
+                  to={item.to!}
+                  title={collapsed ? item.label : undefined}
+                  className={linkClass}
+                >
+                  {content}
+                </Link>
+              )}
             </div>
           );
         })}

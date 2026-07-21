@@ -17,7 +17,12 @@ const config: HardhatUserConfig = {
     networks: {
         amoy: {
             url: process.env.POLYGON_AMOY_RPC || "https://rpc-amoy.polygon.technology",
-            accounts: process.env.PRIVATE_KEY !== undefined ? [process.env.PRIVATE_KEY] : [],
+            accounts: (() => {
+                const key = process.env.BLOCKCHAIN_SIGNER_KEY || process.env.PRIVATE_KEY;
+                if (!key) return [];
+                // Normalize: Hardhat requires a 0x-prefixed hex key
+                return [key.startsWith("0x") ? key : "0x" + key];
+            })(),
         },
     },
     etherscan: {

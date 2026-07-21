@@ -15,6 +15,7 @@ import { useQRStore } from "@/store/qr-store";
 import { useFraudStore } from "@/store/fraud-store";
 import { DashShell } from "@/components/dashboard/DashShell";
 import { DASH_NAV } from "@/config/nav";
+import { ScanLocationMap } from "@/components/shared/ScanLocationMap";
 
 export const Route = createFileRoute("/dashboard/monitoring")({
   head: () => ({
@@ -44,7 +45,7 @@ function IntelligencePage() {
       try {
         const raw =
           typeof window !== "undefined"
-            ? localStorage.getItem("mediverify_session")
+            ? (localStorage.getItem("mediverify_session") || sessionStorage.getItem("mediverify_session"))
             : null;
         const token = raw
           ? (() => {
@@ -150,7 +151,28 @@ function IntelligencePage() {
                 <Button size="icon" variant="ghost" className="h-8 w-8 rounded-lg bg-black/40 hover:bg-black/60"><Maximize2 className="h-4 w-4 text-white" /></Button>
               </div>
 
-              <GlobalRadarMap />
+              {/* Real geo-tagged scan location map — role-aware data source */}
+              <ScanLocationMap
+                dataUrl={
+                  user?.role === "manufacturer"
+                    ? "/api/manufacturer/scan-locations"
+                    : "/api/pharmacy/scan-locations"
+                }
+                token={
+                  (() => {
+                    try {
+                      const sessionStr =
+                        typeof window !== "undefined"
+                          ? (localStorage.getItem("mediverify_session") || sessionStorage.getItem("mediverify_session"))
+                          : null;
+                      return sessionStr ? JSON.parse(sessionStr)?.token : "";
+                    } catch {
+                      return "";
+                    }
+                  })()
+                }
+                className="h-full"
+              />
 
               {/* Map Overlay Stats */}
               <div className="absolute bottom-6 left-6 right-6 z-20 grid grid-cols-1 sm:grid-cols-3 gap-3">

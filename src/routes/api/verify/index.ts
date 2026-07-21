@@ -17,8 +17,21 @@ export const Route = createAPIFileRoute("/api/verify")({
                 try {
                     const payload = JwtService.verifyAccessToken(authHeader.split(" ")[1]);
                     userId = payload.userId;
-                } catch (e) {
-                    // Public verify, don't throw
+                    
+                    if (payload.role === "PHARMACY") {
+                        const { prisma } = await import("@/server/db/client");
+                        const { ApiError } = await import("@/server/utils/api-response");
+                        const pharmacy = await prisma.pharmacy.findUnique({ where: { userId } });
+                        if (!pharmacy || !pharmacy.isVerified) {
+                            throw new ApiError(
+                                403,
+                                "Your pharmacy profile and DRAP Pharmacy License must be completed and approved by DRAP Admin before you can verify stock. Please complete your profile details and ensure your DRAP License is approved."
+                            );
+                        }
+                    }
+                } catch (e: any) {
+                    if (e.statusCode === 403) throw e;
+                    // Public verify, don't throw for invalid tokens
                 }
             }
 

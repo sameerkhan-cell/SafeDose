@@ -27,5 +27,5 @@ export const DASH_NAV = [
   { to: "/dashboard/admin", label: "DRAP Admin", icon: Shield, group: "main", roles: ["ADMIN", "SUPER_ADMIN", "DRAP_ADMIN"] },
   { to: "/dashboard/qr-library", label: "QR Library", icon: Library, group: "tools", roles: ["manufacturer"] },
   { to: "/report", label: "Reports", icon: FileWarning, group: "tools", roles: ["manufacturer", "pharmacy", "customer"] },
-  { to: "/dashboard/settings", label: "Settings", icon: Globe2, group: "tools", roles: ["manufacturer", "pharmacy", "customer"] },
+  { to: "/dashboard/settings", label: "Settings", icon: Globe2, group: "tools", roles: ["manufacturer", "pharmacy", "customer", "admin", "super_admin", "drap_admin"] },
 ] as const;

@@ -476,7 +476,7 @@ function QRLibraryPage() {
             try {
                 const raw =
                     typeof window !== "undefined"
-                        ? localStorage.getItem("mediverify_session")
+                        ? (localStorage.getItem("mediverify_session") || sessionStorage.getItem("mediverify_session"))
                         : null;
                 const token = raw ? (() => { try { return JSON.parse(raw)?.token; } catch { return null; } })() : null;
 
@@ -519,7 +519,7 @@ function QRLibraryPage() {
                         boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`,
                         boxQrScanned: false,
                         boxesPerCarton: b.boxesPerCarton || 10,
-                        cartonsCount: b._count?.cartons ?? 0,
+                        cartonsCount: b._count?.cartons ?? (Array.isArray(b.cartons) ? b.cartons.length : 0),
                     }));
 
                     // Server data always wins: overwrite existing store entries by ID so that

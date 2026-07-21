@@ -8,10 +8,12 @@ import { ease } from "@/lib/motion";
 import type { LucideIcon } from "lucide-react";
 
 interface NavItem {
-  to: string;
+  to?: string;
   label: string;
   icon: LucideIcon;
   group?: string;
+  onClick?: () => void;
+  isActive?: boolean;
 }
 
 export function MobileSidebar({ nav }: { nav: readonly NavItem[] }) {
@@ -73,47 +75,62 @@ export function MobileSidebar({ nav }: { nav: readonly NavItem[] }) {
             {/* Nav */}
             <nav className="flex-1 overflow-y-auto p-3 space-y-0.5">
               {nav.map((item, i) => {
-                const isActive = path === item.to;
+                const isActive = item.onClick ? (item.isActive ?? false) : path === item.to;
                 const showDivider = i > 0 && item.group && nav[i - 1].group !== item.group;
                 const Icon = item.icon;
-                return (
-                  <div key={item.to}>
-                    {showDivider && <div className="my-2 border-t border-border/40" />}
-                    <Link
-                      to={item.to}
-                      className={cn(
-                        "relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-all duration-200",
-                        isActive
-                          ? "bg-primary/10 text-primary"
-                          : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
-                      )}
-                    >
-                      {isActive && (
-                        <>
-                          <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-primary" />
-                          <motion.div
-                            className="absolute inset-0 rounded-xl"
-                            style={{ background: "oklch(0.50 0.20 265 / 0.08)", boxShadow: "inset 0 0 20px oklch(0.50 0.20 265 / 0.1)" }}
-                            layoutId="mobile-active-bg"
-                            transition={{ duration: 0.25, ease }}
-                          />
-                        </>
-                      )}
-                      <span className={cn(
-                        "relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-all duration-200",
-                        isActive ? "bg-primary/15 text-primary" : "bg-border/40 text-muted-foreground"
-                      )}>
-                        <Icon className="h-3.5 w-3.5" />
-                      </span>
-                      <span className="relative z-10">{item.label}</span>
-                      {isActive && (
-                        <motion.span
-                          className="relative z-10 ml-auto h-1.5 w-1.5 rounded-full bg-primary"
-                          animate={{ scale: [1, 1.5, 1] }}
-                          transition={{ duration: 2, repeat: Infinity }}
+
+                const content = (
+                  <>
+                    {isActive && (
+                      <>
+                        <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-[3px] rounded-r-full bg-primary" />
+                        <motion.div
+                          className="absolute inset-0 rounded-xl"
+                          style={{ background: "oklch(0.50 0.20 265 / 0.08)", boxShadow: "inset 0 0 20px oklch(0.50 0.20 265 / 0.1)" }}
+                          layoutId="mobile-active-bg"
+                          transition={{ duration: 0.25, ease }}
                         />
-                      )}
-                    </Link>
+                      </>
+                    )}
+                    <span className={cn(
+                      "relative z-10 grid h-7 w-7 shrink-0 place-items-center rounded-lg transition-all duration-200",
+                      isActive ? "bg-primary/15 text-primary" : "bg-border/40 text-muted-foreground"
+                    )}>
+                      <Icon className="h-3.5 w-3.5" />
+                    </span>
+                    <span className="relative z-10">{item.label}</span>
+                    {isActive && (
+                      <motion.span
+                        className="relative z-10 ml-auto h-1.5 w-1.5 rounded-full bg-primary"
+                        animate={{ scale: [1, 1.5, 1] }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      />
+                    )}
+                  </>
+                );
+
+                const linkClass = cn(
+                  "relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-all duration-200 w-full text-left",
+                  isActive
+                    ? "bg-primary/10 text-primary font-semibold"
+                    : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"
+                );
+
+                return (
+                  <div key={item.to || item.label}>
+                    {showDivider && <div className="my-2 border-t border-border/40" />}
+                    {item.onClick ? (
+                      <button onClick={item.onClick} className={linkClass}>
+                        {content}
+                      </button>
+                    ) : (
+                      <Link
+                        to={item.to!}
+                        className={linkClass}
+                      >
+                        {content}
+                      </Link>
+                    )}
                   </div>
                 );
               })}

@@ -4,9 +4,9 @@ import { authorizeRequest } from "@/server/middleware/auth.middleware";
 import { ApiResponse } from "@/server/utils/api-response";
 
 export const Route = createAPIFileRoute("/api/fraud/alerts")({
-    GET: async ({ request }) => {
+    GET: async ({ request }: { request: Request }) => {
         try {
-            await authorizeRequest(request, ["ADMIN", "REGULATOR"]);
+            await authorizeRequest(request, ["ADMIN", "REGULATOR", "MANUFACTURER", "PHARMACY"]);
 
             const alerts = await prisma.fraudAlert.findMany({
                 orderBy: { createdAt: "desc" },

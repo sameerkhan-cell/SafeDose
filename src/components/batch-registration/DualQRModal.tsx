@@ -22,6 +22,11 @@ const MFG_CODE_DEFAULT = "GSK";
 interface Props {
     open: boolean;
     onClose: () => void;
+    initialValues?: {
+        category?: string;
+        boxes?: number;
+        pillsPerBox?: number;
+    };
 }
 
 function Label({ children }: { children: React.ReactNode }) {
@@ -44,16 +49,16 @@ function FieldRow({ icon: Icon, label, children }: { icon: React.ElementType; la
     );
 }
 
-export function DualQRModal({ open, onClose }: Props) {
+export function DualQRModal({ open, onClose, initialValues }: Props) {
     const [step, setStep] = useState<ModalStep>("form");
     const [form, setForm] = useState<BatchRegistrationForm>({
         medicineName: "",
         batchNumber: "",
-        productCategory: "Pharmaceutical",
+        productCategory: initialValues?.category ?? "Pharmaceutical",
         manufacturingDate: new Date().toISOString().slice(0, 7),
         expiryDate: "2027-03",
-        quantityBoxes: 100,
-        totalPillsPerBox: 20,
+        quantityBoxes: initialValues?.boxes ?? 100,
+        totalPillsPerBox: initialValues?.pillsPerBox ?? 20,
         totalCartons: 10,
         manufacturerCode: MFG_CODE_DEFAULT,
         drapLicense: DRAP_DEFAULT,

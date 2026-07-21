@@ -3,6 +3,7 @@ import { VerificationStatus } from "@prisma/client";
 import { BlockchainService } from "./blockchain/blockchain.service";
 import { RealtimeService } from "./realtime/realtime.service";
 import { AIService } from "./ai/ai.service";
+import { logVerificationAnchorError } from "./blockchain/blockchain.queue";
 
 export interface VerificationRequest {
     code: string;
@@ -42,6 +43,45 @@ export interface VerificationResponse {
 }
 
 export class VerificationEngine {
+    // ═══════════════════════════════════
+    // Helper — non-blocking anchor with structured error logging
+    // ═══════════════════════════════════
+    private static anchorWithLogging(
+        verificationLogId: string,
+        pillQR: string,
+        location: string,
+        status: string
+    ): void {
+        BlockchainService.isPillRegistered(pillQR)
+            .then((isRegistered) => {
+                if (!isRegistered) {
+                    const msg = "PENDING_ANCHOR: Pill not yet registered on-chain.";
+                    console.warn(`[BLOCKCHAIN] anchorVerification skipped (PENDING_ANCHOR) pill=${pillQR}: ${msg}`);
+                    // Log directly to blockchain_job table for admin visibility with isPendingAnchor = true
+                    void logVerificationAnchorError(verificationLogId, pillQR, msg, true);
+                    return;
+                }
+
+                // Proceed with gas-spending transaction only if registered
+                BlockchainService.anchorVerification(pillQR, location, status)
+                    .then((txHash) => {
+                        if (txHash) {
+                            console.log(`[BLOCKCHAIN] Verification anchored: ${txHash} (pill=${pillQR})`);
+                        }
+                    })
+                    .catch((err: any) => {
+                        const msg: string = err?.message ?? String(err);
+                        console.error(`[BLOCKCHAIN] anchorVerification failed (RPC_ERROR) pill=${pillQR}: ${msg}`);
+                        void logVerificationAnchorError(verificationLogId, pillQR, msg, false);
+                    });
+            })
+            .catch((err: any) => {
+                const msg = err?.message ?? String(err);
+                console.error(`[BLOCKCHAIN] isPillRegistered check failed: ${msg}`);
+                void logVerificationAnchorError(verificationLogId, pillQR, `Pre-check failed: ${msg}`, false);
+            });
+    }
+
     // ═══════════════════════════════════
     // PART 1 — Routing
     // ═══════════════════════════════════
@@ -226,7 +266,7 @@ export class VerificationEngine {
                 const log = await this.logVerification(req, "GENUINE", drapBatch.medicineId, null);
 
                 // Side-effects (non-blocking).
-                BlockchainService.anchorVerification(req.code, req.location || "Unknown", "GENUINE").catch(console.error);
+                this.anchorWithLogging(log.id, req.code, req.location || "Unknown", "GENUINE");
                 RealtimeService.broadcastVerification({ ...log, status: "GENUINE" } as any);
                 if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
 
@@ -285,7 +325,7 @@ export class VerificationEngine {
         const log = await this.logVerification(req, resultType, batch.medicineId, null);
 
         // Side-effects
-        BlockchainService.anchorVerification(req.code, req.location || "Unknown", resultType).catch(console.error);
+        this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
 
@@ -338,7 +378,7 @@ export class VerificationEngine {
             // Genuine product that has already been scanned — return DUPLICATE with full context,
             // NOT a FAKE result, so the patient sees real manufacturer/medicine info.
             const dupLog = await this.logVerification(req, "DUPLICATE", carton.batch.medicineId, null);
-            BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+            this.anchorWithLogging(dupLog.id, req.code, req.location || "Unknown", "DUPLICATE");
             RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
             return {
                 success: true,
@@ -385,7 +425,7 @@ export class VerificationEngine {
         const log = await this.logVerification(req, resultType, carton.batch.medicineId, null);
 
         // Side-effects
-        BlockchainService.anchorVerification(req.code, req.location || "Unknown", resultType).catch(console.error);
+        this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
 
@@ -445,7 +485,7 @@ export class VerificationEngine {
                 const existingPharmacy = box.pharmacyId ? await prisma.pharmacy.findUnique({ where: { id: box.pharmacyId } }) : null;
                 const dupMsg = "DUPLICATE: This box was already scanned by " + (existingPharmacy?.name ?? "another pharmacy") + " on " + box.pharmacyScannedAt.toISOString() + ". Cannot be re-verified by another pharmacy.";
                 const dupLog = await this.logVerification(req, "DUPLICATE", box.batch.medicineId, null);
-                BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+                this.anchorWithLogging(dupLog.id, req.code, req.location || "Unknown", "DUPLICATE");
                 RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
                 return {
                     success: true,
@@ -487,7 +527,7 @@ export class VerificationEngine {
                 // Genuine product already patient-scanned — return DUPLICATE with full context.
                 const dupMsg = "DUPLICATE: This box QR was already verified by a patient on " + box.patientScannedAt.toISOString() + ". If this is an unopened box, please report immediately.";
                 const dupLog = await this.logVerification(req, "DUPLICATE", box.batch.medicineId, null);
-                BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+                this.anchorWithLogging(dupLog.id, req.code, req.location || "Unknown", "DUPLICATE");
                 RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
                 return {
                     success: true,
@@ -536,7 +576,7 @@ export class VerificationEngine {
         const log = await this.logVerification(req, resultType, box.batch.medicineId, null);
 
         // Side-effects
-        BlockchainService.anchorVerification(req.code, req.location || "Unknown", resultType).catch(console.error);
+        this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
 
@@ -597,7 +637,7 @@ export class VerificationEngine {
             // Genuine product already scanned — return DUPLICATE with full context.
             const dupMsg = "DUPLICATE: This pill was already scanned on " + pill.scannedAt?.toISOString() + ". Each pill can only be verified once.";
             const dupLog = await this.logVerification(req, "DUPLICATE", pill.batch.medicineId, pill.id);
-            BlockchainService.anchorVerification(req.code, req.location || "Unknown", "DUPLICATE").catch(console.error);
+            this.anchorWithLogging(dupLog.id, req.code, req.location || "Unknown", "DUPLICATE");
             RealtimeService.broadcastVerification({ ...dupLog, status: "DUPLICATE" } as any);
             return {
                 success: true,
@@ -649,7 +689,7 @@ export class VerificationEngine {
         const log = await this.logVerification(req, resultType, pill.batch.medicineId, pill.id);
 
         // Side-effects
-        BlockchainService.anchorVerification(req.code, req.location || "Unknown", resultType).catch(console.error);
+        this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
 

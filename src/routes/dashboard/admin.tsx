@@ -4,13 +4,15 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   Shield, Plus, Search, Edit2, Trash2, AlertTriangle,
   CheckCircle, XCircle, Database, Pill, Building2,
-  RefreshCw, Save, X, ChevronDown, ChevronUp, Bell
+  RefreshCw, Save, X, ChevronDown, ChevronUp, Bell,
+  FileText, Store, BarChart3, Archive, Settings
 } from "lucide-react";
 import { useAuth } from "@/lib/auth-context";
-import { DashShell } from "@/components/dashboard/DashShell";
+import { DashShell, NavItem } from "@/components/dashboard/DashShell";
 import { Button } from "@/components/ui/button";
 import { DocumentReviewPanel } from "@/components/dashboard/admin/DocumentReviewPanel";
 import { ManufacturersPanel } from "@/components/dashboard/admin/ManufacturersPanel";
+import { PharmaciesPanel } from "@/components/dashboard/admin/PharmaciesPanel";
 import { ReportsPanel } from "@/components/dashboard/admin/ReportsPanel";
 import { DrapBatchRegistryPanel } from "@/components/dashboard/admin/DrapBatchRegistryPanel";
 
@@ -380,6 +382,30 @@ function RecallFormModal({ onClose, onSave, session }: { onClose: () => void; on
   );
 }
 
+const TAB_ICONS: Record<string, any> = {
+  medicines: Pill,
+  sequences: Database,
+  recalls: AlertTriangle,
+  documents: FileText,
+  manufacturers: Building2,
+  pharmacies: Store,
+  reports: BarChart3,
+  "batch-registry": Archive,
+};
+
+const TAB_LABELS: Record<string, string> = {
+  medicines: "DRAP Medicines",
+  sequences: "Batch Sequences",
+  recalls: "Recall Alerts",
+  documents: "Document Review",
+  manufacturers: "Manufacturers",
+  pharmacies: "Pharmacies",
+  reports: "Reports",
+  "batch-registry": "Batch Registry",
+};
+
+const TAB_ORDER = ["medicines", "sequences", "recalls", "documents", "manufacturers", "pharmacies", "reports", "batch-registry"] as const;
+
 // ── Main Page ───────────────────────────────────────────
 function Page() {
   const { user, isAuthenticated, signOut, session } = useAuth();
@@ -402,13 +428,28 @@ function Page() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers" | "reports" | "batch-registry">("medicines");
+  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers" | "pharmacies" | "reports" | "batch-registry">("medicines");
   const [showMedicineForm, setShowMedicineForm] = useState(false);
   const [showSequenceForm, setShowSequenceForm] = useState(false);
   const [showRecallForm, setShowRecallForm] = useState(false);
   const [editMedicine, setEditMedicine] = useState<DRAPMedicine | null>(null);
 
   const headers = { "Authorization": `Bearer ${session?.token ?? ""}` };
+
+  const ADMIN_NAV: NavItem[] = [
+    ...TAB_ORDER.map(tab => ({
+      label: TAB_LABELS[tab],
+      icon: TAB_ICONS[tab],
+      onClick: () => setActiveTab(tab),
+      isActive: activeTab === tab,
+    })),
+    {
+      label: "Settings",
+      icon: Settings,
+      to: "/dashboard/settings",
+      group: "tools",
+    },
+  ];
 
   const fetchAll = async () => {
     setLoading(true);
@@ -454,7 +495,7 @@ function Page() {
   const severityColor = (s: string) => s === "CRITICAL" ? "text-red-600 bg-red-500/10" : s === "HIGH" ? "text-orange-600 bg-orange-500/10" : s === "MEDIUM" ? "text-amber-600 bg-amber-500/10" : "text-green-600 bg-green-500/10";
 
   return (
-    <DashShell title="DRAP Admin Portal" subtitle="Layer 1 — Public Intelligence Database" badge="ADMIN">
+    <DashShell title="DRAP Admin Portal" subtitle="Layer 1 — Public Intelligence Database" badge="ADMIN" nav={ADMIN_NAV}>
       <div className="space-y-6 p-4 md:p-6">
 
         {/* Stats Row */}
@@ -465,148 +506,149 @@ function Page() {
           <StatCard icon={Building2} label="Total Scans" value={stats?.totalScans ?? "..."} color="bg-green-500/15 text-green-500" />
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1 bg-secondary/30 rounded-xl p-1 w-fit flex-wrap">
-          {(["medicines", "sequences", "recalls", "documents", "manufacturers", "reports", "batch-registry"] as const).map(tab => (
-            <button key={tab} onClick={() => setActiveTab(tab)} className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors capitalize ${activeTab === tab ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}>
-              {tab === "medicines" ? "DRAP Medicines" : tab === "sequences" ? "Batch Sequences" : tab === "recalls" ? "Recall Alerts" : tab === "documents" ? "Document Review" : tab === "manufacturers" ? "Manufacturers" : tab === "reports" ? "Reports" : "Batch Registry"}
-            </button>
-          ))}
-        </div>
-
-        {/* ── MEDICINES TAB ── */}
-        {activeTab === "medicines" && (
-          <div>
-            <SectionHeader title="DRAP Medicine Database" subtitle="Medicines entered here are checked during every patient scan (Layer 1)" onAdd={() => { setEditMedicine(null); setShowMedicineForm(true); }} />
-            <div className="mb-4 relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, DRAP number, or manufacturer..." className="w-full h-10 rounded-xl border border-border bg-secondary/20 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-            </div>
-            <div className="space-y-2">
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
-              ) : filteredMedicines.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Pill className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No medicines yet — add your first DRAP medicine</p>
-                </div>
-              ) : filteredMedicines.map(med => (
-                <div key={med.id} className="rounded-xl border border-border/50 bg-card p-4 flex items-center justify-between gap-4">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-medium text-sm">{med.name}</p>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${med.approvalStatus === "REGISTERED" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}>
-                        {med.approvalStatus}
-                      </span>
-                      {med.isPublicDRAPEntry && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">DRAP Entry</span>}
-                    </div>
-                    <div className="flex gap-3 mt-1 flex-wrap">
-                      {med.genericName && <span className="text-[11px] text-muted-foreground">{med.genericName}</span>}
-                      {med.drapRegNumber && <span className="text-[11px] font-mono text-blue-500">{med.drapRegNumber}</span>}
-                      {med.manufacturer_name && <span className="text-[11px] text-muted-foreground">by {med.manufacturer_name}</span>}
-                    </div>
+        {/* Content area */}
+        <div className="w-full">
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -8 }}
+              transition={{ duration: 0.18, ease: "easeOut" }}
+            >
+              {activeTab === "medicines" && (
+                <div>
+                  <SectionHeader title="DRAP Medicine Database" subtitle="Medicines entered here are checked during every patient scan (Layer 1)" onAdd={() => { setEditMedicine(null); setShowMedicineForm(true); }} />
+                  <div className="mb-4 relative">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, DRAP number, or manufacturer..." className="w-full h-10 rounded-xl border border-border bg-secondary/20 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
                   </div>
-                  <div className="flex gap-1.5 flex-shrink-0">
-                    <button onClick={() => { setEditMedicine(med); setShowMedicineForm(true); }} className="w-8 h-8 rounded-lg border border-border bg-secondary/30 flex items-center justify-center hover:bg-secondary transition-colors">
-                      <Edit2 className="h-3.5 w-3.5" />
-                    </button>
-                    <button onClick={() => handleDeleteMedicine(med.id)} className="w-8 h-8 rounded-lg border border-red-200 bg-red-500/5 flex items-center justify-center hover:bg-red-500/10 transition-colors">
-                      <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── SEQUENCES TAB ── */}
-        {activeTab === "sequences" && (
-          <div>
-            <SectionHeader title="Batch Sequence Ranges" subtitle="Define valid batch number ranges — anything outside these is flagged as FAKE" onAdd={() => setShowSequenceForm(true)} />
-            <div className="space-y-2">
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
-              ) : sequences.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <Database className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No sequences yet — add batch sequence ranges</p>
-                </div>
-              ) : sequences.map(seq => (
-                <div key={seq.id} className="rounded-xl border border-border/50 bg-card p-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="font-medium text-sm">{seq.medicine?.name}</p>
-                      <p className="text-[11px] text-muted-foreground mt-0.5">
-                        Prefix: <span className="font-mono text-blue-500">{seq.prefix}</span> — Year: <span className="font-mono">{seq.year}</span> — Range: <span className="font-mono">{seq.minSequence.toString().padStart(4,"0")} to {seq.maxSequence.toString().padStart(4,"0")}</span>
-                      </p>
-                    </div>
-                    <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${seq.confidence === "HIGH" ? "bg-green-500/10 text-green-600" : seq.confidence === "MEDIUM" ? "bg-amber-500/10 text-amber-600" : "bg-red-500/10 text-red-600"}`}>
-                      {seq.confidence}
-                    </span>
-                  </div>
-                  <div className="mt-2 text-[11px] text-muted-foreground bg-secondary/30 rounded-lg px-3 py-1.5">
-                    Valid: <span className="font-mono">{seq.prefix}-{seq.year}-{seq.minSequence.toString().padStart(4,"0")}</span> to <span className="font-mono">{seq.prefix}-{seq.year}-{seq.maxSequence.toString().padStart(4,"0")}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ── RECALLS TAB ── */}
-        {activeTab === "recalls" && (
-          <div>
-            <SectionHeader title="DRAP Recall Alerts" subtitle="Active recalls are shown to patients when they scan that medicine" onAdd={() => setShowRecallForm(true)} />
-            <div className="space-y-2">
-              {loading ? (
-                <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
-              ) : recalls.length === 0 ? (
-                <div className="text-center py-12 text-muted-foreground">
-                  <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                  <p className="text-sm">No recalls yet</p>
-                </div>
-              ) : recalls.map(rec => (
-                <div key={rec.id} className={`rounded-xl border p-4 ${rec.isActive ? "border-red-200 bg-red-500/5" : "border-border/50 bg-card opacity-60"}`}>
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-medium text-sm">{rec.medicineName}</p>
-                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${severityColor(rec.severity)}`}>{rec.severity}</span>
-                        {rec.batchNumber && <span className="text-[10px] font-mono bg-secondary px-2 py-0.5 rounded">{rec.batchNumber}</span>}
+                  <div className="space-y-2">
+                    {loading ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
+                    ) : filteredMedicines.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Pill className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No medicines yet — add your first DRAP medicine</p>
                       </div>
-                      <p className="text-[11px] text-muted-foreground mt-1">{rec.reason}</p>
-                      {rec.drapRef && <p className="text-[10px] text-blue-500 mt-0.5">Ref: {rec.drapRef}</p>}
-                    </div>
-                    <button onClick={() => handleToggleRecall(rec.id, rec.isActive)} className={`flex-shrink-0 text-[11px] px-3 py-1.5 rounded-lg font-medium transition-colors ${rec.isActive ? "bg-red-500/10 text-red-600 hover:bg-red-500/20" : "bg-green-500/10 text-green-600 hover:bg-green-500/20"}`}>
-                      {rec.isActive ? "Deactivate" : "Reactivate"}
-                    </button>
+                    ) : filteredMedicines.map(med => (
+                      <div key={med.id} className="rounded-xl border border-border/50 bg-card p-4 flex items-center justify-between gap-4">
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2 flex-wrap">
+                            <p className="font-medium text-sm">{med.name}</p>
+                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${med.approvalStatus === "REGISTERED" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}>
+                              {med.approvalStatus}
+                            </span>
+                            {med.isPublicDRAPEntry && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">DRAP Entry</span>}
+                          </div>
+                          <div className="flex gap-3 mt-1 flex-wrap">
+                            {med.genericName && <span className="text-[11px] text-muted-foreground">{med.genericName}</span>}
+                            {med.drapRegNumber && <span className="text-[11px] font-mono text-blue-500">{med.drapRegNumber}</span>}
+                            {med.manufacturer_name && <span className="text-[11px] text-muted-foreground">by {med.manufacturer_name}</span>}
+                          </div>
+                        </div>
+                        <div className="flex gap-1.5 flex-shrink-0">
+                          <button onClick={() => { setEditMedicine(med); setShowMedicineForm(true); }} className="w-8 h-8 rounded-lg border border-border bg-secondary/30 flex items-center justify-center hover:bg-secondary transition-colors">
+                            <Edit2 className="h-3.5 w-3.5" />
+                          </button>
+                          <button onClick={() => handleDeleteMedicine(med.id)} className="w-8 h-8 rounded-lg border border-red-200 bg-red-500/5 flex items-center justify-center hover:bg-red-500/10 transition-colors">
+                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-        )}
+              )}
 
-        {/* ── DOCUMENTS TAB ── */}
-        {activeTab === "documents" && (
-          <DocumentReviewPanel />
-        )}
+              {activeTab === "sequences" && (
+                <div>
+                  <SectionHeader title="Batch Sequence Ranges" subtitle="Define valid batch number ranges — anything outside these is flagged as FAKE" onAdd={() => setShowSequenceForm(true)} />
+                  <div className="space-y-2">
+                    {loading ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
+                    ) : sequences.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <Database className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No sequences yet — add batch sequence ranges</p>
+                      </div>
+                    ) : sequences.map(seq => (
+                      <div key={seq.id} className="rounded-xl border border-border/50 bg-card p-4">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <p className="font-medium text-sm">{seq.medicine?.name}</p>
+                            <p className="text-[11px] text-muted-foreground mt-0.5">
+                              Prefix: <span className="font-mono text-blue-500">{seq.prefix}</span> — Year: <span className="font-mono">{seq.year}</span> — Range: <span className="font-mono">{seq.minSequence.toString().padStart(4,"0")} to {seq.maxSequence.toString().padStart(4,"0")}</span>
+                            </p>
+                          </div>
+                          <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${seq.confidence === "HIGH" ? "bg-green-500/10 text-green-600" : seq.confidence === "MEDIUM" ? "bg-amber-500/10 text-amber-600" : "bg-red-500/10 text-red-600"}`}>
+                            {seq.confidence}
+                          </span>
+                        </div>
+                        <div className="mt-2 text-[11px] text-muted-foreground bg-secondary/30 rounded-lg px-3 py-1.5">
+                          Valid: <span className="font-mono">{seq.prefix}-{seq.year}-{seq.minSequence.toString().padStart(4,"0")}</span> to <span className="font-mono">{seq.prefix}-{seq.year}-{seq.maxSequence.toString().padStart(4,"0")}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* ── MANUFACTURERS TAB ── */}
-        {activeTab === "manufacturers" && (
-          <ManufacturersPanel />
-        )}
+              {activeTab === "recalls" && (
+                <div>
+                  <SectionHeader title="DRAP Recall Alerts" subtitle="Active recalls are shown to patients when they scan that medicine" onAdd={() => setShowRecallForm(true)} />
+                  <div className="space-y-2">
+                    {loading ? (
+                      <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
+                    ) : recalls.length === 0 ? (
+                      <div className="text-center py-12 text-muted-foreground">
+                        <AlertTriangle className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                        <p className="text-sm">No recalls yet</p>
+                      </div>
+                    ) : recalls.map(rec => (
+                      <div key={rec.id} className={`rounded-xl border p-4 ${rec.isActive ? "border-red-200 bg-red-500/5" : "border-border/50 bg-card opacity-60"}`}>
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <p className="font-medium text-sm">{rec.medicineName}</p>
+                              <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${severityColor(rec.severity)}`}>{rec.severity}</span>
+                              {rec.batchNumber && <span className="text-[10px] font-mono bg-secondary px-2 py-0.5 rounded">{rec.batchNumber}</span>}
+                            </div>
+                            <p className="text-[11px] text-muted-foreground mt-1">{rec.reason}</p>
+                            {rec.drapRef && <p className="text-[10px] text-blue-500 mt-0.5">Ref: {rec.drapRef}</p>}
+                          </div>
+                          <button onClick={() => handleToggleRecall(rec.id, rec.isActive)} className={`flex-shrink-0 text-[11px] px-3 py-1.5 rounded-lg font-medium transition-colors ${rec.isActive ? "bg-red-500/10 text-red-600 hover:bg-red-500/20" : "bg-green-500/10 text-green-600 hover:bg-green-500/20"}`}>
+                            {rec.isActive ? "Deactivate" : "Reactivate"}
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
-        {/* ── REPORTS TAB ── */}
-        {activeTab === "reports" && (
-          <ReportsPanel />
-        )}
+              {activeTab === "documents" && (
+                <DocumentReviewPanel />
+              )}
 
-        {/* ── BATCH REGISTRY TAB ── */}
-        {activeTab === "batch-registry" && (
-          <DrapBatchRegistryPanel />
-        )}
+              {activeTab === "manufacturers" && (
+                <ManufacturersPanel />
+              )}
+
+              {activeTab === "pharmacies" && (
+                <PharmaciesPanel />
+              )}
+
+              {activeTab === "reports" && (
+                <ReportsPanel />
+              )}
+
+              {activeTab === "batch-registry" && (
+                <DrapBatchRegistryPanel />
+              )}
+            </motion.div>
+          </AnimatePresence>
+        </div>
       </div>
 
       {/* Modals */}

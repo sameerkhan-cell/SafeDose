@@ -21,6 +21,11 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                         select: {
                             isVerified: true
                         }
+                    },
+                    pharmacy: {
+                        select: {
+                            isVerified: true
+                        }
                     }
                 }
             });
@@ -34,7 +39,7 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                 role: user.role,
                 status: user.status,
                 createdAt: user.createdAt,
-                isVerified: user.manufacturer?.isVerified ?? false,
+                isVerified: user.manufacturer?.isVerified ?? user.pharmacy?.isVerified ?? false,
             }));
         } catch (error: any) {
             return Response.json(ApiResponse.error(error.message, 401), { status: 401 });

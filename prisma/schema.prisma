@@ -196,6 +196,16 @@ model Pharmacy {
   isBlacklisted Boolean   @default(false)
   boxesReceived Box[]
 
+  // Verification Fields
+  isVerified         Boolean   @default(false)
+  verificationStatus String    @default("UNREGISTERED") // UNREGISTERED, PENDING, VERIFIED, REJECTED
+  licenseDocumentUrl String?   @db.Text
+  address            String?
+  businessPhone      String?
+  businessEmail      String?
+  verifiedAt         DateTime?
+  remarks            String?   @db.Text
+
   @@map("pharmacy")
 }
 
@@ -310,6 +320,7 @@ model Pill {
   verificationStatus String    @default("UNVERIFIED")
   qrScanned          Boolean   @default(false)
   blockchainTx       String?
+  blockchainStatus   String    @default("PENDING") // PENDING | CONFIRMED | FAILED
   verifications      VerificationLog[]
   createdAt          DateTime  @default(now())
 
@@ -566,6 +577,7 @@ model Notification {
   @@map("notification")
 }
 
+/// Minimal transaction record (legacy, kept for backward compat)
 model BlockchainTransaction {
   id            String    @id @default(cuid())
   txHash        String    @unique
@@ -574,6 +586,26 @@ model BlockchainTransaction {
   createdAt     DateTime  @default(now())
 
   @@map("blockchaintransaction")
+}
+
+/// DB-backed job queue for on-chain anchoring operations.
+/// The background worker polls this table for PENDING rows, calls the
+/// appropriate BlockchainService method, and updates status accordingly.
+model BlockchainJob {
+  id          String   @id @default(cuid())
+  entityType  String   // "BATCH" | "PILL" | "VERIFICATION_ANCHOR"
+  entityId    String   // batch.id / pill.id / verificationLog.id
+  entityRef   String?  // human-readable ref (batchNumber / pillQR) for debugging
+  status      String   @default("PENDING") // PENDING | PROCESSING | CONFIRMED | FAILED
+  attempts    Int      @default(0)
+  lastError   String?  @db.Text
+  txHash      String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([status, createdAt])
+  @@index([entityType, entityId])
+  @@map("blockchain_job")
 }
 
 model DrapBatchRegistry {

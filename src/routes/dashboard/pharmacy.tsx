@@ -9,7 +9,9 @@ import { BrowserMultiFormatReader } from "@zxing/library";
 import { useAuth } from "@/lib/auth-context";
 import { DASH_NAV } from "@/config/nav";
 import { ease } from "@/lib/motion";
+import { toast } from "sonner";
 import { DashShell } from "@/components/dashboard/DashShell";
+import { ScanLocationsMap } from "@/components/maps/ScanLocationsMap";
 import { StatCard, MetricRow } from "@/components/dashboard/StatCard";
 import { Button } from "@/components/ui/button";
 import {
@@ -339,7 +341,7 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
 }
 
 function Page() {
-  const { user, session, isAuthenticated, signOut, isLoading } = useAuth();
+  const { user, session, isAuthenticated, signOut, isLoading, updateUser } = useAuth();
   const [liveLog, setLiveLog] = useState(VERIF_LOGS);
   const [showScanModal, setShowScanModal] = useState(false);
 
@@ -348,6 +350,32 @@ function Page() {
       signOut();
     }
   }, [isAuthenticated, user?.role, signOut]);
+
+  useEffect(() => {
+    if (!isAuthenticated || user?.role !== "pharmacy") return;
+
+    const syncUser = () => {
+      const token = session?.token || "";
+      if (!token) return;
+      
+      const headers = { "Authorization": `Bearer ${token}` };
+      fetch("/api/auth/me", { headers })
+        .then(res => res.json())
+        .then(res => {
+          if (res.success && res.data) {
+            updateUser({
+              isVerified: res.data.isVerified,
+              fullName: res.data.name,
+            });
+          }
+        })
+        .catch(err => console.error("Failed to sync user data:", err));
+    };
+
+    syncUser();
+    const syncInterval = setInterval(syncUser, 10000);
+    return () => clearInterval(syncInterval);
+  }, [isAuthenticated, user?.role, session?.token, updateUser]);
 
   useEffect(() => {
     if (!session?.token) return;
@@ -380,10 +408,20 @@ function Page() {
   if (!isAuthenticated) return <Navigate to="/auth/login" />;
   if (user?.role !== "pharmacy") return <Navigate to="/auth/login" />;
 
+  const handleRestrictedAction = (action: () => void) => {
+    if (!user?.isVerified) {
+      toast.error("License Verification Pending", {
+        description: "Your DRAP Pharmacy License is pending approval. You cannot perform this action.",
+      });
+      return;
+    }
+    action();
+  };
+
   return (
     <DashShell
       title="Pharmacy Command Center"
-      subtitle={`${user?.fullName || "Servaid"} Pharmacy · Branch #218 · Karachi`}
+      subtitle={`${user?.fullName || "Servaid"} Pharmacy · Branch #218 · Karachi · ${user?.isVerified ? "Verified" : "Unverified"}`}
       badge="Enterprise"
       nav={DASH_NAV}
       actions={
@@ -392,15 +430,45 @@ function Page() {
             <Filter className="h-3.5 w-3.5" /> Filter
           </Button>
           <Button
-            onClick={() => setShowScanModal(true)}
+            onClick={() => handleRestrictedAction(() => setShowScanModal(true))}
             size="sm"
-            className="rounded-full bg-gradient-primary shadow-elegant text-[12px] font-medium gap-1.5 transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02]"
+            disabled={!user?.isVerified}
+            className="rounded-full bg-gradient-primary shadow-elegant text-[12px] font-medium gap-1.5 transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02] disabled:opacity-50"
           >
             <ScanLine className="h-3.5 w-3.5" /> Scan Stock
           </Button>
         </div>
       }
     >
+      {/* Verification Warning Banner */}
+      {!user?.isVerified && (
+        <motion.div
+          initial={{ opacity: 0, y: -16 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="mb-6 rounded-2xl border border-warning/20 bg-warning/5 p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+        >
+          <div className="flex gap-3">
+            <div className="h-10 w-10 rounded-xl bg-warning/15 flex items-center justify-center text-warning shrink-0">
+              <AlertTriangle className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="font-bold text-sm text-foreground">DRAP License Verification Pending</h4>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Your pharmacy license is currently undergoing verification. Restricted actions (such as stock scanning and reporting) are disabled until approved.
+              </p>
+            </div>
+          </div>
+          <Button
+            onClick={() => window.location.href = "/dashboard/profile"}
+            size="sm"
+            variant="outline"
+            className="rounded-xl border-warning/20 hover:bg-warning/10 text-warning-foreground text-xs gap-1.5 shrink-0"
+          >
+            Complete Profile <ArrowRight className="h-3.5 w-3.5" />
+          </Button>
+        </motion.div>
+      )}
+
       {/* 1. Dashboard Overview / Action Bar */}
       <motion.div
         initial={{ opacity: 0, y: 12 }}
@@ -409,15 +477,21 @@ function Page() {
         className="mb-6 flex flex-wrap gap-2.5"
       >
         <Button
-          onClick={() => setShowScanModal(true)}
-          className="rounded-full bg-gradient-primary shadow-elegant text-[13px] font-medium transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02]"
+          onClick={() => handleRestrictedAction(() => setShowScanModal(true))}
+          disabled={!user?.isVerified}
+          className="rounded-full bg-gradient-primary shadow-elegant text-[13px] font-medium transition-all duration-300 hover:shadow-card-hover hover:scale-[1.02] disabled:opacity-50"
         >
           <ScanLine className="mr-2 h-4 w-4" /> Scan Incoming Stock
         </Button>
-        <Button variant="outline" className="rounded-full text-[13px] font-medium border-border/60 hover:border-primary/30">
+        {/* <Button variant="outline" className="rounded-full text-[13px] font-medium border-border/60 hover:border-primary/30">
           <FileText className="mr-2 h-4 w-4" /> Bulk Verify CSV
-        </Button>
-        <Button variant="outline" className="rounded-full text-[13px] font-medium border-border/60 hover:border-destructive/30 text-destructive hover:text-destructive">
+        </Button> */}
+        <Button
+          onClick={() => handleRestrictedAction(() => toast.info("Report Feature", { description: "Reporting tampered batch." }))}
+          disabled={!user?.isVerified}
+          variant="outline"
+          className="rounded-full text-[13px] font-medium border-border/60 hover:border-destructive/30 text-destructive hover:text-destructive disabled:opacity-50"
+        >
           <XCircle className="mr-2 h-4 w-4" /> Report Tampered Batch
         </Button>
       </motion.div>
@@ -433,7 +507,7 @@ function Page() {
       {/* 2. Bulk Verify & 13. Safety Map Row */}
       <div className="mt-6 grid gap-5 lg:grid-cols-3">
         <BulkVerifyWidget className="lg:col-span-2" />
-        <SafetyMapWidget />
+        <ScanLocationsMap endpoint="/api/pharmacy/scan-locations" title="Patient Scan Locations" />
       </div>
 
       {/* 7. Analytics & 10. AI Fraud Row */}
@@ -492,36 +566,6 @@ function BulkVerifyWidget({ className }: { className?: string }) {
         <h4 className="text-[14px] font-medium">Drag and drop batch files here</h4>
         <p className="text-[12px] text-muted-foreground mt-1 mb-5 max-w-sm">Supports CSV, XLSX, or JSON from authorized distributor systems. Max 10,000 SKUs per upload.</p>
         <Button size="sm" variant="outline" className="rounded-xl border-primary/30 text-primary hover:bg-primary/10">Browse Files</Button>
-      </div>
-    </motion.div>
-  );
-}
-
-function SafetyMapWidget() {
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ delay: 0.1, duration: 0.5, ease }}
-      className="card-premium p-6 flex flex-col"
-    >
-      <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-semibold flex items-center gap-2"><Map className="h-4 w-4 text-primary" /> Regional Safety</h3>
-      </div>
-      <div className="relative flex-1 min-h-[220px] rounded-xl overflow-hidden bg-secondary/30 border border-border/50">
-        <div className="absolute inset-0 grid-bg opacity-20" />
-        <svg viewBox="0 0 100 50" className="absolute inset-0 h-full w-full opacity-40" preserveAspectRatio="none">
-          <path fill="oklch(0.72 0.18 265 / 0.15)" stroke="oklch(0.72 0.18 265 / 0.4)" strokeWidth="0.3" d="M5,20 Q15,10 25,18 T45,20 Q55,12 70,18 T95,22 L95,40 Q70,45 45,38 T5,40 Z" />
-        </svg>
-        <div className="absolute top-1/2 left-1/2 h-4 w-4 rounded-full bg-success pulse-dot opacity-80" />
-        <div className="absolute top-1/3 left-1/4 h-2 w-2 rounded-full bg-destructive pulse-dot" />
-        <div className="absolute top-3/4 left-2/3 h-3 w-3 rounded-full bg-warning pulse-dot" />
-
-        <div className="absolute bottom-3 left-3 right-3 rounded-lg bg-background/80 backdrop-blur-md border border-border/50 p-3">
-          <p className="text-[11px] font-semibold flex justify-between"><span>Your Radius (5km)</span> <span className="text-success">Safe Zone</span></p>
-          <p className="text-[10px] text-muted-foreground mt-1">1 active fraud alert nearby. Keep scanning incoming stock.</p>
-        </div>
       </div>
     </motion.div>
   );

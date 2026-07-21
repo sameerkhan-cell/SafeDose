@@ -13,6 +13,7 @@ import {
   manufacturerProfileService,
   type ManufacturerProfile,
 } from "@/services/manufacturer-profile";
+import { pharmacyService, type PharmacyProfile as PharmacyProfileType } from "@/services/pharmacy";
 import { ComplianceDocuments } from "@/components/dashboard/manufacturer/ComplianceDocuments";
 import { DASH_NAV } from "@/config/nav";
 import { DashShell } from "@/components/dashboard/DashShell";
@@ -281,33 +282,253 @@ function ManufacturerProfile() {
 
 /* ─── PHARMACY PROFILE ─── */
 function PharmacyProfile() {
-  const { user } = useAuth();
+  const { user, updateUser } = useAuth();
+  const [form, setForm] = useState<PharmacyProfileType | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    name: user?.fullName || "", location: "Karachi, DHA Phase 6", address: "Shop 12, Bukhari Commercial, DHA Phase 6",
-    phone: "+92 21 3578 9012", email: user?.email || "", license: "DRAP-PH-2023-004521",
-    hours: "8:00 AM - 11:00 PM", certifications: "DRAP Verified, ISO Certified",
-  });
-  const u = (key: string) => (v: string) => setForm(f => ({ ...f, [key]: v }));
-  const save = async () => { setSaving(true); await new Promise(r => setTimeout(r, 1200)); setSaving(false); toast.success("Profile updated", { description: "Your pharmacy profile has been saved." }); };
+  const [uploading, setUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const u = (key: keyof PharmacyProfileType) => (v: string) =>
+    setForm((f) => f ? { ...f, [key]: v } : null);
+
+  const loadProfile = useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
+    const res = await pharmacyService.getProfile();
+    if (res.success && res.data) {
+      setForm(res.data);
+    } else {
+      setLoadError(res.error?.message ?? "Failed to load profile.");
+    }
+    setLoading(false);
+  }, []);
+
+  useEffect(() => {
+    void loadProfile();
+  }, [loadProfile]);
+
+  const save = async () => {
+    if (!form) return;
+    setSaving(true);
+    const res = await pharmacyService.updateProfile(form);
+    setSaving(false);
+
+    if (res.success && res.data) {
+      setForm(res.data);
+      updateUser({ fullName: res.data.name });
+      toast.success("Profile updated", {
+        description: "Your pharmacy profile has been saved.",
+      });
+      return;
+    }
+
+    toast.error(res.error?.message ?? "Failed to save profile.");
+  };
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File size exceeds 5MB limit.");
+      return;
+    }
+
+    setUploading(true);
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const res = await pharmacyService.uploadLicense(formData);
+    setUploading(false);
+
+    if (res.success && res.data) {
+      setForm(res.data);
+      toast.success("License uploaded successfully", {
+        description: "Your license has been submitted to DRAP Admin for review.",
+      });
+      // Sync verification status in auth session
+      updateUser({ isVerified: res.data.isVerified });
+    } else {
+      toast.error(res.error?.message ?? "Failed to upload license.");
+    }
+  };
+
+  const handleDownload = () => {
+    if (!form || !form.licenseDocumentUrl) return;
+
+    const session = getStoredSession();
+    if (!session?.token) {
+        toast.error("Session expired. Please log in again.");
+        return;
+    }
+    
+    toast.promise(
+        fetch(form.licenseDocumentUrl, {
+            headers: { Authorization: `Bearer ${session.token}` },
+        })
+            .then((res) => {
+                if (!res.ok) {
+                    return Promise.reject("Download failed.");
+                }
+                return res.blob();
+            })
+            .then((blob) => {
+                const url = URL.createObjectURL(blob as Blob);
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `drap-pharmacy-license-${form.licenseNumber}`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }),
+        {
+            loading: "Downloading license document...",
+            success: "License document downloaded.",
+            error: "Failed to download license document.",
+        }
+    );
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 gap-3 text-muted-foreground">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        <p className="text-sm">Loading pharmacy profile…</p>
+      </div>
+    );
+  }
+
+  if (loadError || !form) {
+    return (
+      <div className="card-premium p-8 text-center space-y-4">
+        <AlertCircle className="h-10 w-10 text-destructive mx-auto" />
+        <p className="text-sm text-destructive">{loadError ?? "Unable to load profile."}</p>
+        <Button onClick={() => void loadProfile()} variant="outline" className="rounded-xl">
+          Try again
+        </Button>
+      </div>
+    );
+  }
+
+  const badgeText = 
+    form.verificationStatus === "VERIFIED" ? "Verified" :
+    form.verificationStatus === "PENDING" ? "Pending Verification" :
+    form.verificationStatus === "REJECTED" ? "Rejected" : "Unverified";
 
   return (
     <div className="space-y-6">
-      <AvatarSection name={form.name} subtitle="Verified Pharmacy" badge="Trust Score: 98/100" />
-      <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, ease }} className="card-premium p-6">
-        <h3 className="text-[15px] font-semibold mb-5 flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" />Pharmacy Information</h3>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label="Pharmacy Name" icon={Building2} value={form.name} onChange={u("name")} required />
-          <Field label="License Number" icon={Shield} value={form.license} onChange={u("license")} required />
-          <Field label="Location" icon={MapPin} value={form.location} onChange={u("location")} />
-          <Field label="Full Address" icon={MapPin} value={form.address} onChange={u("address")} />
-          <Field label="Contact Number" icon={Phone} value={form.phone} onChange={u("phone")} type="tel" />
-          <Field label="Email" icon={Mail} value={form.email} onChange={u("email")} type="email" />
-          <Field label="Operating Hours" icon={Clock} value={form.hours} onChange={u("hours")} />
-          <Field label="Certifications" icon={Shield} value={form.certifications} onChange={u("certifications")} />
-        </div>
-        <div className="mt-6 flex justify-end"><SaveButton saving={saving} onSave={save} /></div>
-      </motion.div>
+      <AvatarSection
+        name={form.name || user?.fullName || "Pharmacy"}
+        subtitle="Pharmacy Account"
+        badge={badgeText}
+      />
+
+      <div className="grid gap-6 md:grid-cols-3">
+        {/* Pharmacy Information Form */}
+        <motion.div 
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.5, ease }} 
+          className="card-premium p-6 md:col-span-2"
+        >
+          <h3 className="text-[15px] font-semibold mb-5 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-primary" />Pharmacy Information
+          </h3>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <Field label="Pharmacy Name" icon={Building2} value={form.name} onChange={u("name")} required />
+            <Field label="DRAP Pharmacy License #" icon={Shield} value={form.licenseNumber} onChange={u("licenseNumber")} required placeholder="DRAP-PH-2023-004521" />
+            <Field label="Location" icon={MapPin} value={form.location} onChange={u("location")} required placeholder="Karachi, DHA Phase 6" />
+            <Field label="Full Address" icon={MapPin} value={form.address} onChange={u("address")} required placeholder="Shop 12, Bukhari Commercial" />
+            <Field label="Contact Number" icon={Phone} value={form.businessPhone} onChange={u("businessPhone")} type="tel" required placeholder="+92 300 1234567" />
+            <Field label="Business Email" icon={Mail} value={form.businessEmail} onChange={u("businessEmail")} type="email" required placeholder="contact@pharmacy.com" />
+          </div>
+          <div className="mt-6 flex justify-end"><SaveButton saving={saving} onSave={save} /></div>
+        </motion.div>
+
+        {/* License Verification Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 16 }} 
+          animate={{ opacity: 1, y: 0 }} 
+          transition={{ duration: 0.5, ease, delay: 0.1 }} 
+          className="card-premium p-6 flex flex-col justify-between"
+        >
+          <div>
+            <h3 className="text-[15px] font-semibold mb-3 flex items-center gap-2">
+              <Shield className="h-4 w-4 text-primary" />License Verification
+            </h3>
+            <p className="text-xs text-muted-foreground mb-4">
+              Upload your official DRAP Pharmacy License to get verified and gain access to the stock scanning features.
+            </p>
+
+            {/* Status Display */}
+            <div className="mb-6 space-y-3">
+              <div className="flex justify-between items-center text-xs">
+                <span className="text-muted-foreground font-medium">Status</span>
+                <span className={`px-2.5 py-1 rounded-full font-bold text-[10px] uppercase border ${
+                  form.verificationStatus === "VERIFIED"
+                    ? "bg-success/15 border-success/30 text-success"
+                    : form.verificationStatus === "PENDING"
+                      ? "bg-warning/15 border-warning/30 text-warning-foreground"
+                      : form.verificationStatus === "REJECTED"
+                        ? "bg-destructive/15 border-destructive/30 text-destructive"
+                        : "bg-secondary/40 border-border/50 text-muted-foreground"
+                }`}>
+                  {badgeText}
+                </span>
+              </div>
+
+              {form.verificationStatus === "REJECTED" && form.remarks && (
+                <div className="p-3 rounded-xl bg-destructive/5 border border-destructive/10 text-[11px] text-destructive">
+                  <p className="font-semibold mb-0.5">Rejection Remarks:</p>
+                  <p>{form.remarks}</p>
+                </div>
+              )}
+
+              {form.verificationStatus === "VERIFIED" && form.verifiedAt && (
+                <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                  <CheckCircle2 className="h-3.5 w-3.5 text-success" />
+                  Verified on {new Date(form.verifiedAt).toLocaleDateString()}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="space-y-2 pt-4 border-t border-border/20">
+            <input
+              type="file"
+              ref={fileInputRef}
+              onChange={handleFileUpload}
+              accept="image/png,image/jpeg,image/jpg,image/webp,application/pdf"
+              className="hidden"
+            />
+
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading || form.verificationStatus === "VERIFIED"}
+              className="w-full h-11 rounded-xl bg-gradient-primary shadow-elegant text-[13px] font-medium transition-all hover:scale-[1.02] gap-1.5"
+            >
+              {uploading ? (
+                <><Loader2 className="h-4 w-4 animate-spin" /> Uploading...</>
+              ) : (
+                <><Upload className="h-4 w-4" /> Upload License File</>
+              )}
+            </Button>
+
+            {form.licenseDocumentUrl && (
+              <Button
+                variant="outline"
+                onClick={handleDownload}
+                className="w-full h-11 rounded-xl text-[13px] font-medium border-border/60 hover:bg-secondary/30 gap-1.5"
+              >
+                <FileText className="h-4 w-4" /> Download Uploaded License
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      </div>
     </div>
   );
 }

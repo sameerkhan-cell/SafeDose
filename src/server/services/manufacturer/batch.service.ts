@@ -2,6 +2,8 @@ import { prisma } from "../../db/client";
 import { ApiError } from "../../utils/api-response";
 import { QRService } from "../qr/qr.service";
 import { AuditLogService } from "../audit/audit-log.service";
+// Blockchain queue — enqueue jobs after batch creation (worker calls anchorBatch/anchorPill)
+import { enqueueBlockchainJobs } from "../blockchain/blockchain.queue";
 
 // ─── DTOs ────────────────────────────────────────────────────────────────────
 
@@ -390,6 +392,11 @@ export class BatchService {
             },
             ...requestMeta,
         });
+
+        // ─── 9. Enqueue blockchain anchoring jobs ──────────────────────────────────
+        // Fire-and-forget: a queue failure must NEVER roll back the batch.
+        // The worker (via /api/internal/process-blockchain-queue) will pick these up.
+        void enqueueBlockchainJobs(result.batch, result.pills);
 
         return result;
     }

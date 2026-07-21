@@ -161,6 +161,9 @@ export class AuthService {
                     data: { companyCode: newCode }
                 });
             }
+        } else if (user.role === "PHARMACY") {
+            const pharmacy = await db.pharmacy.findUnique({ where: { userId: user.id } });
+            isVerified = pharmacy?.isVerified ?? false;
         }
 
         return {

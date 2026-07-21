@@ -26,7 +26,13 @@ function Card({ children, className = "", delay = 0 }: { children: React.ReactNo
 }
 
 /* ── 2. Medicine Batch Registration (Dual QR Architecture) ── */
-export function BatchRegistrationWidget({ onRegister, onExtend }: { onRegister?: () => void; onExtend?: () => void }) {
+export function BatchRegistrationWidget({
+  onRegister,
+  onExtend,
+}: {
+  onRegister?: (vals: { category: string; boxes: number; pillsPerBox: number }) => void;
+  onExtend?: () => void;
+}) {
   const [pillsPerBox, setPillsPerBox] = React.useState(20);
   const [boxes, setBoxes] = React.useState(100);
   const [category, setCategory] = React.useState("Pharmaceutical");
@@ -41,17 +47,6 @@ export function BatchRegistrationWidget({ onRegister, onExtend }: { onRegister?:
         <span className="text-[10px] bg-primary/10 text-primary px-2.5 py-1 rounded-full font-bold border border-primary/20">⚡ Dual QR</span>
       </div>
       <div className="grid gap-3 sm:grid-cols-2">
-        {[
-          { label: "Medicine Name", placeholder: "e.g. Panadol Extra 500mg" },
-          { label: "Batch Number", placeholder: "Auto: PNX-XXXXX-A" },
-          { label: "Manufacturing Date", placeholder: "e.g. May 2026" },
-          { label: "Expiry Date", placeholder: "e.g. March 2027" },
-        ].map(f => (
-          <div key={f.label}>
-            <label className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-1.5 block">{f.label}</label>
-            <div className="h-10 rounded-xl border border-border/60 bg-secondary/20 px-3 flex items-center text-[13px] text-muted-foreground">{f.placeholder}</div>
-          </div>
-        ))}
         <div>
           <label className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-1.5 block">Product Category</label>
           <select
@@ -61,8 +56,6 @@ export function BatchRegistrationWidget({ onRegister, onExtend }: { onRegister?:
           >
             <option>Pharmaceutical</option>
             <option>Vaccine</option>
-            <option>Nutraceutical</option>
-            <option>Biological</option>
           </select>
         </div>
         <div>
@@ -73,7 +66,7 @@ export function BatchRegistrationWidget({ onRegister, onExtend }: { onRegister?:
             className="h-10 w-full rounded-xl border border-border/60 bg-secondary/20 px-3 text-[13px] focus:outline-none focus:ring-2 focus:ring-primary/30"
           />
         </div>
-        <div>
+        <div className="sm:col-span-2">
           <label className="text-[11px] font-bold text-foreground/70 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
             <TrendingUp className="h-3 w-3 text-success" /> Pills Per Box <span className="text-destructive">*</span>
           </label>
@@ -100,23 +93,28 @@ export function BatchRegistrationWidget({ onRegister, onExtend }: { onRegister?:
         <div className="flex flex-col gap-1 sm:flex-row sm:gap-4">
           <div>
             <p className="text-[9px] text-muted-foreground">Box QR</p>
-            <p className="font-mono text-[11px] font-bold text-primary">BOX-[BATCH]-GSK</p>
+            <p className="font-mono text-[11px] font-bold text-primary">BOX-[BATCH]-[COMPANY]</p>
           </div>
           <div>
             <p className="text-[9px] text-muted-foreground">Pill QR (sample)</p>
-            <p className="font-mono text-[11px] font-bold text-success">PILL-[BATCH]-001-GSK</p>
+            <p className="font-mono text-[11px] font-bold text-success">PILL-[BATCH]-001-[COMPANY]</p>
           </div>
         </div>
       </div>
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
-        <Button onClick={onRegister} className="rounded-xl bg-gradient-primary shadow-elegant text-[13px] font-medium transition-all hover:scale-[1.02]">
-          <ShieldCheck className="mr-2 h-4 w-4" /> Register + Generate QRs
-        </Button>
-        <Button variant="outline" onClick={onRegister} className="rounded-xl text-[13px] border-border/60">Fast-Track Batch</Button>
-        <Button variant="outline" onClick={onExtend} className="rounded-xl text-[13px] border-border/60 border-success/40 text-success hover:bg-success/5">
-          <PlusCircle className="mr-2 h-4 w-4" /> Generate More Pills
-        </Button>
+      <div className="mt-4 flex flex-col gap-2">
+        <div className="flex flex-wrap items-center gap-3">
+          <Button
+            onClick={() => onRegister?.({ category, boxes, pillsPerBox })}
+            className="rounded-xl bg-gradient-primary shadow-elegant text-[13px] font-medium transition-all hover:scale-[1.02]"
+          >
+            <ShieldCheck className="mr-2 h-4 w-4" /> Register New Batch
+          </Button>
+          <Button variant="outline" onClick={onExtend} className="rounded-xl text-[13px] border-border/60 border-success/40 text-success hover:bg-success/5">
+            <PlusCircle className="mr-2 h-4 w-4" /> Generate More Pills
+          </Button>
+        </div>
+        <p className="text-[11px] text-muted-foreground pl-0.5">Opens the full registration form with these values pre-filled.</p>
       </div>
     </Card>
   );
