@@ -1,5 +1,5 @@
 import { createFileRoute, Navigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   Settings, Shield, Bell, Eye, Globe, Palette, Lock, Mail,
@@ -20,6 +20,13 @@ export const Route = createFileRoute("/dashboard/settings")({
   head: () => ({ meta: [{ title: "Settings — MediVerify" }] }),
   component: SettingsPage,
 });
+
+function parseUserAgent(ua: string | null | undefined): string {
+  if (!ua) return "Unknown Device";
+  const browser = /Edg\//.test(ua) ? "Edge" : /Chrome\//.test(ua) ? "Chrome" : /Safari\//.test(ua) && !/Chrome/.test(ua) ? "Safari" : /Firefox\//.test(ua) ? "Firefox" : "Browser";
+  const os = /iPhone/.test(ua) ? "iPhone" : /Android/.test(ua) ? "Android" : /Mac OS/.test(ua) ? "macOS" : /Windows/.test(ua) ? "Windows" : "Unknown OS";
+  return `${browser} · ${os}`;
+}
 
 function SettingsPage() {
   const { user, isAuthenticated, isLoading } = useAuth();
@@ -133,11 +140,40 @@ function AccountSettings() {
 }
 
 function SecuritySettings() {
-  const { session } = useAuth();
+  const { user, session } = useAuth();
   const [saving, setSaving] = useState(false);
   const [curr, setCurr] = useState("");
   const [next, setNext] = useState("");
   const [confirm, setConfirm] = useState("");
+
+  const [twoFA, setTwoFA] = useState(user?.twoFactorEnabled ?? false);
+  const [twoFASaving, setTwoFASaving] = useState(false);
+  const [sessions, setSessions] = useState<any[]>([]);
+  const [sessionsLoading, setSessionsLoading] = useState(true);
+  const [revokingId, setRevokingId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (user?.twoFactorEnabled !== undefined) {
+      setTwoFA(user.twoFactorEnabled);
+    }
+  }, [user?.twoFactorEnabled]);
+
+  const loadSessions = async () => {
+    setSessionsLoading(true);
+    try {
+      const res = await fetch("/api/auth/sessions", { headers: { Authorization: `Bearer ${session?.token ?? ""}` } });
+      const data = await res.json();
+      if (data.success) setSessions(data.data);
+    } catch {
+      // silent fallback
+    } finally {
+      setSessionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (session?.token) loadSessions();
+  }, [session?.token]);
 
   const validatePassword = (pwd: string) => {
     const minLength = 8;
@@ -222,22 +258,67 @@ function SecuritySettings() {
       </form>
       <div className="card-premium p-6 space-y-3">
         <h3 className="text-[16px] font-semibold flex items-center gap-2"><Shield className="h-4 w-4 text-primary" /> Two-Factor Authentication</h3>
-        <Toggle label="Enable 2FA" desc="Add an extra layer of security to your account" />
+        <div className="group flex items-center justify-between p-4 rounded-xl bg-secondary/20 border border-border/30 transition-all hover:bg-secondary/30">
+          <div className="space-y-0.5">
+            <p className="text-[13px] font-semibold tracking-tight">Enable 2FA</p>
+            <p className="text-[11px] text-muted-foreground leading-tight">Add an extra layer of security to your account — you'll receive a code by email at every login.</p>
+          </div>
+          <Switch
+            checked={twoFA}
+            disabled={twoFASaving}
+            onCheckedChange={async (checked) => {
+              setTwoFASaving(true);
+              const prev = twoFA;
+              setTwoFA(checked);
+              try {
+                const res = await fetch("/api/auth/two-factor", {
+                  method: "PATCH",
+                  headers: { "Content-Type": "application/json", Authorization: `Bearer ${session?.token ?? ""}` },
+                  body: JSON.stringify({ enabled: checked })
+                });
+                const data = await res.json();
+                if (!data.success) { setTwoFA(prev); toast.error(data.error ?? "Failed to update 2FA."); }
+                else toast.success(checked ? "2FA enabled." : "2FA disabled.");
+              } catch { setTwoFA(prev); toast.error("Failed to update 2FA."); }
+              finally { setTwoFASaving(false); }
+            }}
+          />
+        </div>
       </div>
       <div className="card-premium p-6 space-y-3">
         <h3 className="text-[16px] font-semibold flex items-center gap-2"><Monitor className="h-4 w-4 text-primary" /> Active Sessions</h3>
-        {[{ device: "Chrome · Windows", loc: "Karachi, PK", time: "Active now", current: true },
-        { device: "Safari · iPhone", loc: "Karachi, PK", time: "2 hours ago", current: false }].map((s, i) => (
-          <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 border border-border/30">
+        {sessionsLoading ? (
+          <p className="text-xs text-muted-foreground">Loading sessions...</p>
+        ) : sessions.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No active sessions found.</p>
+        ) : sessions.map((s, i) => (
+          <div key={s.id} className="flex items-center justify-between p-3 rounded-xl bg-secondary/20 border border-border/30">
             <div className="flex items-center gap-3">
               <Smartphone className="h-4 w-4 text-muted-foreground" />
               <div>
-                <p className="text-[13px] font-medium">{s.device}</p>
-                <p className="text-[10px] text-muted-foreground">{s.loc} · {s.time}</p>
+                <p className="text-[13px] font-medium">{parseUserAgent(s.userAgent)}</p>
+                <p className="text-[10px] text-muted-foreground">{s.location ?? s.ipAddress ?? "Unknown"} · {new Date(s.createdAt).toLocaleString()}</p>
               </div>
             </div>
-            {s.current ? <span className="text-[10px] text-success font-bold flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Current</span>
-              : <Button size="sm" variant="outline" className="h-7 text-[11px] rounded-lg">Revoke</Button>}
+            {i === 0 ? (
+              <span className="text-[10px] text-success font-bold flex items-center gap-1"><CheckCircle2 className="h-3 w-3" />Current</span>
+            ) : (
+              <Button
+                size="sm" variant="outline" className="h-7 text-[11px] rounded-lg"
+                disabled={revokingId === s.id}
+                onClick={async () => {
+                  setRevokingId(s.id);
+                  try {
+                    const res = await fetch(`/api/auth/sessions/${s.id}`, { method: "DELETE", headers: { Authorization: `Bearer ${session?.token ?? ""}` } });
+                    const data = await res.json();
+                    if (data.success) { toast.success("Session revoked."); loadSessions(); }
+                    else toast.error(data.error ?? "Failed to revoke session.");
+                  } finally { setRevokingId(null); }
+                }}
+              >
+                {revokingId === s.id ? "Revoking..." : "Revoke"}
+              </Button>
+            )}
           </div>
         ))}
       </div>

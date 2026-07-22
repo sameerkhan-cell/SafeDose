@@ -16,6 +16,7 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                     name: true,
                     role: true,
                     status: true,
+                    twoFactorEnabled: true,
                     createdAt: true,
                     manufacturer: {
                         select: {
@@ -38,6 +39,7 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                 name: user.name,
                 role: user.role,
                 status: user.status,
+                twoFactorEnabled: user.twoFactorEnabled ?? false,
                 createdAt: user.createdAt,
                 isVerified: user.manufacturer?.isVerified ?? user.pharmacy?.isVerified ?? false,
             }));

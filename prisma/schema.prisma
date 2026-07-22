@@ -63,8 +63,9 @@ model User {
   pharmacy      Pharmacy?
   
   // MFA / Verification
-  otpCode       String?
-  otpExpiresAt  DateTime?
+  twoFactorEnabled     Boolean   @default(false)
+  otpCode              String?
+  otpExpiresAt         DateTime?
   passwordResetToken   String?
   passwordResetExpiry  DateTime?
 
@@ -83,6 +84,7 @@ model Session {
   refreshToken String   @unique @db.VarChar(512)
   userAgent    String?
   ipAddress    String?
+  location     String?
   expiresAt    DateTime
   createdAt    DateTime @default(now())
 

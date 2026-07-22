@@ -3,6 +3,7 @@ import { ApiError } from "../utils/api-response";
 import { PasswordService } from "../auth/password.service";
 import { JwtService } from "../auth/jwt.service";
 import { Role } from "@prisma/client";
+import { GeoIPService } from "./geoip.service";
 
 export class AuthService {
     static async register(data: any) {
@@ -113,8 +114,8 @@ export class AuthService {
             throw new ApiError(401, "Invalid email or password.");
         }
 
-        // If user is a Manufacturer, enforce MFA
-        if (user.role === "MANUFACTURER") {
+        // If user is a Manufacturer or has 2FA enabled, enforce MFA
+        if (user.role === "MANUFACTURER" || user.twoFactorEnabled) {
             const { MfaService } = await import("./mfa.service");
             const delivery = await MfaService.generateAndSendOtp(user.id, user.email);
 
@@ -132,20 +133,24 @@ export class AuthService {
     public static async generateAuthResponse(user: any, metadata: { userAgent?: string, ipAddress?: string } = {}, db: any = prisma) {
         // If manufacturer, check if we need to return PENDING_MFA
         // (This is only called directly from verifyMfa or social logins for now)
-        const payload = { userId: user.id, role: user.role, email: user.email };
-        const accessToken = JwtService.signAccessToken(payload);
-        const refreshToken = JwtService.signRefreshToken(payload);
+        const refreshTokenPayload = { userId: user.id, role: user.role, email: user.email };
+        const refreshToken = JwtService.signRefreshToken(refreshTokenPayload);
+
+        const resolvedLocation = await GeoIPService.resolveLocation(metadata.ipAddress);
 
         // Store session in DB using passed client
-        await db.session.create({
+        const newSession = await db.session.create({
             data: {
                 userId: user.id,
                 refreshToken,
                 userAgent: metadata.userAgent,
                 ipAddress: metadata.ipAddress,
+                location: resolvedLocation,
                 expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
             }
         });
+
+        const accessToken = JwtService.signAccessToken({ userId: user.id, role: user.role, email: user.email, sid: newSession.id });
 
         // Fetch profile info to see if verified
         let isVerified = true;
@@ -348,8 +353,8 @@ export class AuthService {
 
             console.log(`[AUTH] Google login successful: ${email}`);
 
-            // Enforce MFA for MANUFACTURER role — same as password login
-            if (user.role === "MANUFACTURER") {
+            // Enforce MFA for MANUFACTURER role or 2FA enabled users
+            if (user.role === "MANUFACTURER" || user.twoFactorEnabled) {
                 const { MfaService } = await import("./mfa.service");
                 await MfaService.generateAndSendOtp(user.id, user.email);
                 return {

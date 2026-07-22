@@ -7,7 +7,7 @@ export const Route = createAPIFileRoute("/api/auth/login")({
         try {
             const { email, password } = await request.json();
             const userAgent = request.headers.get("user-agent") || undefined;
-            const ipAddress = request.headers.get("x-forwarded-for") || undefined;
+            const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || undefined;
 
             const result = await AuthService.login(email, password, { userAgent, ipAddress });
 

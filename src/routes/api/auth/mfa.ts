@@ -11,7 +11,10 @@ export const Route = createAPIFileRoute("/api/auth/mfa")({
                 return Response.json(ApiResponse.error("Email and verification code are required.", 400), { status: 400 });
             }
 
-            const authResponse = await AuthService.verifyMfa(email, code);
+            const userAgent = request.headers.get("user-agent") || undefined;
+            const ipAddress = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || undefined;
+
+            const authResponse = await AuthService.verifyMfa(email, code, { userAgent, ipAddress });
             return Response.json(ApiResponse.success(authResponse, "Verification successful"));
         } catch (error: any) {
             const status = error.statusCode || 401;

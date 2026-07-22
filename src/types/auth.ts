@@ -8,6 +8,7 @@ export interface User {
   fullName: string;
   role: UserRole;
   isVerified?: boolean;
+  twoFactorEnabled?: boolean;
   createdAt: string;
   emailVerified: boolean;
   avatar?: string;

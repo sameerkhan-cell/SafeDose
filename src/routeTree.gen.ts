@@ -47,6 +47,7 @@ import { Route as ApiPharmacyLicenseUploadRouteImport } from './routes/api/pharm
 import { Route as ApiManufacturerStatsRouteImport } from './routes/api/manufacturer/stats'
 import { Route as ApiManufacturerScanLocationsRouteImport } from './routes/api/manufacturer/scan-locations'
 import { Route as ApiManufacturerRegisterBatchRouteImport } from './routes/api/manufacturer/register-batch'
+import { Route as ApiManufacturerRecallRouteImport } from './routes/api/manufacturer/recall'
 import { Route as ApiManufacturerProfileRouteImport } from './routes/api/manufacturer/profile'
 import { Route as ApiManufacturerDocumentsRouteImport } from './routes/api/manufacturer/documents'
 import { Route as ApiManufacturerComplianceRouteImport } from './routes/api/manufacturer/compliance'
@@ -59,7 +60,9 @@ import { Route as ApiFraudMetricsRouteImport } from './routes/api/fraud/metrics'
 import { Route as ApiFraudAnalyzeRouteImport } from './routes/api/fraud/analyze'
 import { Route as ApiFraudAlertsRouteImport } from './routes/api/fraud/alerts'
 import { Route as ApiBlockchainStatusRouteImport } from './routes/api/blockchain/status'
+import { Route as ApiAuthTwoFactorRouteImport } from './routes/api/auth/two-factor'
 import { Route as ApiAuthSignupRouteImport } from './routes/api/auth/signup'
+import { Route as ApiAuthSessionsRouteImport } from './routes/api/auth/sessions'
 import { Route as ApiAuthResetPasswordRouteImport } from './routes/api/auth/reset-password'
 import { Route as ApiAuthRefreshRouteImport } from './routes/api/auth/refresh'
 import { Route as ApiAuthProfileRouteImport } from './routes/api/auth/profile'
@@ -90,6 +93,7 @@ import { Route as ApiManufacturerDocumentsUploadRouteImport } from './routes/api
 import { Route as ApiManufacturerDocumentsDownloadRouteImport } from './routes/api/manufacturer/documents/download'
 import { Route as ApiManufacturerDocumentsIdRouteImport } from './routes/api/manufacturer/documents.$id'
 import { Route as ApiManufacturerBatchIdRouteImport } from './routes/api/manufacturer/batch.$id'
+import { Route as ApiAuthSessionsIdRouteImport } from './routes/api/auth/sessions.$id'
 import { Route as ApiAdminRecallsIdRouteImport } from './routes/api/admin/recalls.$id'
 import { Route as ApiAdminRecallCreateRouteImport } from './routes/api/admin/recall/create'
 import { Route as ApiAdminPharmacyBlacklistRouteImport } from './routes/api/admin/pharmacy/blacklist'
@@ -303,6 +307,11 @@ const ApiManufacturerRegisterBatchRoute =
     path: '/api/manufacturer/register-batch',
     getParentRoute: () => rootRouteImport,
   } as any)
+const ApiManufacturerRecallRoute = ApiManufacturerRecallRouteImport.update({
+  id: '/api/manufacturer/recall',
+  path: '/api/manufacturer/recall',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiManufacturerProfileRoute = ApiManufacturerProfileRouteImport.update({
   id: '/api/manufacturer/profile',
   path: '/api/manufacturer/profile',
@@ -368,9 +377,19 @@ const ApiBlockchainStatusRoute = ApiBlockchainStatusRouteImport.update({
   path: '/api/blockchain/status',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthTwoFactorRoute = ApiAuthTwoFactorRouteImport.update({
+  id: '/api/auth/two-factor',
+  path: '/api/auth/two-factor',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiAuthSignupRoute = ApiAuthSignupRouteImport.update({
   id: '/api/auth/signup',
   path: '/api/auth/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiAuthSessionsRoute = ApiAuthSessionsRouteImport.update({
+  id: '/api/auth/sessions',
+  path: '/api/auth/sessions',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthResetPasswordRoute = ApiAuthResetPasswordRouteImport.update({
@@ -530,6 +549,11 @@ const ApiManufacturerBatchIdRoute = ApiManufacturerBatchIdRouteImport.update({
   path: '/api/manufacturer/batch/$id',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAuthSessionsIdRoute = ApiAuthSessionsIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAuthSessionsRoute,
+} as any)
 const ApiAdminRecallsIdRoute = ApiAdminRecallsIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -681,7 +705,9 @@ export interface FileRoutesByFullPath {
   '/api/auth/profile': typeof ApiAuthProfileRoute
   '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/sessions': typeof ApiAuthSessionsRouteWithChildren
   '/api/auth/signup': typeof ApiAuthSignupRoute
+  '/api/auth/two-factor': typeof ApiAuthTwoFactorRoute
   '/api/blockchain/status': typeof ApiBlockchainStatusRoute
   '/api/fraud/alerts': typeof ApiFraudAlertsRoute
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
@@ -694,6 +720,7 @@ export interface FileRoutesByFullPath {
   '/api/manufacturer/compliance': typeof ApiManufacturerComplianceRoute
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
+  '/api/manufacturer/recall': typeof ApiManufacturerRecallRoute
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
   '/api/manufacturer/scan-locations': typeof ApiManufacturerScanLocationsRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
@@ -714,6 +741,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
   '/api/admin/recall/create': typeof ApiAdminRecallCreateRoute
   '/api/admin/recalls/$id': typeof ApiAdminRecallsIdRoute
+  '/api/auth/sessions/$id': typeof ApiAuthSessionsIdRoute
   '/api/manufacturer/batch/$id': typeof ApiManufacturerBatchIdRouteWithChildren
   '/api/manufacturer/documents/$id': typeof ApiManufacturerDocumentsIdRoute
   '/api/manufacturer/documents/download': typeof ApiManufacturerDocumentsDownloadRoute
@@ -782,7 +810,9 @@ export interface FileRoutesByTo {
   '/api/auth/profile': typeof ApiAuthProfileRoute
   '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/sessions': typeof ApiAuthSessionsRouteWithChildren
   '/api/auth/signup': typeof ApiAuthSignupRoute
+  '/api/auth/two-factor': typeof ApiAuthTwoFactorRoute
   '/api/blockchain/status': typeof ApiBlockchainStatusRoute
   '/api/fraud/alerts': typeof ApiFraudAlertsRoute
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
@@ -795,6 +825,7 @@ export interface FileRoutesByTo {
   '/api/manufacturer/compliance': typeof ApiManufacturerComplianceRoute
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
+  '/api/manufacturer/recall': typeof ApiManufacturerRecallRoute
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
   '/api/manufacturer/scan-locations': typeof ApiManufacturerScanLocationsRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
@@ -815,6 +846,7 @@ export interface FileRoutesByTo {
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
   '/api/admin/recall/create': typeof ApiAdminRecallCreateRoute
   '/api/admin/recalls/$id': typeof ApiAdminRecallsIdRoute
+  '/api/auth/sessions/$id': typeof ApiAuthSessionsIdRoute
   '/api/manufacturer/batch/$id': typeof ApiManufacturerBatchIdRouteWithChildren
   '/api/manufacturer/documents/$id': typeof ApiManufacturerDocumentsIdRoute
   '/api/manufacturer/documents/download': typeof ApiManufacturerDocumentsDownloadRoute
@@ -884,7 +916,9 @@ export interface FileRoutesById {
   '/api/auth/profile': typeof ApiAuthProfileRoute
   '/api/auth/refresh': typeof ApiAuthRefreshRoute
   '/api/auth/reset-password': typeof ApiAuthResetPasswordRoute
+  '/api/auth/sessions': typeof ApiAuthSessionsRouteWithChildren
   '/api/auth/signup': typeof ApiAuthSignupRoute
+  '/api/auth/two-factor': typeof ApiAuthTwoFactorRoute
   '/api/blockchain/status': typeof ApiBlockchainStatusRoute
   '/api/fraud/alerts': typeof ApiFraudAlertsRoute
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
@@ -897,6 +931,7 @@ export interface FileRoutesById {
   '/api/manufacturer/compliance': typeof ApiManufacturerComplianceRoute
   '/api/manufacturer/documents': typeof ApiManufacturerDocumentsRouteWithChildren
   '/api/manufacturer/profile': typeof ApiManufacturerProfileRouteWithChildren
+  '/api/manufacturer/recall': typeof ApiManufacturerRecallRoute
   '/api/manufacturer/register-batch': typeof ApiManufacturerRegisterBatchRoute
   '/api/manufacturer/scan-locations': typeof ApiManufacturerScanLocationsRoute
   '/api/manufacturer/stats': typeof ApiManufacturerStatsRoute
@@ -917,6 +952,7 @@ export interface FileRoutesById {
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
   '/api/admin/recall/create': typeof ApiAdminRecallCreateRoute
   '/api/admin/recalls/$id': typeof ApiAdminRecallsIdRoute
+  '/api/auth/sessions/$id': typeof ApiAuthSessionsIdRoute
   '/api/manufacturer/batch/$id': typeof ApiManufacturerBatchIdRouteWithChildren
   '/api/manufacturer/documents/$id': typeof ApiManufacturerDocumentsIdRoute
   '/api/manufacturer/documents/download': typeof ApiManufacturerDocumentsDownloadRoute
@@ -987,7 +1023,9 @@ export interface FileRouteTypes {
     | '/api/auth/profile'
     | '/api/auth/refresh'
     | '/api/auth/reset-password'
+    | '/api/auth/sessions'
     | '/api/auth/signup'
+    | '/api/auth/two-factor'
     | '/api/blockchain/status'
     | '/api/fraud/alerts'
     | '/api/fraud/analyze'
@@ -1000,6 +1038,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/compliance'
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
+    | '/api/manufacturer/recall'
     | '/api/manufacturer/register-batch'
     | '/api/manufacturer/scan-locations'
     | '/api/manufacturer/stats'
@@ -1020,6 +1059,7 @@ export interface FileRouteTypes {
     | '/api/admin/pharmacy/blacklist'
     | '/api/admin/recall/create'
     | '/api/admin/recalls/$id'
+    | '/api/auth/sessions/$id'
     | '/api/manufacturer/batch/$id'
     | '/api/manufacturer/documents/$id'
     | '/api/manufacturer/documents/download'
@@ -1088,7 +1128,9 @@ export interface FileRouteTypes {
     | '/api/auth/profile'
     | '/api/auth/refresh'
     | '/api/auth/reset-password'
+    | '/api/auth/sessions'
     | '/api/auth/signup'
+    | '/api/auth/two-factor'
     | '/api/blockchain/status'
     | '/api/fraud/alerts'
     | '/api/fraud/analyze'
@@ -1101,6 +1143,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/compliance'
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
+    | '/api/manufacturer/recall'
     | '/api/manufacturer/register-batch'
     | '/api/manufacturer/scan-locations'
     | '/api/manufacturer/stats'
@@ -1121,6 +1164,7 @@ export interface FileRouteTypes {
     | '/api/admin/pharmacy/blacklist'
     | '/api/admin/recall/create'
     | '/api/admin/recalls/$id'
+    | '/api/auth/sessions/$id'
     | '/api/manufacturer/batch/$id'
     | '/api/manufacturer/documents/$id'
     | '/api/manufacturer/documents/download'
@@ -1189,7 +1233,9 @@ export interface FileRouteTypes {
     | '/api/auth/profile'
     | '/api/auth/refresh'
     | '/api/auth/reset-password'
+    | '/api/auth/sessions'
     | '/api/auth/signup'
+    | '/api/auth/two-factor'
     | '/api/blockchain/status'
     | '/api/fraud/alerts'
     | '/api/fraud/analyze'
@@ -1202,6 +1248,7 @@ export interface FileRouteTypes {
     | '/api/manufacturer/compliance'
     | '/api/manufacturer/documents'
     | '/api/manufacturer/profile'
+    | '/api/manufacturer/recall'
     | '/api/manufacturer/register-batch'
     | '/api/manufacturer/scan-locations'
     | '/api/manufacturer/stats'
@@ -1222,6 +1269,7 @@ export interface FileRouteTypes {
     | '/api/admin/pharmacy/blacklist'
     | '/api/admin/recall/create'
     | '/api/admin/recalls/$id'
+    | '/api/auth/sessions/$id'
     | '/api/manufacturer/batch/$id'
     | '/api/manufacturer/documents/$id'
     | '/api/manufacturer/documents/download'
@@ -1286,7 +1334,9 @@ export interface RootRouteChildren {
   ApiAuthProfileRoute: typeof ApiAuthProfileRoute
   ApiAuthRefreshRoute: typeof ApiAuthRefreshRoute
   ApiAuthResetPasswordRoute: typeof ApiAuthResetPasswordRoute
+  ApiAuthSessionsRoute: typeof ApiAuthSessionsRouteWithChildren
   ApiAuthSignupRoute: typeof ApiAuthSignupRoute
+  ApiAuthTwoFactorRoute: typeof ApiAuthTwoFactorRoute
   ApiBlockchainStatusRoute: typeof ApiBlockchainStatusRoute
   ApiFraudAlertsRoute: typeof ApiFraudAlertsRoute
   ApiFraudAnalyzeRoute: typeof ApiFraudAnalyzeRoute
@@ -1298,6 +1348,7 @@ export interface RootRouteChildren {
   ApiManufacturerComplianceRoute: typeof ApiManufacturerComplianceRoute
   ApiManufacturerDocumentsRoute: typeof ApiManufacturerDocumentsRouteWithChildren
   ApiManufacturerProfileRoute: typeof ApiManufacturerProfileRouteWithChildren
+  ApiManufacturerRecallRoute: typeof ApiManufacturerRecallRoute
   ApiManufacturerRegisterBatchRoute: typeof ApiManufacturerRegisterBatchRoute
   ApiManufacturerScanLocationsRoute: typeof ApiManufacturerScanLocationsRoute
   ApiManufacturerStatsRoute: typeof ApiManufacturerStatsRoute
@@ -1587,6 +1638,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiManufacturerRegisterBatchRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/manufacturer/recall': {
+      id: '/api/manufacturer/recall'
+      path: '/api/manufacturer/recall'
+      fullPath: '/api/manufacturer/recall'
+      preLoaderRoute: typeof ApiManufacturerRecallRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/manufacturer/profile': {
       id: '/api/manufacturer/profile'
       path: '/api/manufacturer/profile'
@@ -1671,11 +1729,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiBlockchainStatusRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/auth/two-factor': {
+      id: '/api/auth/two-factor'
+      path: '/api/auth/two-factor'
+      fullPath: '/api/auth/two-factor'
+      preLoaderRoute: typeof ApiAuthTwoFactorRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/auth/signup': {
       id: '/api/auth/signup'
       path: '/api/auth/signup'
       fullPath: '/api/auth/signup'
       preLoaderRoute: typeof ApiAuthSignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sessions': {
+      id: '/api/auth/sessions'
+      path: '/api/auth/sessions'
+      fullPath: '/api/auth/sessions'
+      preLoaderRoute: typeof ApiAuthSessionsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/reset-password': {
@@ -1887,6 +1959,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/manufacturer/batch/$id'
       preLoaderRoute: typeof ApiManufacturerBatchIdRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/api/auth/sessions/$id': {
+      id: '/api/auth/sessions/$id'
+      path: '/$id'
+      fullPath: '/api/auth/sessions/$id'
+      preLoaderRoute: typeof ApiAuthSessionsIdRouteImport
+      parentRoute: typeof ApiAuthSessionsRoute
     }
     '/api/admin/recalls/$id': {
       id: '/api/admin/recalls/$id'
@@ -2135,6 +2214,18 @@ const ApiAdminReportsRouteWithChildren = ApiAdminReportsRoute._addFileChildren(
   ApiAdminReportsRouteChildren,
 )
 
+interface ApiAuthSessionsRouteChildren {
+  ApiAuthSessionsIdRoute: typeof ApiAuthSessionsIdRoute
+}
+
+const ApiAuthSessionsRouteChildren: ApiAuthSessionsRouteChildren = {
+  ApiAuthSessionsIdRoute: ApiAuthSessionsIdRoute,
+}
+
+const ApiAuthSessionsRouteWithChildren = ApiAuthSessionsRoute._addFileChildren(
+  ApiAuthSessionsRouteChildren,
+)
+
 interface ApiManufacturerDocumentsRouteChildren {
   ApiManufacturerDocumentsIdRoute: typeof ApiManufacturerDocumentsIdRoute
   ApiManufacturerDocumentsDownloadRoute: typeof ApiManufacturerDocumentsDownloadRoute
@@ -2228,7 +2319,9 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthProfileRoute: ApiAuthProfileRoute,
   ApiAuthRefreshRoute: ApiAuthRefreshRoute,
   ApiAuthResetPasswordRoute: ApiAuthResetPasswordRoute,
+  ApiAuthSessionsRoute: ApiAuthSessionsRouteWithChildren,
   ApiAuthSignupRoute: ApiAuthSignupRoute,
+  ApiAuthTwoFactorRoute: ApiAuthTwoFactorRoute,
   ApiBlockchainStatusRoute: ApiBlockchainStatusRoute,
   ApiFraudAlertsRoute: ApiFraudAlertsRoute,
   ApiFraudAnalyzeRoute: ApiFraudAnalyzeRoute,
@@ -2241,6 +2334,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiManufacturerComplianceRoute: ApiManufacturerComplianceRoute,
   ApiManufacturerDocumentsRoute: ApiManufacturerDocumentsRouteWithChildren,
   ApiManufacturerProfileRoute: ApiManufacturerProfileRouteWithChildren,
+  ApiManufacturerRecallRoute: ApiManufacturerRecallRoute,
   ApiManufacturerRegisterBatchRoute: ApiManufacturerRegisterBatchRoute,
   ApiManufacturerScanLocationsRoute: ApiManufacturerScanLocationsRoute,
   ApiManufacturerStatsRoute: ApiManufacturerStatsRoute,

@@ -7,6 +7,7 @@ export interface TokenPayload {
     userId: string;
     role: string;
     email: string;
+    sid?: string;
 }
 
 export class JwtService {

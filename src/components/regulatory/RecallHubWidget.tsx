@@ -2,36 +2,86 @@ import React, { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
     AlertCircle, ShieldAlert, Package, ArrowRight,
-    X, CheckCircle2, Search, Filter, Megaphone
+    X, CheckCircle2, Search, Filter, Megaphone, Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRegulatoryStore, type MedicineRecall } from "@/store/regulatory-store";
 import { useQRStore } from "@/store/qr-store";
+import { toast } from "sonner";
 
 export function RecallHubWidget() {
     const { recalls, addRecall } = useRegulatoryStore();
-    const { batches } = useQRStore();
+    const { batches, setBatches } = useQRStore();
     const [selectedBatchId, setSelectedBatchId] = useState("");
     const [reason, setReason] = useState("");
+    const [severity, setSeverity] = useState<"LOW" | "MEDIUM" | "HIGH" | "CRITICAL">("MEDIUM");
     const [showForm, setShowForm] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
-    const handleRecall = () => {
+    const handleRecall = async () => {
         const batch = batches.find(b => b.id === selectedBatchId || b.batchNumber === selectedBatchId);
-        if (!batch) return;
+        if (!batch) {
+            toast.error("Selected batch not found in inventory.");
+            return;
+        }
 
-        addRecall({
-            id: Math.random().toString(36).slice(2, 9),
-            batchNumber: batch.batchNumber,
-            medicineName: batch.medicineName,
-            reason: reason,
-            severity: "urgent",
-            dateInitiated: new Date().toISOString(),
-            status: "active"
-        });
+        setIsSubmitting(true);
+        try {
+            const token = (() => {
+                try {
+                    const session = localStorage.getItem("mediverify_session") || sessionStorage.getItem("mediverify_session");
+                    return session ? JSON.parse(session).token : "";
+                } catch { return ""; }
+            })();
 
-        setShowForm(false);
-        setSelectedBatchId("");
-        setReason("");
+            const response = await fetch("/api/manufacturer/recall", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    batchId: batch.id,
+                    reason: reason,
+                    severity: severity
+                })
+            });
+
+            const result = await response.json();
+
+            if (!response.ok || !result.success) {
+                throw new Error(result.message || "Failed to initiate recall.");
+            }
+
+            const recallData = result.data.recall;
+            addRecall({
+                id: recallData.id,
+                batchNumber: recallData.batchNumber || batch.batchNumber,
+                medicineName: recallData.medicineName || batch.medicineName,
+                reason: recallData.reason,
+                severity: (recallData.severity === "CRITICAL" || recallData.severity === "HIGH") ? "urgent" : "standard",
+                dateInitiated: recallData.recallDate || new Date().toISOString(),
+                status: "active"
+            });
+
+            // Update local batch status to Recalled in useQRStore
+            const updatedBatches = batches.map(b => 
+                (b.id === batch.id)
+                    ? { ...b, status: "Recalled" as const }
+                    : b
+            );
+            setBatches(updatedBatches);
+
+            toast.success("Batch successfully recalled and reported to DRAP.");
+            setShowForm(false);
+            setSelectedBatchId("");
+            setReason("");
+            setSeverity("MEDIUM");
+        } catch (error: any) {
+            toast.error(error.message || "An unexpected error occurred during recall protocol.");
+        } finally {
+            setIsSubmitting(false);
+        }
     };
 
     return (
@@ -82,6 +132,20 @@ export function RecallHubWidget() {
                         </div>
 
                         <div className="space-y-2">
+                            <label className="text-[10px] font-black uppercase opacity-50 ml-1">Severity Level</label>
+                            <select
+                                className="w-full bg-secondary/50 border border-input rounded-xl px-4 h-11 text-[13px] focus:outline-none focus:ring-1 focus:ring-destructive"
+                                value={severity}
+                                onChange={(e) => setSeverity(e.target.value as any)}
+                            >
+                                <option value="LOW">Low Severity</option>
+                                <option value="MEDIUM">Medium Severity</option>
+                                <option value="HIGH">High Severity</option>
+                                <option value="CRITICAL">Critical Severity</option>
+                            </select>
+                        </div>
+
+                        <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase opacity-50 ml-1">Reason for Recall</label>
                             <textarea
                                 className="w-full bg-secondary/50 border border-input rounded-xl p-3 text-[13px] min-h-[80px] focus:outline-none focus:ring-1 focus:ring-destructive"
@@ -94,9 +158,17 @@ export function RecallHubWidget() {
                         <Button
                             className="w-full rounded-xl bg-destructive h-12 text-[12px] font-black uppercase tracking-widest gap-2"
                             onClick={handleRecall}
-                            disabled={!selectedBatchId || !reason}
+                            disabled={!selectedBatchId || !reason || isSubmitting}
                         >
-                            <AlertCircle className="h-4 w-4" /> Authorize Emergency Recall
+                            {isSubmitting ? (
+                                <>
+                                    <Loader2 className="h-4 w-4 animate-spin" /> Authorizing...
+                                </>
+                            ) : (
+                                <>
+                                    <AlertCircle className="h-4 w-4" /> Authorize Emergency Recall
+                                </>
+                            )}
                         </Button>
                     </motion.div>
                 ) : (
