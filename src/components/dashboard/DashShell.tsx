@@ -11,11 +11,11 @@
  */
 
 import type { ReactNode } from "react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  ShieldCheck, Menu, ChevronLeft, ChevronRight as ChevronRightIcon,
+  Menu, ChevronLeft, ChevronRight as ChevronRightIcon,
   Bell, ArrowLeft,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -59,6 +59,56 @@ const SIDEBAR_W_COLLAPSED = 68;
 
 // ── Sub-components ────────────────────────────────────────────────────────────
 
+type SidebarUserChipUser = {
+  fullName: string;
+  role: string;
+  isVerified?: boolean;
+  companyLogo?: string;
+  logoUrl?: string;
+  avatar?: string;
+};
+
+function SidebarUserChip({ user }: { user: SidebarUserChipUser }) {
+  const [imgError, setImgError] = useState(false);
+  const activeLogoUrl = user.companyLogo || user.logoUrl || user.avatar;
+  const hasLogo = Boolean(activeLogoUrl && !imgError);
+  const initials = user.fullName.split(" ").map((p: string) => p[0]).join("").slice(0, 2).toUpperCase() || "U";
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.2 }}
+      className="border-t border-border/40 p-3"
+    >
+      <div className="flex items-center gap-3 rounded-xl bg-secondary/40 px-3 py-2.5">
+        <div
+          className={cn(
+            "relative grid h-8 w-8 shrink-0 place-items-center overflow-hidden rounded-full text-[11px] font-black",
+            hasLogo ? "border border-border/40 bg-secondary/10" : "text-primary-foreground shadow-elegant bg-gradient-primary"
+          )}
+        >
+          {hasLogo ? (
+            <img
+              src={activeLogoUrl!}
+              alt={user.fullName}
+              className="h-full w-full object-cover rounded-full"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            initials
+          )}
+        </div>
+        <div className="min-w-0">
+          <p className="truncate text-[12px] font-semibold">{user.fullName}</p>
+          <p className="text-[10px] text-muted-foreground capitalize">{user.role} · {user.isVerified ? "Verified" : "Unverified"}</p>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
 function DesktopSidebar({ nav = [] }: { nav?: readonly NavItem[] }) {
   const { collapsed, toggleCollapsed } = useDashboard();
   const { user } = useAuth();
@@ -71,17 +121,15 @@ function DesktopSidebar({ nav = [] }: { nav?: readonly NavItem[] }) {
     <motion.aside
       animate={{ width: w }}
       transition={{ duration: 0.3, ease }}
-      className="hidden lg:flex flex-col border-r border-border/40 bg-card/60 backdrop-blur-xl shrink-0 overflow-hidden relative"
-      style={{ width: w, minHeight: "100vh" }}
+      className="hidden lg:flex flex-col border-r border-border/40 bg-card/60 backdrop-blur-xl shrink-0 overflow-hidden relative h-full"
+      style={{ width: w }}
     >
       {/* Glow orb */}
       <div className="pointer-events-none absolute -top-20 -left-10 h-40 w-40 rounded-full bg-primary/8 blur-[60px]" />
 
       {/* Logo */}
       <div className={cn("flex items-center border-b border-border/40 py-5", collapsed ? "justify-center px-0" : "gap-3 px-5")}>
-        <div className="grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-gradient-primary shadow-elegant">
-          <ShieldCheck className="h-4.5 w-4.5 text-primary-foreground h-5 w-5" />
-        </div>
+        <img src="/logo.png" alt="MediVerify" className="h-9 w-9 shrink-0 object-contain" />
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.div
@@ -200,23 +248,7 @@ function DesktopSidebar({ nav = [] }: { nav?: readonly NavItem[] }) {
       {/* User card (only when expanded) */}
       <AnimatePresence initial={false}>
         {!collapsed && user && (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.2 }}
-            className="border-t border-border/40 p-3"
-          >
-            <div className="flex items-center gap-3 rounded-xl bg-secondary/40 px-3 py-2.5">
-              <div className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-gradient-primary text-[11px] font-black text-primary-foreground shadow-elegant">
-                {user.fullName.split(" ").map((p: string) => p[0]).join("").slice(0, 2).toUpperCase()}
-              </div>
-              <div className="min-w-0">
-                <p className="truncate text-[12px] font-semibold">{user.fullName}</p>
-                <p className="text-[10px] text-muted-foreground capitalize">{user.role} · Verified</p>
-              </div>
-            </div>
-          </motion.div>
+          <SidebarUserChip user={user} />
         )}
       </AnimatePresence>
 
@@ -284,7 +316,12 @@ function TopNavbar({
       <div className="flex items-center gap-2 shrink-0">
         {actions && <div className="hidden sm:flex items-center gap-2">{actions}</div>}
         <NotificationDropdown />
-        <UserProfileMenu name={user?.fullName || "Guest"} email={user?.email || ""} role={user?.role || "customer"} />
+        <UserProfileMenu
+          name={user?.fullName || "Guest"}
+          email={user?.email || ""}
+          role={user?.role || "customer"}
+          logoUrl={user?.companyLogo || user?.logoUrl || user?.avatar}
+        />
       </div>
     </header>
   );
@@ -316,7 +353,7 @@ function DashShellInner({ title, subtitle, badge, nav = [], children, actions }:
   }, [path]);
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex h-screen overflow-hidden bg-background">
       <DesktopSidebar nav={nav} />
       <MobileSidebar nav={(nav || []).filter(item => !item.roles || (user?.role && item.roles.includes(user.role)))} />
 

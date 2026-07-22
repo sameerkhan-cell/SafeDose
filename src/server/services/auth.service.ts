@@ -154,9 +154,11 @@ export class AuthService {
 
         // Fetch profile info to see if verified
         let isVerified = true;
+        let companyLogo: string | null = null;
         if (user.role === "MANUFACTURER") {
             const mfg = await db.manufacturer.findUnique({ where: { userId: user.id } });
             isVerified = mfg?.isVerified ?? false;
+            companyLogo = mfg?.companyLogo ?? null;
 
             // Backfill companyCode if missing (backward compatibility)
             if (mfg && !mfg.companyCode) {
@@ -178,6 +180,9 @@ export class AuthService {
                 name: user.name,
                 role: user.role,
                 isVerified,
+                companyLogo,
+                logoUrl: companyLogo,
+                avatar: companyLogo ?? undefined,
             },
             tokens: {
                 accessToken,

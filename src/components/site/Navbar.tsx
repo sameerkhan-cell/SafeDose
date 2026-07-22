@@ -1,5 +1,5 @@
 import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
-import { ShieldCheck, Menu, X, ArrowRight, LogOut, ArrowLeft } from "lucide-react";
+import { Menu, X, ArrowRight, LogOut, ArrowLeft } from "lucide-react";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
@@ -88,10 +88,8 @@ export function Navbar() {
                 <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
               </button>
             )}
-            <Link to={homePath} className="group flex items-center gap-2.5">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary shadow-elegant transition-transform duration-300 group-hover:scale-105">
-                <ShieldCheck className="h-5 w-5 text-primary-foreground" />
-              </span>
+            <Link to={homePath} className="group flex items-center gap-2">
+              <img src="/logo.png" alt="MediVerify" className="h-6 w-6 object-contain transition-transform duration-300 group-hover:scale-105" />
               <span className="flex items-center gap-2">
                 <span className="text-[15px] font-bold tracking-tight">MediVerify</span>
                 <span className="hidden rounded-full border border-border/60 bg-card/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:inline">

@@ -20,7 +20,8 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                     createdAt: true,
                     manufacturer: {
                         select: {
-                            isVerified: true
+                            isVerified: true,
+                            companyLogo: true,
                         }
                     },
                     pharmacy: {
@@ -33,6 +34,8 @@ export const Route = createAPIFileRoute("/api/auth/me")({
 
             if (!user) return Response.json(ApiResponse.error("User not found", 404), { status: 404 });
 
+            const logoUrl = user.manufacturer?.companyLogo || null;
+
             return Response.json(ApiResponse.success({
                 id: user.id,
                 email: user.email,
@@ -42,6 +45,9 @@ export const Route = createAPIFileRoute("/api/auth/me")({
                 twoFactorEnabled: user.twoFactorEnabled ?? false,
                 createdAt: user.createdAt,
                 isVerified: user.manufacturer?.isVerified ?? user.pharmacy?.isVerified ?? false,
+                companyLogo: logoUrl,
+                logoUrl: logoUrl,
+                avatar: logoUrl,
             }));
         } catch (error: any) {
             return Response.json(ApiResponse.error(error.message, 401), { status: 401 });

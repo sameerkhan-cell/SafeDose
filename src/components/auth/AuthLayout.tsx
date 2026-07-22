@@ -71,9 +71,7 @@ export function AuthLayout({
         <div className="relative z-10 flex flex-col h-full p-10 xl:p-14">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-3 group w-fit">
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-elegant transition-transform duration-300 group-hover:scale-105">
-              <ShieldCheck className="h-5 w-5" />
-            </span>
+            <img src="/logo.png" alt="MediVerify" className="h-10 w-10 object-contain transition-transform duration-300 group-hover:scale-105" />
             <span className="text-[17px] font-semibold tracking-tight text-white">MediVerify</span>
             <span className="hidden xl:inline-flex items-center gap-1 rounded-full border border-[oklch(0.68_0.18_150_/_0.3)] bg-[oklch(0.60_0.18_150_/_0.12)] px-2.5 py-0.5 text-[10px] font-medium text-[oklch(0.78_0.16_150)]">
               <span className="h-1.5 w-1.5 rounded-full bg-[oklch(0.68_0.18_150)] pulse-dot" />
@@ -158,9 +156,7 @@ export function AuthLayout({
           className="lg:hidden mb-8"
         >
           <Link to="/" className="flex items-center gap-2.5 group">
-            <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-elegant">
-              <ShieldCheck className="h-[18px] w-[18px]" />
-            </span>
+            <img src="/logo.png" alt="MediVerify" className="h-9 w-9 object-contain" />
             <span className="text-[15px] font-semibold">MediVerify</span>
           </Link>
         </motion.div>

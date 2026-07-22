@@ -12,6 +12,8 @@ export interface User {
   createdAt: string;
   emailVerified: boolean;
   avatar?: string;
+  companyLogo?: string;
+  logoUrl?: string;
 }
 
 export interface AuthSession {

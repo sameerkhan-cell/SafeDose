@@ -10,11 +10,15 @@ import type { UserRole } from "@/types/auth";
 import { useAuth } from "@/lib/auth-context";
 import { authService } from "@/services/auth";
 import { toast } from "sonner";
+import { cn } from "@/lib/utils";
 
 interface UserProfileMenuProps {
   name?: string;
   email?: string;
   role?: UserRole;
+  logoUrl?: string;
+  companyLogo?: string;
+  avatar?: string;
 }
 
 const ROLE_CFG: Record<UserRole, { label: string; icon: typeof User; color: string; bg: string }> = {
@@ -33,14 +37,30 @@ const MENU_ITEMS = [
   { icon: Settings, label: "Settings", to: "/dashboard/settings" },
 ];
 
-export function UserProfileMenu({ name = "MediVerify User", email = "user@mediverify.com", role = "customer" }: UserProfileMenuProps) {
+export function UserProfileMenu({
+  name = "MediVerify User",
+  email = "user@mediverify.com",
+  role = "customer",
+  logoUrl: propLogoUrl,
+  companyLogo: propCompanyLogo,
+  avatar: propAvatar,
+}: UserProfileMenuProps) {
   const [open, setOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
-  const { signOut, session } = useAuth();
+  const { signOut, session, user } = useAuth();
+
+  const activeLogoUrl = propLogoUrl || propCompanyLogo || propAvatar || user?.logoUrl || user?.companyLogo || user?.avatar;
+  const hasLogo = Boolean(activeLogoUrl && !imgError);
+
   const cfg = ROLE_CFG[role] || ROLE_CFG.customer;
   const RoleIcon = cfg.icon;
-  const initials = name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase();
+  const initials = name.split(" ").map(p => p[0]).join("").slice(0, 2).toUpperCase() || "U";
+
+  useEffect(() => {
+    setImgError(false);
+  }, [activeLogoUrl]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -77,10 +97,26 @@ export function UserProfileMenu({ name = "MediVerify User", email = "user@medive
       >
         {/* Avatar */}
         <div
-          className="grid h-7 w-7 shrink-0 place-items-center rounded-lg text-[11px] font-black text-white"
-          style={{ background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}99)`, boxShadow: `0 0 12px ${cfg.color}55` }}
+          className={cn(
+            "relative grid h-7 w-7 shrink-0 place-items-center overflow-hidden rounded-lg",
+            hasLogo ? "border border-border/40 bg-secondary/10" : "text-[11px] font-black text-white"
+          )}
+          style={
+            hasLogo
+              ? undefined
+              : { background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}99)`, boxShadow: `0 0 12px ${cfg.color}55` }
+          }
         >
-          {initials}
+          {hasLogo ? (
+            <img
+              src={activeLogoUrl!}
+              alt={name}
+              className="h-full w-full object-cover rounded-lg"
+              onError={() => setImgError(true)}
+            />
+          ) : (
+            initials
+          )}
         </div>
         <div className="hidden sm:block text-left">
           <p className="text-[12px] font-semibold leading-none">{name}</p>
@@ -105,10 +141,26 @@ export function UserProfileMenu({ name = "MediVerify User", email = "user@medive
             <div className="border-b border-border/40 p-4">
               <div className="flex items-center gap-3">
                 <div
-                  className="grid h-10 w-10 shrink-0 place-items-center rounded-xl text-[14px] font-black text-white"
-                  style={{ background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`, boxShadow: `0 0 20px ${cfg.color}44` }}
+                  className={cn(
+                    "relative grid h-10 w-10 shrink-0 place-items-center overflow-hidden rounded-xl",
+                    hasLogo ? "border border-border/40 bg-secondary/10" : "text-[14px] font-black text-white"
+                  )}
+                  style={
+                    hasLogo
+                      ? undefined
+                      : { background: `linear-gradient(135deg, ${cfg.color}, ${cfg.color}cc)`, boxShadow: `0 0 20px ${cfg.color}44` }
+                  }
                 >
-                  {initials}
+                  {hasLogo ? (
+                    <img
+                      src={activeLogoUrl!}
+                      alt={name}
+                      className="h-full w-full object-cover rounded-xl"
+                      onError={() => setImgError(true)}
+                    />
+                  ) : (
+                    initials
+                  )}
                 </div>
                 <div className="min-w-0">
                   <p className="truncate text-[13px] font-bold">{name}</p>

@@ -140,7 +140,9 @@ function ManufacturerProfile() {
     setLogoUploading(false);
 
     if (res.success && res.data) {
-      setForm(prev => ({ ...prev, companyLogo: res.data!.logoUrl }));
+      const newLogo = res.data.logoUrl;
+      setForm(prev => ({ ...prev, companyLogo: newLogo }));
+      updateUser({ companyLogo: newLogo, logoUrl: newLogo, avatar: newLogo });
       toast.success("Logo uploaded successfully.");
     } else {
       toast.error(res.error?.message ?? "Logo upload failed.");
@@ -156,6 +158,7 @@ function ManufacturerProfile() {
 
     if (res.success) {
       setForm(prev => ({ ...prev, companyLogo: "" }));
+      updateUser({ companyLogo: "", logoUrl: "", avatar: "" });
       toast.success("Logo removed.");
     } else {
       toast.error(res.error?.message ?? "Failed to remove logo.");
@@ -168,11 +171,14 @@ function ManufacturerProfile() {
     const res = await manufacturerProfileService.getProfile();
     if (res.success && res.data) {
       setForm(res.data);
+      if (res.data.companyLogo) {
+        updateUser({ companyLogo: res.data.companyLogo, logoUrl: res.data.companyLogo, avatar: res.data.companyLogo });
+      }
     } else {
       setLoadError(res.error?.message ?? "Failed to load profile.");
     }
     setLoading(false);
-  }, []);
+  }, [updateUser]);
 
   useEffect(() => {
     void loadProfile();
