@@ -24,27 +24,18 @@ export const Route = createAPIFileRoute("/api/pharmacy/license/download")({
                 });
             }
 
-            const { buffer, fileName } = await PharmacyService.serveLicenseFile(
+            const result = await PharmacyService.serveLicenseFile(
                 payload.userId,
                 pharmacyId,
                 payload.role,
                 fileParam
             );
 
-            const ext = fileName.split(".").pop()?.toLowerCase();
-            const contentType =
-                ext === "pdf" ? "application/pdf" :
-                ext === "png" ? "image/png" :
-                ext === "jpg" || ext === "jpeg" ? "image/jpeg" :
-                ext === "webp" ? "image/webp" : "application/octet-stream";
+            if (result.url) {
+                return Response.redirect(result.url, 302);
+            }
 
-            return new Response(buffer, {
-                headers: {
-                    "Content-Type": contentType,
-                    "Content-Disposition": `inline; filename="${fileName}"`,
-                    "Cache-Control": "private, max-age=3600",
-                },
-            });
+            return Response.json(ApiResponse.error("License file not available.", 404), { status: 404 });
         } catch (error: any) {
             const status = error.statusCode || 500;
             return Response.json(ApiResponse.error(error.message, status), { status });

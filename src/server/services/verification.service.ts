@@ -523,6 +523,41 @@ export class VerificationEngine {
                 }
             });
         } else if (scanningUser?.role === "PATIENT" || !scanningUser) {
+            if (!box.pharmacyScannedAt) {
+                // Out-of-sequence scan: no pharmacy has checked this box into the supply chain yet.
+                const seqMsg = "SUPPLY CHAIN WARNING: This box has not yet been checked in by any pharmacy. It should not be reaching a patient directly from the manufacturer. Verify the distribution channel before consuming.";
+                const seqLog = await this.logVerification(req, "SUSPICIOUS", box.batch.medicineId, null);
+                this.anchorWithLogging(seqLog.id, req.code, req.location || "Unknown", "SUSPICIOUS");
+                RealtimeService.broadcastVerification({ ...seqLog, status: "SUSPICIOUS" } as any);
+                return {
+                    success: true,
+                    resultType: "SUSPICIOUS",
+                    medicine: box.batch.medicine,
+                    manufacturer: box.batch.medicine.manufacturer,
+                    batch: box.batch,
+                    verification: {
+                        id: seqLog.id,
+                        scanTime: seqLog.createdAt,
+                        scanLocation: req.location || "Unknown",
+                        deviceInfo: req.deviceInfo || "Web Browser",
+                        blockchainStatus: box.batch.blockchainStatus
+                    },
+                    blockchain: {
+                        txHash: box.batch.txHash,
+                        status: box.batch.blockchainStatus,
+                        verifiedOnChain: !!box.batch.txHash
+                    },
+                    warnings: ["SUPPLY_CHAIN_SEQUENCE_SKIPPED"],
+                    riskScore: 55,
+                    message: seqMsg,
+                    supplyChain: {
+                        boxNumber: box.boxNumber,
+                        pharmacyName: null,
+                        verifiedBy: scanningUser?.role ?? "PUBLIC"
+                    }
+                };
+            }
+
             if (box.patientScannedAt) {
                 // Genuine product already patient-scanned — return DUPLICATE with full context.
                 const dupMsg = "DUPLICATE: This box QR was already verified by a patient on " + box.patientScannedAt.toISOString() + ". If this is an unopened box, please report immediately.";
@@ -631,6 +666,42 @@ export class VerificationEngine {
 
         if (scanningUser?.role === "PHARMACY" || scanningUser?.role === "MANUFACTURER") {
             return this.handleFakeResult(req, "Pill-level QR codes can only be verified by patients, not " + scanningUser.role + " accounts.");
+        }
+
+        if (pill.box && !pill.box.pharmacyScannedAt) {
+            // Out-of-sequence scan: the parent box was never checked in by a pharmacy.
+            const seqMsg = "SUPPLY CHAIN WARNING: This pill's box has not yet been checked in by any pharmacy. It should not be reaching a patient directly from the manufacturer. Verify the distribution channel before consuming.";
+            const seqLog = await this.logVerification(req, "SUSPICIOUS", pill.batch.medicineId, pill.id);
+            this.anchorWithLogging(seqLog.id, req.code, req.location || "Unknown", "SUSPICIOUS");
+            RealtimeService.broadcastVerification({ ...seqLog, status: "SUSPICIOUS" } as any);
+            return {
+                success: true,
+                resultType: "SUSPICIOUS",
+                medicine: pill.batch.medicine,
+                manufacturer: pill.batch.medicine.manufacturer,
+                batch: pill.batch,
+                pill: { serialNumber: pill.pillNumber, status: pill.status },
+                verification: {
+                    id: seqLog.id,
+                    scanTime: seqLog.createdAt,
+                    scanLocation: req.location || "Unknown",
+                    deviceInfo: req.deviceInfo || "Web Browser",
+                    blockchainStatus: pill.batch.blockchainStatus
+                },
+                blockchain: {
+                    txHash: pill.blockchainTx || pill.batch.txHash,
+                    status: pill.batch.blockchainStatus,
+                    verifiedOnChain: !!(pill.blockchainTx || pill.batch.txHash)
+                },
+                warnings: ["SUPPLY_CHAIN_SEQUENCE_SKIPPED"],
+                riskScore: 55,
+                message: seqMsg,
+                pillInfo: {
+                    pillNumber: pill.pillNumber,
+                    boxNumber: pill.box?.boxNumber ?? null,
+                    sequencePosition: "Pill " + pill.pillNumber + " from batch " + pill.batch.batchNumber
+                }
+            };
         }
 
         if (pill.qrScanned) {

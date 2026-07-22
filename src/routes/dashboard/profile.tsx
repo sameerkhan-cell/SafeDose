@@ -9,6 +9,7 @@ import {
 import { useRef } from "react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
+import { getStoredSession } from "@/services/auth";
 import {
   manufacturerProfileService,
   type ManufacturerProfile,
@@ -363,6 +364,11 @@ function PharmacyProfile() {
 
   const handleDownload = () => {
     if (!form || !form.licenseDocumentUrl) return;
+
+    if (form.licenseDocumentUrl.startsWith("http://") || form.licenseDocumentUrl.startsWith("https://")) {
+      window.open(form.licenseDocumentUrl, "_blank", "noopener,noreferrer");
+      return;
+    }
 
     const session = getStoredSession();
     if (!session?.token) {

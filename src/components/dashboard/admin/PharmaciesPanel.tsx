@@ -126,6 +126,11 @@ export function PharmaciesPanel() {
     };
 
     const handleDownload = (docUrl: string, licenseNumber: string) => {
+        if (docUrl.startsWith("http://") || docUrl.startsWith("https://")) {
+            window.open(docUrl, "_blank", "noopener,noreferrer");
+            return;
+        }
+
         const session = getStoredSession();
         if (!session?.token) {
             toast.error("Session expired. Please log in again.");

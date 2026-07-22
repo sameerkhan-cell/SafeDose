@@ -1,8 +1,6 @@
 import { prisma } from "../db/client";
 import { ApiError } from "../utils/api-response";
 import { validatePharmacyProfileUpdate } from "../validators/pharmacy-profile.validator";
-import fs from "node:fs/promises";
-import path from "node:path";
 
 export type PharmacyProfileDto = {
     id: string;
@@ -111,23 +109,37 @@ export class PharmacyService {
         }
 
         const pharmacyId = pharmacy.id;
-        const uploadDir = path.join(process.cwd(), "storage", "pharmacy-licenses", pharmacyId);
-        await fs.mkdir(uploadDir, { recursive: true });
-
-        const ext = file.name ? path.extname(file.name) : ".pdf";
-        const fileName = `license-${Date.now()}${ext}`;
-        const filePath = path.join(uploadDir, fileName);
-
         const buffer = Buffer.from(await file.arrayBuffer());
-        await fs.writeFile(filePath, buffer);
+        const fileName = file.name || `license-${pharmacyId}.pdf`;
+        const mimeType = file.type || "application/octet-stream";
 
-        const licenseDocumentUrl = `/api/pharmacy/license/download?pharmacyId=${pharmacyId}&file=${fileName}`;
+        let licenseDocumentUrl: string;
+
+        try {
+            const { GoogleDriveService } = await import("./google-drive.service");
+            const driveLink = await GoogleDriveService.uploadFile(
+                buffer,
+                fileName,
+                mimeType
+            );
+            if (!driveLink) {
+                throw new ApiError(502, "Failed to upload license file. Please try again in a moment.");
+            }
+            licenseDocumentUrl = driveLink;
+        } catch (err: any) {
+            console.error("[PharmacyService] Google Drive upload failed:", err?.message || err);
+            if (err instanceof ApiError) {
+                throw err;
+            }
+            throw new ApiError(502, "Failed to upload license file. Please try again in a moment.");
+        }
 
         const updated = await prisma.pharmacy.update({
             where: { id: pharmacyId },
             data: {
                 licenseDocumentUrl,
                 verificationStatus: "PENDING",
+                remarks: `[Google Drive] ${licenseDocumentUrl}`,
             },
         });
 
@@ -147,22 +159,17 @@ export class PharmacyService {
             throw new ApiError(403, "You do not have access to this document.");
         }
 
-        const filePath = path.join(
-            process.cwd(),
-            "storage",
-            "pharmacy-licenses",
-            pharmacyId,
-            fileName
-        );
+        const pharmacy = await prisma.pharmacy.findUnique({
+            where: { id: pharmacyId },
+            select: { licenseDocumentUrl: true },
+        });
 
-        try {
-            const buffer = await fs.readFile(filePath);
+        if (pharmacy?.licenseDocumentUrl) {
             return {
-                buffer,
-                fileName,
+                url: pharmacy.licenseDocumentUrl,
             };
-        } catch (e) {
-            throw new ApiError(404, "License file not found on server filesystem.");
         }
+
+        throw new ApiError(404, "License file not found.");
     }
 }
