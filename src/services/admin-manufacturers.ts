@@ -31,6 +31,7 @@ export interface AdminBatchReportItem {
     quantityBoxes: number;
     totalPillsGenerated: number;
     blockchainStatus: string;
+    txHash: string | null;
     createdAt: string;
     totalPillsCount: number;
     verifiedPillsCount: number;

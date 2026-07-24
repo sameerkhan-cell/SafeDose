@@ -121,6 +121,7 @@ export class ManufacturerReportService {
                     quantityBoxes: batch.quantityBoxes,
                     totalPillsGenerated: batch.totalPillsGenerated,
                     blockchainStatus: batch.blockchainStatus,
+                    txHash: batch.txHash,
                     createdAt: batch.createdAt.toISOString(),
                     totalPillsCount: totalPills,
                     verifiedPillsCount: verifiedPills,

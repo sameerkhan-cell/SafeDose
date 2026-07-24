@@ -170,7 +170,7 @@ function Page() {
             productCategory: b.category,
             manufacturerCode: b.medicine.manufacturer?.companyCode || "MFG",
             drapLicense: b.medicine.manufacturer?.licenseNumber || "DRAP-LIC-001",
-            txHash: b.txHash || "0x" + "0".repeat(40),
+            txHash: b.txHash || null,
             createdAt: b.createdAt,
             qrGenerationStatus: b.blockchainStatus?.toLowerCase() || "completed",
             boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`,

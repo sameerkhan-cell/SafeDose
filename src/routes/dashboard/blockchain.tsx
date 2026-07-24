@@ -129,24 +129,38 @@ function ParticleField() {
   );
 }
 
-// Live stats ticker in the header
+// Live stats ticker in the header — fetches real data from the dashboard API
 function LiveTicker() {
-  const [scans, setScans] = useState(48_321);
-  const [rate, setRate] = useState(342);
+  const [totalScans, setTotalScans] = useState<number | null>(null);
+  const [onChainTx, setOnChainTx] = useState<number | null>(null);
+  const [blockNumber, setBlockNumber] = useState<number | null>(null);
+  const [networkOk, setNetworkOk] = useState(true);
 
   useEffect(() => {
-    const id = setInterval(() => {
-      setScans(s => s + Math.floor(Math.random() * 5));
-      setRate(r => Math.max(280, Math.min(420, r + Math.round((Math.random() - 0.5) * 16))));
-    }, 1800);
+    async function fetchLiveStats() {
+      try {
+        const res = await fetch("/api/blockchain/dashboard");
+        const json = await res.json();
+        if (json.success && json.data) {
+          setTotalScans(json.data.stats.totalScans);
+          setOnChainTx(json.data.blockchain.confirmedJobs);
+          setBlockNumber(json.data.blockchain.blockNumber);
+          setNetworkOk(json.data.stats.networkHealthy);
+        }
+      } catch {
+        // fail silently — ticker shows last value
+      }
+    }
+    fetchLiveStats();
+    const id = setInterval(fetchLiveStats, 15000);
     return () => clearInterval(id);
   }, []);
 
   const stats = [
-    { icon: Zap, label: "Scans/min", value: rate.toLocaleString(), color: "#06b6d4" },
-    { icon: ShieldCheck, label: "Verified", value: scans.toLocaleString(), color: "#16a34a" },
-    { icon: Lock, label: "Chain Height", value: "#18,501,025", color: "#1a56db" },
-    { icon: Cpu, label: "AI Status", value: "Online", color: "#16a34a" },
+    { icon: Zap,       label: "Total Scans",    value: totalScans !== null ? totalScans.toLocaleString() : "—",   color: "#06b6d4" },
+    { icon: ShieldCheck, label: "On-Chain Txs", value: onChainTx !== null ? onChainTx.toLocaleString() : "—",    color: "#16a34a" },
+    { icon: Lock,      label: "Block Number",   value: blockNumber && blockNumber > 0 ? `#${blockNumber.toLocaleString()}` : "Connecting…", color: "#1a56db" },
+    { icon: Cpu,       label: "AI Status",      value: networkOk ? "Online" : "Degraded",                         color: networkOk ? "#16a34a" : "#f59e0b" },
   ];
 
   return (

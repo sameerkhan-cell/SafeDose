@@ -47,10 +47,12 @@ function BatchComplianceModal({ data, onClose }: { data: ComplianceBatch; onClos
     const generatedOn = new Date().toLocaleString("en-PK");
     const pillsPerBox = batch.quantityBoxes > 0 ? Math.round(batch.totalPillsGenerated / batch.quantityBoxes) : 0;
 
-    // Generate a deterministic-looking hex hash from batch id
-    const txHash = batch.blockchainStatus === "CONFIRMED"
-        ? "0x" + Array.from({ length: 40 }, (_, i) => ((batch.id.charCodeAt(i % batch.id.length) + i * 7) % 16).toString(16)).join("")
-        : "0x" + "0".repeat(40);
+    const txHashDisplay =
+        batch.txHash && batch.txHash !== "0x0000000000000000000000000000000000000000"
+            ? batch.txHash
+            : batch.blockchainStatus === "CONFIRMED"
+              ? "Not configured"
+              : "Pending Anchoring";
 
     const printPdf = () => {
         const html = `<!DOCTYPE html>
@@ -124,7 +126,7 @@ function BatchComplianceModal({ data, onClose }: { data: ComplianceBatch; onClos
   <div class="bc-section">
     <div class="bc-title">Blockchain Verification Details</div>
     <div class="bc-label">Transaction Hash</div>
-    <div class="bc-hash">${txHash}</div>
+    <div class="bc-hash">${txHashDisplay}</div>
   </div>
   <div class="footer">This report is digitally signed by MediVerify nodes. Any tampering invalidates the verification.</div>
 </div>
@@ -208,7 +210,7 @@ function BatchComplianceModal({ data, onClose }: { data: ComplianceBatch; onClos
                     <div className="px-6 pb-5">
                         <h3 className="text-[15px] font-extrabold text-gray-900 mb-3">Blockchain Verification Details</h3>
                         <p className="text-[8px] text-gray-400 uppercase tracking-[1.5px] mb-1.5">Transaction Hash</p>
-                        <p className="font-mono text-[11px] text-blue-600 break-all leading-relaxed">{txHash}</p>
+                        <p className="font-mono text-[11px] text-blue-600 break-all leading-relaxed">{txHashDisplay}</p>
                     </div>
 
                     {/* Disclaimer */}

@@ -56,10 +56,17 @@ import { Route as ApiManufacturerAuditLogsRouteImport } from './routes/api/manuf
 import { Route as ApiInternalRetryBlockchainJobsRouteImport } from './routes/api/internal/retry-blockchain-jobs'
 import { Route as ApiInternalProcessBlockchainQueueRouteImport } from './routes/api/internal/process-blockchain-queue'
 import { Route as ApiHealthDatabaseRouteImport } from './routes/api/health/database'
+import { Route as ApiFraudResolveAlertRouteImport } from './routes/api/fraud/resolve-alert'
 import { Route as ApiFraudMetricsRouteImport } from './routes/api/fraud/metrics'
 import { Route as ApiFraudAnalyzeRouteImport } from './routes/api/fraud/analyze'
 import { Route as ApiFraudAlertsRouteImport } from './routes/api/fraud/alerts'
+import { Route as ApiBlockchainTimelineRouteImport } from './routes/api/blockchain/timeline'
 import { Route as ApiBlockchainStatusRouteImport } from './routes/api/blockchain/status'
+import { Route as ApiBlockchainScanHistoryRouteImport } from './routes/api/blockchain/scan-history'
+import { Route as ApiBlockchainJourneyRouteImport } from './routes/api/blockchain/journey'
+import { Route as ApiBlockchainGeoRoutesRouteImport } from './routes/api/blockchain/geo-routes'
+import { Route as ApiBlockchainDashboardRouteImport } from './routes/api/blockchain/dashboard'
+import { Route as ApiBlockchainCardsRouteImport } from './routes/api/blockchain/cards'
 import { Route as ApiAuthTwoFactorRouteImport } from './routes/api/auth/two-factor'
 import { Route as ApiAuthSignupRouteImport } from './routes/api/auth/signup'
 import { Route as ApiAuthSessionsRouteImport } from './routes/api/auth/sessions'
@@ -357,6 +364,11 @@ const ApiHealthDatabaseRoute = ApiHealthDatabaseRouteImport.update({
   path: '/database',
   getParentRoute: () => ApiHealthRoute,
 } as any)
+const ApiFraudResolveAlertRoute = ApiFraudResolveAlertRouteImport.update({
+  id: '/api/fraud/resolve-alert',
+  path: '/api/fraud/resolve-alert',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiFraudMetricsRoute = ApiFraudMetricsRouteImport.update({
   id: '/api/fraud/metrics',
   path: '/api/fraud/metrics',
@@ -372,9 +384,40 @@ const ApiFraudAlertsRoute = ApiFraudAlertsRouteImport.update({
   path: '/api/fraud/alerts',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiBlockchainTimelineRoute = ApiBlockchainTimelineRouteImport.update({
+  id: '/api/blockchain/timeline',
+  path: '/api/blockchain/timeline',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiBlockchainStatusRoute = ApiBlockchainStatusRouteImport.update({
   id: '/api/blockchain/status',
   path: '/api/blockchain/status',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlockchainScanHistoryRoute =
+  ApiBlockchainScanHistoryRouteImport.update({
+    id: '/api/blockchain/scan-history',
+    path: '/api/blockchain/scan-history',
+    getParentRoute: () => rootRouteImport,
+  } as any)
+const ApiBlockchainJourneyRoute = ApiBlockchainJourneyRouteImport.update({
+  id: '/api/blockchain/journey',
+  path: '/api/blockchain/journey',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlockchainGeoRoutesRoute = ApiBlockchainGeoRoutesRouteImport.update({
+  id: '/api/blockchain/geo-routes',
+  path: '/api/blockchain/geo-routes',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlockchainDashboardRoute = ApiBlockchainDashboardRouteImport.update({
+  id: '/api/blockchain/dashboard',
+  path: '/api/blockchain/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiBlockchainCardsRoute = ApiBlockchainCardsRouteImport.update({
+  id: '/api/blockchain/cards',
+  path: '/api/blockchain/cards',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiAuthTwoFactorRoute = ApiAuthTwoFactorRouteImport.update({
@@ -708,10 +751,17 @@ export interface FileRoutesByFullPath {
   '/api/auth/sessions': typeof ApiAuthSessionsRouteWithChildren
   '/api/auth/signup': typeof ApiAuthSignupRoute
   '/api/auth/two-factor': typeof ApiAuthTwoFactorRoute
+  '/api/blockchain/cards': typeof ApiBlockchainCardsRoute
+  '/api/blockchain/dashboard': typeof ApiBlockchainDashboardRoute
+  '/api/blockchain/geo-routes': typeof ApiBlockchainGeoRoutesRoute
+  '/api/blockchain/journey': typeof ApiBlockchainJourneyRoute
+  '/api/blockchain/scan-history': typeof ApiBlockchainScanHistoryRoute
   '/api/blockchain/status': typeof ApiBlockchainStatusRoute
+  '/api/blockchain/timeline': typeof ApiBlockchainTimelineRoute
   '/api/fraud/alerts': typeof ApiFraudAlertsRoute
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
   '/api/fraud/metrics': typeof ApiFraudMetricsRoute
+  '/api/fraud/resolve-alert': typeof ApiFraudResolveAlertRoute
   '/api/health/database': typeof ApiHealthDatabaseRoute
   '/api/internal/process-blockchain-queue': typeof ApiInternalProcessBlockchainQueueRoute
   '/api/internal/retry-blockchain-jobs': typeof ApiInternalRetryBlockchainJobsRoute
@@ -813,10 +863,17 @@ export interface FileRoutesByTo {
   '/api/auth/sessions': typeof ApiAuthSessionsRouteWithChildren
   '/api/auth/signup': typeof ApiAuthSignupRoute
   '/api/auth/two-factor': typeof ApiAuthTwoFactorRoute
+  '/api/blockchain/cards': typeof ApiBlockchainCardsRoute
+  '/api/blockchain/dashboard': typeof ApiBlockchainDashboardRoute
+  '/api/blockchain/geo-routes': typeof ApiBlockchainGeoRoutesRoute
+  '/api/blockchain/journey': typeof ApiBlockchainJourneyRoute
+  '/api/blockchain/scan-history': typeof ApiBlockchainScanHistoryRoute
   '/api/blockchain/status': typeof ApiBlockchainStatusRoute
+  '/api/blockchain/timeline': typeof ApiBlockchainTimelineRoute
   '/api/fraud/alerts': typeof ApiFraudAlertsRoute
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
   '/api/fraud/metrics': typeof ApiFraudMetricsRoute
+  '/api/fraud/resolve-alert': typeof ApiFraudResolveAlertRoute
   '/api/health/database': typeof ApiHealthDatabaseRoute
   '/api/internal/process-blockchain-queue': typeof ApiInternalProcessBlockchainQueueRoute
   '/api/internal/retry-blockchain-jobs': typeof ApiInternalRetryBlockchainJobsRoute
@@ -919,10 +976,17 @@ export interface FileRoutesById {
   '/api/auth/sessions': typeof ApiAuthSessionsRouteWithChildren
   '/api/auth/signup': typeof ApiAuthSignupRoute
   '/api/auth/two-factor': typeof ApiAuthTwoFactorRoute
+  '/api/blockchain/cards': typeof ApiBlockchainCardsRoute
+  '/api/blockchain/dashboard': typeof ApiBlockchainDashboardRoute
+  '/api/blockchain/geo-routes': typeof ApiBlockchainGeoRoutesRoute
+  '/api/blockchain/journey': typeof ApiBlockchainJourneyRoute
+  '/api/blockchain/scan-history': typeof ApiBlockchainScanHistoryRoute
   '/api/blockchain/status': typeof ApiBlockchainStatusRoute
+  '/api/blockchain/timeline': typeof ApiBlockchainTimelineRoute
   '/api/fraud/alerts': typeof ApiFraudAlertsRoute
   '/api/fraud/analyze': typeof ApiFraudAnalyzeRoute
   '/api/fraud/metrics': typeof ApiFraudMetricsRoute
+  '/api/fraud/resolve-alert': typeof ApiFraudResolveAlertRoute
   '/api/health/database': typeof ApiHealthDatabaseRoute
   '/api/internal/process-blockchain-queue': typeof ApiInternalProcessBlockchainQueueRoute
   '/api/internal/retry-blockchain-jobs': typeof ApiInternalRetryBlockchainJobsRoute
@@ -1026,10 +1090,17 @@ export interface FileRouteTypes {
     | '/api/auth/sessions'
     | '/api/auth/signup'
     | '/api/auth/two-factor'
+    | '/api/blockchain/cards'
+    | '/api/blockchain/dashboard'
+    | '/api/blockchain/geo-routes'
+    | '/api/blockchain/journey'
+    | '/api/blockchain/scan-history'
     | '/api/blockchain/status'
+    | '/api/blockchain/timeline'
     | '/api/fraud/alerts'
     | '/api/fraud/analyze'
     | '/api/fraud/metrics'
+    | '/api/fraud/resolve-alert'
     | '/api/health/database'
     | '/api/internal/process-blockchain-queue'
     | '/api/internal/retry-blockchain-jobs'
@@ -1131,10 +1202,17 @@ export interface FileRouteTypes {
     | '/api/auth/sessions'
     | '/api/auth/signup'
     | '/api/auth/two-factor'
+    | '/api/blockchain/cards'
+    | '/api/blockchain/dashboard'
+    | '/api/blockchain/geo-routes'
+    | '/api/blockchain/journey'
+    | '/api/blockchain/scan-history'
     | '/api/blockchain/status'
+    | '/api/blockchain/timeline'
     | '/api/fraud/alerts'
     | '/api/fraud/analyze'
     | '/api/fraud/metrics'
+    | '/api/fraud/resolve-alert'
     | '/api/health/database'
     | '/api/internal/process-blockchain-queue'
     | '/api/internal/retry-blockchain-jobs'
@@ -1236,10 +1314,17 @@ export interface FileRouteTypes {
     | '/api/auth/sessions'
     | '/api/auth/signup'
     | '/api/auth/two-factor'
+    | '/api/blockchain/cards'
+    | '/api/blockchain/dashboard'
+    | '/api/blockchain/geo-routes'
+    | '/api/blockchain/journey'
+    | '/api/blockchain/scan-history'
     | '/api/blockchain/status'
+    | '/api/blockchain/timeline'
     | '/api/fraud/alerts'
     | '/api/fraud/analyze'
     | '/api/fraud/metrics'
+    | '/api/fraud/resolve-alert'
     | '/api/health/database'
     | '/api/internal/process-blockchain-queue'
     | '/api/internal/retry-blockchain-jobs'
@@ -1337,10 +1422,17 @@ export interface RootRouteChildren {
   ApiAuthSessionsRoute: typeof ApiAuthSessionsRouteWithChildren
   ApiAuthSignupRoute: typeof ApiAuthSignupRoute
   ApiAuthTwoFactorRoute: typeof ApiAuthTwoFactorRoute
+  ApiBlockchainCardsRoute: typeof ApiBlockchainCardsRoute
+  ApiBlockchainDashboardRoute: typeof ApiBlockchainDashboardRoute
+  ApiBlockchainGeoRoutesRoute: typeof ApiBlockchainGeoRoutesRoute
+  ApiBlockchainJourneyRoute: typeof ApiBlockchainJourneyRoute
+  ApiBlockchainScanHistoryRoute: typeof ApiBlockchainScanHistoryRoute
   ApiBlockchainStatusRoute: typeof ApiBlockchainStatusRoute
+  ApiBlockchainTimelineRoute: typeof ApiBlockchainTimelineRoute
   ApiFraudAlertsRoute: typeof ApiFraudAlertsRoute
   ApiFraudAnalyzeRoute: typeof ApiFraudAnalyzeRoute
   ApiFraudMetricsRoute: typeof ApiFraudMetricsRoute
+  ApiFraudResolveAlertRoute: typeof ApiFraudResolveAlertRoute
   ApiInternalProcessBlockchainQueueRoute: typeof ApiInternalProcessBlockchainQueueRoute
   ApiInternalRetryBlockchainJobsRoute: typeof ApiInternalRetryBlockchainJobsRoute
   ApiManufacturerAuditLogsRoute: typeof ApiManufacturerAuditLogsRoute
@@ -1701,6 +1793,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiHealthDatabaseRouteImport
       parentRoute: typeof ApiHealthRoute
     }
+    '/api/fraud/resolve-alert': {
+      id: '/api/fraud/resolve-alert'
+      path: '/api/fraud/resolve-alert'
+      fullPath: '/api/fraud/resolve-alert'
+      preLoaderRoute: typeof ApiFraudResolveAlertRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/fraud/metrics': {
       id: '/api/fraud/metrics'
       path: '/api/fraud/metrics'
@@ -1722,11 +1821,53 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiFraudAlertsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/blockchain/timeline': {
+      id: '/api/blockchain/timeline'
+      path: '/api/blockchain/timeline'
+      fullPath: '/api/blockchain/timeline'
+      preLoaderRoute: typeof ApiBlockchainTimelineRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/blockchain/status': {
       id: '/api/blockchain/status'
       path: '/api/blockchain/status'
       fullPath: '/api/blockchain/status'
       preLoaderRoute: typeof ApiBlockchainStatusRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blockchain/scan-history': {
+      id: '/api/blockchain/scan-history'
+      path: '/api/blockchain/scan-history'
+      fullPath: '/api/blockchain/scan-history'
+      preLoaderRoute: typeof ApiBlockchainScanHistoryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blockchain/journey': {
+      id: '/api/blockchain/journey'
+      path: '/api/blockchain/journey'
+      fullPath: '/api/blockchain/journey'
+      preLoaderRoute: typeof ApiBlockchainJourneyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blockchain/geo-routes': {
+      id: '/api/blockchain/geo-routes'
+      path: '/api/blockchain/geo-routes'
+      fullPath: '/api/blockchain/geo-routes'
+      preLoaderRoute: typeof ApiBlockchainGeoRoutesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blockchain/dashboard': {
+      id: '/api/blockchain/dashboard'
+      path: '/api/blockchain/dashboard'
+      fullPath: '/api/blockchain/dashboard'
+      preLoaderRoute: typeof ApiBlockchainDashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/blockchain/cards': {
+      id: '/api/blockchain/cards'
+      path: '/api/blockchain/cards'
+      fullPath: '/api/blockchain/cards'
+      preLoaderRoute: typeof ApiBlockchainCardsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/auth/two-factor': {
@@ -2322,10 +2463,17 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAuthSessionsRoute: ApiAuthSessionsRouteWithChildren,
   ApiAuthSignupRoute: ApiAuthSignupRoute,
   ApiAuthTwoFactorRoute: ApiAuthTwoFactorRoute,
+  ApiBlockchainCardsRoute: ApiBlockchainCardsRoute,
+  ApiBlockchainDashboardRoute: ApiBlockchainDashboardRoute,
+  ApiBlockchainGeoRoutesRoute: ApiBlockchainGeoRoutesRoute,
+  ApiBlockchainJourneyRoute: ApiBlockchainJourneyRoute,
+  ApiBlockchainScanHistoryRoute: ApiBlockchainScanHistoryRoute,
   ApiBlockchainStatusRoute: ApiBlockchainStatusRoute,
+  ApiBlockchainTimelineRoute: ApiBlockchainTimelineRoute,
   ApiFraudAlertsRoute: ApiFraudAlertsRoute,
   ApiFraudAnalyzeRoute: ApiFraudAnalyzeRoute,
   ApiFraudMetricsRoute: ApiFraudMetricsRoute,
+  ApiFraudResolveAlertRoute: ApiFraudResolveAlertRoute,
   ApiInternalProcessBlockchainQueueRoute:
     ApiInternalProcessBlockchainQueueRoute,
   ApiInternalRetryBlockchainJobsRoute: ApiInternalRetryBlockchainJobsRoute,

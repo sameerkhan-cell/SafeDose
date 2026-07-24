@@ -323,7 +323,19 @@ function BatchDetailPanel({
                     <h3 className="text-[12px] font-bold uppercase tracking-wider text-primary flex items-center gap-2 mb-3">
                         <Hash className="h-3.5 w-3.5" /> Blockchain Anchor
                     </h3>
-                    <p className="font-mono text-[11px] text-primary/80 break-all leading-relaxed">{batch.txHash || "PENDING"}</p>
+                    {batch.txHash && batch.txHash.startsWith("0x") && batch.txHash.length > 20 ? (
+                      <a
+                        href={`https://amoy.polygonscan.com/tx/${batch.txHash}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="font-mono text-[11px] text-primary/80 break-all leading-relaxed hover:underline"
+                        title="View on PolygonScan"
+                      >
+                        {batch.txHash}
+                      </a>
+                    ) : (
+                      <p className="font-mono text-[11px] text-muted-foreground italic">{batch.txHash || "Pending Anchoring"}</p>
+                    )}
                 </div>
 
                 {/* Pill records preview */}
@@ -514,7 +526,7 @@ function QRLibraryPage() {
                         productCategory: b.category || "Pharmaceutical",
                         manufacturerCode: b.medicine?.manufacturer?.companyName?.substring(0, 3)?.toUpperCase() || "MFG",
                         drapLicense: b.medicine?.manufacturer?.licenseNumber || "DRAP-LIC-001",
-                        txHash: b.txHash || "0x" + "0".repeat(40),
+                        txHash: b.txHash || null,
                         qrGenerationStatus: b.blockchainStatus?.toLowerCase() || "completed",
                         boxQrCode: b.boxQRCode || `BOX-${b.batchNumber}-MFG`,
                         boxQrScanned: false,

@@ -1,17 +1,16 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import { motion, useMotionValue, useTransform, useSpring } from "framer-motion";
 import {
   Hash, MapPin, Building2, Clock, QrCode, ShieldCheck,
-  AlertTriangle, XCircle, CheckCircle2, Copy, ExternalLink,
+  AlertTriangle, XCircle, CheckCircle2, Copy, ExternalLink, Loader2, RefreshCw,
 } from "lucide-react";
 import { ease } from "@/lib/motion";
-
 
 type CardStatus = "genuine" | "suspicious" | "fake";
 
 interface TxCardData {
   id: string;
-  txHash: string;
+  txHash: string | null;
   batchId: string;
   manufacturer: string;
   location: string;
@@ -22,33 +21,6 @@ interface TxCardData {
   medicineLabel: string;
   scansCount: number;
 }
-
-const CARDS: TxCardData[] = [
-  {
-    id: "c1", txHash: "0x3f9a1b2c…d7e4f891",
-    batchId: "PNX-49281-A", manufacturer: "GlaxoSmithKline PK",
-    location: "Karachi, Pakistan", verificationResult: "genuine",
-    qrAuthentic: true, timestamp: "16 Jan 2025 · 09:05 UTC",
-    blockchainStatus: "confirmed", medicineLabel: "Panadol Extra 500mg",
-    scansCount: 4,
-  },
-  {
-    id: "c2", txHash: "0x7c8d3e1a…b2f56709",
-    batchId: "VNT-00129-X", manufacturer: "Unknown Origin",
-    location: "Dubai, UAE", verificationResult: "suspicious",
-    qrAuthentic: false, timestamp: "17 Jan 2025 · 23:11 UTC",
-    blockchainStatus: "pending", medicineLabel: "Ventolin 100mcg",
-    scansCount: 12,
-  },
-  {
-    id: "c3", txHash: "0xd1e2f3a4…9b8c7d6e",
-    batchId: "FAKE-00777", manufacturer: "Unregistered",
-    location: "Lahore, Pakistan", verificationResult: "fake",
-    qrAuthentic: false, timestamp: "15 Jan 2025 · 18:30 UTC",
-    blockchainStatus: "failed", medicineLabel: "Augmentin 625mg (FAKE)",
-    scansCount: 31,
-  },
-];
 
 const STATUS_CFG: Record<CardStatus, {
   color: string; bg: string; border: string;
@@ -76,7 +48,7 @@ const STATUS_CFG: Record<CardStatus, {
 };
 
 function HoloCard({ card }: { card: TxCardData }) {
-  const cfg = STATUS_CFG[card.verificationResult];
+  const cfg = STATUS_CFG[card.verificationResult] || STATUS_CFG.genuine;
   const Icon = cfg.icon;
   const cardRef = useRef<HTMLDivElement>(null);
   const [copied, setCopied] = useState(false);
@@ -106,6 +78,7 @@ function HoloCard({ card }: { card: TxCardData }) {
   }
 
   function copyHash() {
+    if (!card.txHash) return;
     navigator.clipboard.writeText(card.txHash);
     setCopied(true);
     setTimeout(() => setCopied(false), 1800);
@@ -115,7 +88,7 @@ function HoloCard({ card }: { card: TxCardData }) {
     confirmed: { color: "#16a34a", label: "Confirmed" },
     pending: { color: "#f59e0b", label: "Pending" },
     failed: { color: "#dc2626", label: "Failed" },
-  }[card.blockchainStatus];
+  }[card.blockchainStatus] || { color: "#16a34a", label: "Confirmed" };
 
   return (
     <motion.div
@@ -138,7 +111,6 @@ function HoloCard({ card }: { card: TxCardData }) {
       transition={{ duration: 0.6, ease }}
       className="relative overflow-hidden rounded-2xl cursor-pointer"
     >
-      {/* Holographic background overlay */}
       <motion.div
         className="absolute inset-0 pointer-events-none z-0"
         style={{ background: cfg.gradient, opacity: isHovered ? 1 : 0.5 }}
@@ -146,22 +118,6 @@ function HoloCard({ card }: { card: TxCardData }) {
         transition={{ duration: 0.4 }}
       />
 
-      {/* Animated border glow */}
-      <motion.div
-        className="absolute inset-0 rounded-2xl pointer-events-none z-0"
-        style={{
-          background: `conic-gradient(from var(--border-angle, 0deg), ${cfg.color}44, transparent, ${cfg.color}22, transparent, ${cfg.color}44)`,
-          padding: "1px",
-          WebkitMask: "linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0)",
-          WebkitMaskComposite: "xor",
-          maskComposite: "exclude",
-          opacity: isHovered ? 1 : 0,
-        }}
-        animate={isHovered ? { ["--border-angle" as string]: ["0deg", "360deg"] } : {}}
-        transition={{ duration: 3, repeat: Infinity, ease: "linear" }}
-      />
-
-      {/* Mouse glare */}
       {isHovered && (
         <motion.div
           className="absolute inset-0 pointer-events-none z-10 rounded-2xl"
@@ -171,38 +127,17 @@ function HoloCard({ card }: { card: TxCardData }) {
         />
       )}
 
-      {/* Holo shimmer sweep */}
-      {isHovered && (
-        <motion.div
-          className="absolute inset-0 pointer-events-none z-10"
-          style={{
-            background: "linear-gradient(105deg, transparent 30%, rgba(255,255,255,0.06) 50%, transparent 70%)",
-            backgroundSize: "200% 100%",
-          }}
-          animate={{ backgroundPosition: ["-200% 0", "200% 0"] }}
-          transition={{ duration: 1.2, repeat: Infinity, ease: "linear" }}
-        />
-      )}
-
       {/* Card content */}
       <div className="relative z-20 p-5">
         {/* Header */}
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="flex items-center gap-3">
-            <motion.div
+            <div
               className="flex h-11 w-11 items-center justify-center rounded-xl border"
               style={{ borderColor: cfg.border, background: cfg.bg }}
-              animate={
-                card.verificationResult === "fake"
-                  ? { boxShadow: [`0 0 0 0 ${cfg.color}44`, `0 0 16px 4px ${cfg.color}33`, `0 0 0 0 ${cfg.color}44`] }
-                  : card.verificationResult === "suspicious"
-                    ? { boxShadow: [`0 0 0 0 ${cfg.color}44`, `0 0 12px 3px ${cfg.color}33`, `0 0 0 0 ${cfg.color}44`] }
-                    : {}
-              }
-              transition={{ duration: card.verificationResult === "fake" ? 1.2 : 2, repeat: Infinity }}
             >
               <Icon className="h-5 w-5" style={{ color: cfg.color }} />
-            </motion.div>
+            </div>
             <div>
               <p className="text-[13px] font-bold leading-tight">{card.medicineLabel}</p>
               <p className="text-[11px] text-muted-foreground font-mono">{card.batchId}</p>
@@ -250,13 +185,17 @@ function HoloCard({ card }: { card: TxCardData }) {
             <span className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">TX Hash</span>
           </div>
           <div className="flex items-center justify-between gap-2">
-            <p className="font-mono text-[11px] text-foreground/70 truncate">{card.txHash}</p>
-            <button
-              onClick={copyHash}
-              className="shrink-0 rounded-lg border border-border/30 p-1.5 transition-colors hover:bg-white/5"
-            >
-              <Copy className="h-3 w-3 text-muted-foreground" />
-            </button>
+            <p className="font-mono text-[11px] text-foreground/70 truncate">
+              {card.txHash ?? "Pending Anchoring"}
+            </p>
+            {card.txHash && (
+              <button
+                onClick={copyHash}
+                className="shrink-0 rounded-lg border border-border/30 p-1.5 transition-colors hover:bg-white/5"
+              >
+                <Copy className="h-3 w-3 text-muted-foreground" />
+              </button>
+            )}
           </div>
           {copied && (
             <motion.p
@@ -285,9 +224,18 @@ function HoloCard({ card }: { card: TxCardData }) {
               {blockStatusCfg.label}
             </span>
           </div>
-          <button className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground transition-colors">
-            View on explorer <ExternalLink className="h-3 w-3" />
-          </button>
+          {card.txHash && card.txHash.startsWith("0x") && card.txHash.length > 20 ? (
+            <a
+              href={`https://amoy.polygonscan.com/tx/${card.txHash}`}
+              target="_blank"
+              rel="noreferrer"
+              className="flex items-center gap-1 text-[11px] text-[#06b6d4] hover:underline"
+            >
+              View on explorer <ExternalLink className="h-3 w-3" />
+            </a>
+          ) : (
+            <span className="text-[11px] text-muted-foreground">Ledger entry</span>
+          )}
         </div>
       </div>
     </motion.div>
@@ -295,30 +243,101 @@ function HoloCard({ card }: { card: TxCardData }) {
 }
 
 export function TransactionCards() {
+  const [cards, setCards] = useState<TxCardData[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchCards = async () => {
+    try {
+      setLoading(true);
+      const res = await fetch("/api/blockchain/cards");
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        setCards(json.data);
+        setError(null);
+      } else {
+        setError(json.error || "Failed to load transaction cards");
+      }
+    } catch (err: any) {
+      setError(err?.message || "Network error loading cards");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCards();
+  }, []);
+
+  if (loading && cards.length === 0) {
+    return (
+      <div className="flex h-64 items-center justify-center rounded-2xl border border-border/40 bg-card/60">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-[#1a56db]" />
+          <p className="text-[13px] font-medium text-muted-foreground">Loading transaction records…</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error && cards.length === 0) {
+    return (
+      <div className="flex h-48 items-center justify-center rounded-2xl border border-red-500/30 bg-red-500/5 p-6 text-center">
+        <div>
+          <AlertTriangle className="mx-auto mb-2 h-8 w-8 text-red-500" />
+          <p className="text-sm font-bold text-red-500">{error}</p>
+          <button
+            onClick={fetchCards}
+            className="mt-3 inline-flex items-center gap-1.5 rounded-xl border border-border bg-card px-4 py-2 text-xs font-semibold"
+          >
+            <RefreshCw className="h-3.5 w-3.5" /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div>
-      <div className="mb-6">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a56db]/10 border border-[#1a56db]/20 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[#1a56db] mb-2">
-          <ShieldCheck className="h-3 w-3" /> Transaction Records
-        </span>
-        <h2 className="text-2xl font-bold tracking-tight">Holographic Transaction Cards</h2>
-        <p className="mt-1 text-[13px] text-muted-foreground">
-          Hover for 3D tilt · Each card is an immutable blockchain record
-        </p>
+      <div className="mb-6 flex items-center justify-between">
+        <div>
+          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#1a56db]/10 border border-[#1a56db]/20 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[#1a56db] mb-2">
+            <ShieldCheck className="h-3 w-3" /> Transaction Records
+          </span>
+          <h2 className="text-2xl font-bold tracking-tight">Holographic Transaction Cards</h2>
+          <p className="mt-1 text-[13px] text-muted-foreground">
+            Hover for 3D tilt · Each card is an immutable blockchain record
+          </p>
+        </div>
+        <button
+          onClick={fetchCards}
+          className="flex items-center gap-1.5 rounded-xl border border-border/40 bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground"
+        >
+          <RefreshCw className="h-3.5 w-3.5" /> Refresh
+        </button>
       </div>
-      <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
-        {CARDS.map((card, i) => (
-          <motion.div
-            key={card.id}
-            initial={{ opacity: 0, y: 24 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ delay: i * 0.12, duration: 0.55, ease }}
-          >
-            <HoloCard card={card} />
-          </motion.div>
-        ))}
-      </div>
+
+      {cards.length === 0 ? (
+        <div className="rounded-2xl border border-border/40 bg-card/60 p-12 text-center text-muted-foreground">
+          <ShieldCheck className="mx-auto mb-3 h-10 w-10 opacity-40" />
+          <p className="text-sm font-bold">No pill transaction cards found</p>
+          <p className="mt-1 text-xs">Generate batches or perform verifications to see real holographic transaction cards.</p>
+        </div>
+      ) : (
+        <div className="grid gap-5 sm:grid-cols-2 xl:grid-cols-3">
+          {cards.map((card, i) => (
+            <motion.div
+              key={card.id}
+              initial={{ opacity: 0, y: 24 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: i * 0.08, duration: 0.55, ease }}
+            >
+              <HoloCard card={card} />
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

@@ -602,6 +602,8 @@ model BlockchainJob {
   attempts    Int      @default(0)
   lastError   String?  @db.Text
   txHash      String?
+  gasUsed     String?
+  blockNumber Int?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 

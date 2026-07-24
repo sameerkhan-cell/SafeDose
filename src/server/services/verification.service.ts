@@ -3,6 +3,7 @@ import { VerificationStatus } from "@prisma/client";
 import { BlockchainService } from "./blockchain/blockchain.service";
 import { RealtimeService } from "./realtime/realtime.service";
 import { AIService } from "./ai/ai.service";
+import { FraudEngine } from "./fraud/fraud-engine";
 import { logVerificationAnchorError } from "./blockchain/blockchain.queue";
 
 export interface VerificationRequest {
@@ -269,6 +270,7 @@ export class VerificationEngine {
                 this.anchorWithLogging(log.id, req.code, req.location || "Unknown", "GENUINE");
                 RealtimeService.broadcastVerification({ ...log, status: "GENUINE" } as any);
                 if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
+        void FraudEngine.analyzeScan(req.code, req.location || "Unknown", { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
 
                 const drapManufacturer = {
                     companyName: drapBatch.companyName ?? drapBatch.medicine.manufacturer_name ?? "Not provided",
@@ -328,6 +330,7 @@ export class VerificationEngine {
         this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
+        void FraudEngine.analyzeScan(req.code, req.location || "Unknown", { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
 
         return {
             success: true,
@@ -428,6 +431,7 @@ export class VerificationEngine {
         this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
+        void FraudEngine.analyzeScan(req.code, req.location || "Unknown", { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
 
         return {
             success: true,
@@ -614,6 +618,7 @@ export class VerificationEngine {
         this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
+        void FraudEngine.analyzeScan(req.code, req.location || "Unknown", { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
 
         const pharmacy = box.pharmacyId ? await prisma.pharmacy.findUnique({ where: { id: box.pharmacyId } }) : null;
 
@@ -763,6 +768,7 @@ export class VerificationEngine {
         this.anchorWithLogging(log.id, req.code, req.location || "Unknown", resultType);
         RealtimeService.broadcastVerification({ ...log, status: resultType } as any);
         if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
+        void FraudEngine.analyzeScan(req.code, req.location || "Unknown", { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
 
         return {
             success: true,

@@ -309,6 +309,23 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
                   <PharmacyDetailRow icon={<Archive className="h-3 w-3" />} label="Box Serial" value={result.supplyChain.boxNumber} />
                 </div>
               )}
+              {/* Blockchain Ledger Proof */}
+              <div className="pt-2 mt-2 border-t border-border/30">
+                <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Blockchain Ledger Proof</p>
+                {result.blockchain?.txHash && result.blockchain.txHash.startsWith("0x") && result.blockchain.txHash.length > 20 ? (
+                  <a
+                    href={`https://amoy.polygonscan.com/tx/${result.blockchain.txHash}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="font-mono text-[10px] text-primary break-all hover:underline"
+                    title="View on PolygonScan"
+                  >
+                    {result.blockchain.txHash}
+                  </a>
+                ) : (
+                  <span className="font-mono text-[10px] text-muted-foreground italic">Pending Anchoring</span>
+                )}
+              </div>
             </div>
 
             <div className="p-3 border-t border-border/30 bg-secondary/10 flex gap-2">

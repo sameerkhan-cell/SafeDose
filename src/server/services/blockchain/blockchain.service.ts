@@ -70,7 +70,7 @@ export class BlockchainService {
      * On success, updates the Batch row in DB with txHash and blockchainStatus="CONFIRMED".
      * Throws on failure — caller (queue worker) handles retry logic.
      */
-    static async anchorBatch(batch: any): Promise<{ txHash: string; blockNumber: number }> {
+    static async anchorBatch(batch: any): Promise<{ txHash: string; blockNumber: number; gasUsed: string }> {
         try {
             const contract = this.getContract();
             const tx = await contract.registerBatch(
@@ -91,8 +91,9 @@ export class BlockchainService {
                 },
             });
 
-            console.log(`[BLOCKCHAIN] anchorBatch confirmed: ${receipt.hash} (block=${receipt.blockNumber})`);
-            return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
+            const gasUsed = receipt.gasUsed?.toString() ?? null;
+            console.log(`[BLOCKCHAIN] anchorBatch confirmed: ${receipt.hash} (block=${receipt.blockNumber}, gas=${gasUsed})`);
+            return { txHash: receipt.hash, blockNumber: receipt.blockNumber, gasUsed: gasUsed ?? "0" };
         } catch (error) {
             console.error("[BLOCKCHAIN] anchorBatch error:", error);
             throw error;
@@ -112,7 +113,7 @@ export class BlockchainService {
         pillQR: string,
         batchNumber: string,
         pillNumber: number
-    ): Promise<{ txHash: string; blockNumber: number }> {
+    ): Promise<{ txHash: string; blockNumber: number; gasUsed: string }> {
         try {
             const contract = this.getContract();
             const tx = await contract.registerPill(pillQR, batchNumber, pillNumber);
@@ -128,8 +129,9 @@ export class BlockchainService {
                 },
             });
 
-            console.log(`[BLOCKCHAIN] anchorPill confirmed: ${receipt.hash} (block=${receipt.blockNumber})`);
-            return { txHash: receipt.hash, blockNumber: receipt.blockNumber };
+            const gasUsed = receipt.gasUsed?.toString() ?? null;
+            console.log(`[BLOCKCHAIN] anchorPill confirmed: ${receipt.hash} (block=${receipt.blockNumber}, gas=${gasUsed})`);
+            return { txHash: receipt.hash, blockNumber: receipt.blockNumber, gasUsed: gasUsed ?? "0" };
         } catch (error) {
             console.error(`[BLOCKCHAIN] anchorPill error (pill=${pillQR}):`, error);
             throw error;

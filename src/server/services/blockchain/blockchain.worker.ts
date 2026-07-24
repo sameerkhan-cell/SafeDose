@@ -146,10 +146,10 @@ export async function processAnchorQueue(): Promise<{
                     continue;
                 }
 
-                const { txHash, blockNumber } = await BlockchainService.anchorBatch(batch);
+                const { txHash, blockNumber, gasUsed } = await BlockchainService.anchorBatch(batch);
                 await prisma.blockchainJob.update({
                     where: { id: job.id },
-                    data: { status: "CONFIRMED", txHash },
+                    data: { status: "CONFIRMED", txHash, blockNumber, gasUsed },
                 });
                 result.status = "CONFIRMED";
                 result.txHash = txHash;
@@ -232,7 +232,7 @@ export async function processAnchorQueue(): Promise<{
                     continue;
                 }
 
-                const { txHash, blockNumber } = await BlockchainService.anchorPill(
+                const { txHash, blockNumber, gasUsed } = await BlockchainService.anchorPill(
                     pill.id,
                     pill.qrCode,
                     pill.batch.batchNumber,
@@ -240,7 +240,7 @@ export async function processAnchorQueue(): Promise<{
                 );
                 await prisma.blockchainJob.update({
                     where: { id: job.id },
-                    data: { status: "CONFIRMED", txHash },
+                    data: { status: "CONFIRMED", txHash, blockNumber, gasUsed },
                 });
                 result.status = "CONFIRMED";
                 result.txHash = txHash;

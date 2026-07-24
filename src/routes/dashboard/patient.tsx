@@ -175,7 +175,7 @@ function VerifyPage() {
                   month: "short",
                 })
                 : "N/A",
-              txHash: d.blockchain?.txHash || "PENDING",
+              txHash: d.blockchain?.txHash || null,
             }
             : undefined,
         pillDetails:
@@ -1047,14 +1047,24 @@ function ResultCard({ status: result, batch }: { status: IVerificationResult; ba
             </div>
           )}
 
-          {result.batchDetails?.txHash && (
-            <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 font-mono text-[11px] text-muted-foreground group cursor-pointer hover:border-primary/20 transition-all">
-              <p className="mb-2 text-[9px] font-black text-primary uppercase tracking-[0.15em] flex items-center gap-1.5">
-                <Hash className="h-3 w-3" /> Blockchain Ledger Proof
-              </p>
-              <span className="break-all opacity-80 group-hover:opacity-100 whitespace-pre-wrap">{result.batchDetails.txHash}</span>
-            </div>
-          )}
+          <div className="rounded-2xl border border-border/60 bg-secondary/40 p-4 font-mono text-[11px] text-muted-foreground group hover:border-primary/20 transition-all">
+            <p className="mb-2 text-[9px] font-black text-primary uppercase tracking-[0.15em] flex items-center gap-1.5">
+              <Hash className="h-3 w-3" /> Blockchain Ledger Proof
+            </p>
+            {result.batchDetails?.txHash && result.batchDetails.txHash.startsWith("0x") && result.batchDetails.txHash.length > 20 ? (
+              <a
+                href={`https://amoy.polygonscan.com/tx/${result.batchDetails.txHash}`}
+                target="_blank"
+                rel="noreferrer"
+                className="break-all text-primary hover:underline opacity-80 hover:opacity-100 inline-flex items-start gap-1"
+                title="View on PolygonScan (Amoy Testnet)"
+              >
+                <span className="break-all whitespace-pre-wrap">{result.batchDetails.txHash}</span>
+              </a>
+            ) : (
+              <span className="break-all opacity-60 italic">{result.batchDetails?.txHash || "Pending Anchoring"}</span>
+            )}
+          </div>
 
           {/* AI Chat Experience */}
           {result.batchDetails && (
