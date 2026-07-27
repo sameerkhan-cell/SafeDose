@@ -34,24 +34,30 @@ import { createAPIFileRoute } from "@/lib/api-route-helper";
 import { processAnchorQueue } from "@/server/services/blockchain/blockchain.worker";
 import { ApiResponse } from "@/server/utils/api-response";
 
-function getCronSecret(): string {
+function getCronSecret(): string | null {
     const secret = (process.env.CRON_SECRET || "").trim();
-    if (secret) return secret;
-    return "mediverify_cron_secret_2026";
+    return secret || null;
 }
 
-function validateCronAuth(request: Request): boolean {
-    const cronSecret = getCronSecret();
+function validateCronAuth(request: Request, cronSecret: string): boolean {
     const authHeader = request.headers.get("authorization") ?? "";
     const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : "";
     const xCronSecret = request.headers.get("x-cron-secret") ?? "";
     const providedSecret = (xCronSecret || bearerToken).trim();
-    return providedSecret === cronSecret;
+    return providedSecret.length > 0 && providedSecret === cronSecret;
 }
 
 export const Route = createAPIFileRoute("/api/internal/process-blockchain-queue")({
     POST: async ({ request }: { request: Request }) => {
-        if (!validateCronAuth(request)) {
+        const cronSecret = getCronSecret();
+        if (!cronSecret) {
+            return Response.json(
+                ApiResponse.error("CRON_SECRET not configured on server", 500),
+                { status: 500 }
+            );
+        }
+
+        if (!validateCronAuth(request, cronSecret)) {
             return Response.json(
                 ApiResponse.error("Unauthorized: invalid or missing cron secret header", 401),
                 { status: 401 }
@@ -76,7 +82,15 @@ export const Route = createAPIFileRoute("/api/internal/process-blockchain-queue"
     },
 
     GET: async ({ request }: { request: Request }) => {
-        if (!validateCronAuth(request)) {
+        const cronSecret = getCronSecret();
+        if (!cronSecret) {
+            return Response.json(
+                ApiResponse.error("CRON_SECRET not configured on server", 500),
+                { status: 500 }
+            );
+        }
+
+        if (!validateCronAuth(request, cronSecret)) {
             return Response.json(
                 ApiResponse.error("Unauthorized: invalid or missing cron secret header", 401),
                 { status: 401 }
