@@ -17,7 +17,7 @@ import { ease } from "@/lib/motion";
 import { useTheme } from "@/lib/theme-context";
 
 export const Route = createFileRoute("/dashboard/settings")({
-  head: () => ({ meta: [{ title: "Settings — MediVerify" }] }),
+  head: () => ({ meta: [{ title: "Settings — SafeDose" }] }),
   component: SettingsPage,
 });
 
@@ -345,7 +345,7 @@ function PrivacySettings() {
       <h3 className="text-[16px] font-semibold flex items-center gap-2"><Eye className="h-4 w-4 text-primary" /> Privacy Settings</h3>
       <Toggle label="Profile Visibility" desc="Make your profile visible to other users" defaultOn />
       <Toggle label="Activity Status" desc="Show when you're active on the platform" defaultOn />
-      <Toggle label="Analytics Sharing" desc="Help improve MediVerify by sharing usage data" />
+      <Toggle label="Analytics Sharing" desc="Help improve SafeDose by sharing usage data" />
       <Toggle label="Search Engine Indexing" desc="Allow your public profile to be indexed" />
     </div>
   );

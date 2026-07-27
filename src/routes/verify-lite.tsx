@@ -11,7 +11,7 @@ import { Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/verify-lite")({
     head: () => ({
         meta: [
-            { title: "Lite Verification — MediVerify" },
+            { title: "Lite Verification — SafeDose" },
             { name: "viewport", content: "width=device-width, initial-scale=1, maximum-scale=1" },
         ],
     }),
@@ -93,7 +93,7 @@ function LiteVerifyPage() {
             {/* Minimal Header */}
             <header className="flex items-center justify-between mb-6 pb-4 border-b border-gray-100">
                 <Link to="/" className="flex items-center gap-2 text-primary font-bold">
-                    <Zap className="h-5 w-5 fill-primary" /> MediVerify LITE
+                    <Zap className="h-5 w-5 fill-primary" /> SafeDose LITE
                 </Link>
                 <div className="flex items-center gap-1.5 text-[10px] bg-green-50 text-green-700 px-2 py-0.5 rounded-full font-bold">
                     <div className="h-1.5 w-1.5 rounded-full bg-green-500" /> LOW-BANDWIDTH MODE
@@ -174,7 +174,7 @@ function LiteVerifyPage() {
             {/* Accessibility Footer */}
             <footer className="mt-12 text-center border-t border-gray-100 pt-6">
                 <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest leading-loose">
-                    MediVerify Rural Access Initiative<br />Supported by DRAP Public Health Network
+                    SafeDose Rural Access Initiative<br />Supported by DRAP Public Health Network
                 </p>
                 <div className="flex justify-center gap-4 mt-4">
                     <div className="flex items-center gap-1.5 text-[11px] text-gray-500">

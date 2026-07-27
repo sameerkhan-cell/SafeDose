@@ -1,5 +1,5 @@
 /**
- * GSAP Animation System for MediVerify
+ * GSAP Animation System for SafeDose
  * Provides ScrollTrigger-based cinematic effects, text reveals,
  * parallax, stagger reveals, and section transitions.
  *

@@ -80,14 +80,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "MediVerify — Scan Karo, Safe Raho" },
+      { title: "SafeDose — Scan Karo, Safe Raho" },
       { name: "description", content: "AI + blockchain powered fake medicine detection. Verify any medicine in seconds." },
-      { name: "author", content: "MediVerify" },
-      { property: "og:title", content: "MediVerify — Scan Karo, Safe Raho" },
+      { name: "author", content: "SafeDose" },
+      { property: "og:title", content: "SafeDose — Scan Karo, Safe Raho" },
       { property: "og:description", content: "AI + blockchain powered fake medicine detection." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@MediVerify" },
+      { name: "twitter:site", content: "@SafeDose" },
     ],
     links: [
       { rel: "icon", type: "image/png", href: "/favicon.png" },

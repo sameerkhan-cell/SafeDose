@@ -21,7 +21,7 @@ export interface RiskScores {
 }
 
 /**
- * AI-style Fraud Detection Engine — MediVerify Intelligence
+ * AI-style Fraud Detection Engine — SafeDose Intelligence
  * Simulates behavioral analysis and anomaly detection.
  */
 export class FraudEngine {

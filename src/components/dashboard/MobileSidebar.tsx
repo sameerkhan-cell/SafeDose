@@ -60,7 +60,7 @@ export function MobileSidebar({ nav }: { nav: readonly NavItem[] }) {
                   <ShieldCheck className="h-4 w-4 text-primary-foreground" />
                 </div>
                 <div>
-                  <p className="text-[13px] font-black tracking-tight">MediVerify</p>
+                  <p className="text-[13px] font-black tracking-tight">SafeDose</p>
                   <p className="text-[9px] text-muted-foreground">Command Center</p>
                 </div>
               </div>
@@ -143,7 +143,7 @@ export function MobileSidebar({ nav }: { nav: readonly NavItem[] }) {
                   MV
                 </div>
                 <div className="min-w-0">
-                  <p className="truncate text-[12px] font-semibold">MediVerify Pro</p>
+                  <p className="truncate text-[12px] font-semibold">SafeDose Pro</p>
                   <p className="text-[10px] text-muted-foreground">Enterprise · Verified</p>
                 </div>
               </div>

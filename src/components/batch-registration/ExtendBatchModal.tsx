@@ -35,27 +35,27 @@ export function ExtendBatchModal({ open, onClose }: Props) {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.batch.cartons?.[0]?.qrCode ?? "",
-            `MediVerify · ${result?.batch.medicineName ?? ""} · Carton`
+            `SafeDose · ${result?.batch.medicineName ?? ""} · Carton`
         );
-        triggerDownload(dataUrl, `MediVerify-CartonQR-${result?.batch.batchNumber ?? "batch"}.png`);
+        triggerDownload(dataUrl, `SafeDose-CartonQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
 
     const handleBoxDownload = useCallback((canvas: HTMLCanvasElement) => {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.batch.boxes?.[0]?.qrCode || result?.batch.boxQrCode || "",
-            `MediVerify · ${result?.batch.medicineName ?? ""} · Box`
+            `SafeDose · ${result?.batch.medicineName ?? ""} · Box`
         );
-        triggerDownload(dataUrl, `MediVerify-BoxQR-${result?.batch.batchNumber ?? "batch"}.png`);
+        triggerDownload(dataUrl, `SafeDose-BoxQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
 
     const handlePillDownload = useCallback((canvas: HTMLCanvasElement) => {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.pills[0]?.pillQrCode ?? "",
-            `MediVerify · ${result?.batch.medicineName ?? ""} · Pill`
+            `SafeDose · ${result?.batch.medicineName ?? ""} · Pill`
         );
-        triggerDownload(dataUrl, `MediVerify-SamplePillQR-${result?.batch.batchNumber ?? "batch"}.png`);
+        triggerDownload(dataUrl, `SafeDose-SamplePillQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
 
     const formatDate = (dateStr?: string) => {

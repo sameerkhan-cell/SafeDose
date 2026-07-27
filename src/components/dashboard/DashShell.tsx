@@ -129,7 +129,7 @@ function DesktopSidebar({ nav = [] }: { nav?: readonly NavItem[] }) {
 
       {/* Logo */}
       <div className={cn("flex items-center border-b border-border/40 py-5", collapsed ? "justify-center px-0" : "gap-3 px-5")}>
-        <img src="/logo.png" alt="MediVerify" className="h-9 w-9 shrink-0 object-contain" />
+        <img src="/logo.png" alt="SafeDose" className="h-9 w-9 shrink-0 object-contain" />
         <AnimatePresence initial={false}>
           {!collapsed && (
             <motion.div
@@ -139,7 +139,7 @@ function DesktopSidebar({ nav = [] }: { nav?: readonly NavItem[] }) {
               transition={{ duration: 0.2, ease }}
               className="overflow-hidden"
             >
-              <p className="whitespace-nowrap text-[13px] font-black tracking-tight">MediVerify</p>
+              <p className="whitespace-nowrap text-[13px] font-black tracking-tight">SafeDose</p>
               <p className="whitespace-nowrap text-[9px] text-muted-foreground">Command Center</p>
             </motion.div>
           )}

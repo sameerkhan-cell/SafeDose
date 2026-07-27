@@ -1,5 +1,5 @@
 /**
- * QR Generation Service — MediVerify Dual QR Architecture
+ * QR Generation Service — SafeDose Dual QR Architecture
  *
  * BOX QR Format:  BOX-{BatchNumber}-{ManufacturerCode}
  * PILL QR Format: PILL-{BatchNumber}-{PillNumber}-{ManufacturerCode}
@@ -251,7 +251,7 @@ export function buildQrSvg(qrValue: string, label: string): string {
 <svg xmlns="http://www.w3.org/2000/svg" width="240" height="240" viewBox="0 0 240 240">
   <rect width="240" height="240" fill="#ffffff" rx="12"/>
   <rect x="20" y="20" width="200" height="180" rx="8" fill="none" stroke="#e5e7eb" stroke-width="1.5"/>
-  <text x="120" y="90" font-family="monospace" font-size="10" fill="#111827" text-anchor="middle" font-weight="bold">MediVerify QR</text>
+  <text x="120" y="90" font-family="monospace" font-size="10" fill="#111827" text-anchor="middle" font-weight="bold">SafeDose QR</text>
   <text x="120" y="115" font-family="monospace" font-size="8" fill="#374151" text-anchor="middle">${qrValue}</text>
   <text x="120" y="215" font-family="sans-serif" font-size="9" fill="#6b7280" text-anchor="middle">${label}</text>
 </svg>`;
@@ -263,7 +263,7 @@ export function downloadBatchReportHtml(batch: MedicineBatch, totalPills: number
 <html lang="en">
 <head>
   <meta charset="UTF-8"/>
-  <title>MediVerify Batch Report — ${batch.batchNumber}</title>
+  <title>SafeDose Batch Report — ${batch.batchNumber}</title>
   <style>
     body { font-family: -apple-system, sans-serif; max-width: 800px; margin: 40px auto; padding: 20px; color: #111; }
     h1   { font-size: 22px; font-weight: 700; margin-bottom: 4px; }
@@ -280,7 +280,7 @@ export function downloadBatchReportHtml(batch: MedicineBatch, totalPills: number
   </style>
 </head>
 <body>
-  <h1>MediVerify — Batch Report</h1>
+  <h1>SafeDose — Batch Report</h1>
   <p class="sub">Generated: ${new Date().toLocaleString()}</p>
   <table>
     <tr><th>Field</th><th>Value</th></tr>
@@ -308,7 +308,7 @@ export function downloadBatchReportHtml(batch: MedicineBatch, totalPills: number
     Examples: <span class="mono">PILL-${batch.batchNumber}-001-${batch.manufacturerCode}</span>,
     <span class="mono">PILL-${batch.batchNumber}-002-${batch.manufacturerCode}</span>, …
   </p>
-  <footer>MediVerify · Pakistan Pharmaceutical Authentication System · Blockchain-verified</footer>
+  <footer>SafeDose · Pakistan Pharmaceutical Authentication System · Blockchain-verified</footer>
 </body>
 </html>`;
 
@@ -316,7 +316,7 @@ export function downloadBatchReportHtml(batch: MedicineBatch, totalPills: number
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `MediVerify-BatchReport-${batch.batchNumber}.html`;
+    a.download = `SafeDose-BatchReport-${batch.batchNumber}.html`;
     a.click();
     URL.revokeObjectURL(url);
 }

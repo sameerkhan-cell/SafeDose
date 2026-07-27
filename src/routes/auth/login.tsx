@@ -22,8 +22,8 @@ declare global {
 export const Route = createFileRoute("/auth/login")({
   head: () => ({
     meta: [
-      { title: "Sign In — MediVerify" },
-      { name: "description", content: "Sign in to your MediVerify account to verify medicines and manage your dashboard." },
+      { title: "Sign In — SafeDose" },
+      { name: "description", content: "Sign in to your SafeDose account to verify medicines and manage your dashboard." },
     ],
   }),
   component: LoginPage,
@@ -237,7 +237,7 @@ function LoginPage() {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to your MediVerify account to continue protecting patients."
+      subtitle="Sign in to your SafeDose account to continue protecting patients."
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-5" noValidate>
         {/* Server error */}

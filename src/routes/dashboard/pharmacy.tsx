@@ -23,7 +23,7 @@ import { useState, useEffect, useRef } from "react";
 export const Route = createFileRoute("/dashboard/pharmacy")({
   head: () => ({
     meta: [
-      { title: "Pharmacy Command Center — MediVerify" },
+      { title: "Pharmacy Command Center — SafeDose" },
       { name: "description", content: "Enterprise pharmacy operations, inventory tracking, and AI verification portal." }
     ]
   }),

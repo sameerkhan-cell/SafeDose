@@ -27,12 +27,12 @@ export interface VerificationResult {
 }
 
 /**
- * Verification Service — MediVerify Core Engine
+ * Verification Service — SafeDose Core Engine
  * Connects generated QR codes with fraud detection and blockchain state.
  */
 export class VerificationService {
     /**
-     * Main entry point for scanning any MediVerify QR code.
+     * Main entry point for scanning any SafeDose QR code.
      */
     static async verifyCode(code: string): Promise<VerificationResult> {
         const cleanCode = code.trim().toUpperCase();
@@ -54,7 +54,7 @@ export class VerificationService {
             isValid: false,
             type: "unknown",
             status: "invalid",
-            message: "Invalid QR format. This code was not issued by MediVerify."
+            message: "Invalid QR format. This code was not issued by SafeDose."
         };
         this.runAIIntelligence(cleanCode, unknownResult);
         return unknownResult;

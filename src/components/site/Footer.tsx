@@ -30,7 +30,7 @@ export function Footer() {
               <span className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-primary text-primary-foreground shadow-elegant">
                 <ShieldCheck className="h-[18px] w-[18px]" />
               </span>
-              <span className="text-[15px] font-semibold tracking-tight">MediVerify</span>
+              <span className="text-[15px] font-semibold tracking-tight">SafeDose</span>
             </div>
             <p className="mt-4 max-w-sm text-[13px] leading-relaxed text-muted-foreground">
               Scan Karo, Safe Raho. AI + blockchain powered medicine
@@ -99,7 +99,7 @@ export function Footer() {
         {/* Bottom bar */}
         <div className="flex flex-col items-start justify-between gap-3 border-t border-border/40 py-6 sm:flex-row sm:items-center">
           <p className="text-[12px] text-muted-foreground">
-            © {new Date().getFullYear()} MediVerify. All rights reserved.
+            © {new Date().getFullYear()} SafeDose. All rights reserved.
           </p>
           <p className="text-[12px] text-muted-foreground">
             Made with care for safer medicines worldwide.

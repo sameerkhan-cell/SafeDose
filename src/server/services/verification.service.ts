@@ -224,7 +224,7 @@ export class VerificationEngine {
             };
         }
 
-        // ── STEP 2: Look up batch in MediVerify blockchain ledger ────────────────
+        // ── STEP 2: Look up batch in SafeDose blockchain ledger ────────────────
         const batch = await prisma.batch.findUnique({
             where: { batchNumber: req.code },
             include: { medicine: { include: { manufacturer: true } } }
@@ -235,7 +235,7 @@ export class VerificationEngine {
             // Run this before the registry lookup — a structurally impossible code
             // cannot be in any legitimate registry, so fail fast.
             if (check.anomalous) {
-                return this.handleFakeResult(req, "SUSPICIOUS: " + check.reason + " Additionally, this batch was not found in the MediVerify database.");
+                return this.handleFakeResult(req, "SUSPICIOUS: " + check.reason + " Additionally, this batch was not found in the SafeDose database.");
             }
 
             // ── STEP 4: Exact batch-code lookup in DrapBatchRegistry ─────────────
@@ -305,10 +305,10 @@ export class VerificationEngine {
                 };
             }
 
-            // ── STEP 5: Not in registry, not in MediVerify — definitive FAKE ─────
+            // ── STEP 5: Not in registry, not in SafeDose — definitive FAKE ─────
             return this.handleFakeResult(
                 req,
-                "This batch code was not found in DRAP's confirmed registry or the MediVerify database. This product cannot be verified — contact DRAP at 0800-22222."
+                "This batch code was not found in DRAP's confirmed registry or the SafeDose database. This product cannot be verified — contact DRAP at 0800-22222."
             );
         }
 
@@ -374,7 +374,7 @@ export class VerificationEngine {
         });
 
         if (!carton) {
-            return this.handleFakeResult(req, "Carton QR code not found in MediVerify database.");
+            return this.handleFakeResult(req, "Carton QR code not found in SafeDose database.");
         }
 
         if (carton.scannedAt) {
@@ -475,7 +475,7 @@ export class VerificationEngine {
         });
 
         if (!box) {
-            return this.handleFakeResult(req, "Box QR code not found in MediVerify database.");
+            return this.handleFakeResult(req, "Box QR code not found in SafeDose database.");
         }
 
         const scanningUser = req.userId ? await prisma.user.findUnique({
@@ -664,7 +664,7 @@ export class VerificationEngine {
         });
 
         if (!pill) {
-            return this.handleFakeResult(req, "Pill QR code not found in MediVerify database.");
+            return this.handleFakeResult(req, "Pill QR code not found in SafeDose database.");
         }
 
         const scanningUser = req.userId ? await prisma.user.findUnique({ where: { id: req.userId } }) : null;
@@ -849,7 +849,7 @@ export class VerificationEngine {
             blockchain: { txHash: null, status: "UNVERIFIED", verifiedOnChain: false },
             warnings: ["CRYPTOGRAPHIC_MISMATCH", "UNAUTHORIZED_BATCH_ID"],
             riskScore: 100,
-            message: reason || "WARNING: This medicine is NOT FOUND in the MediVerify blockchain ledger. DO NOT CONSUME."
+            message: reason || "WARNING: This medicine is NOT FOUND in the SafeDose blockchain ledger. DO NOT CONSUME."
         };
     }
 

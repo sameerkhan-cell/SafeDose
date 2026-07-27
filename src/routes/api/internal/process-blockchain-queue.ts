@@ -36,6 +36,15 @@ import { ApiResponse } from "@/server/utils/api-response";
 
 const CRON_SECRET = process.env.CRON_SECRET || "";
 
+function validateCronAuth(request: Request): boolean {
+    if (!CRON_SECRET) return false;
+    const authHeader = request.headers.get("authorization") ?? "";
+    const bearerToken = authHeader.startsWith("Bearer ") ? authHeader.substring(7) : "";
+    const xCronSecret = request.headers.get("x-cron-secret") ?? "";
+    const providedSecret = xCronSecret || bearerToken;
+    return providedSecret === CRON_SECRET;
+}
+
 export const Route = createAPIFileRoute("/api/internal/process-blockchain-queue")({
     POST: async ({ request }: { request: Request }) => {
         // ── Auth guard ──────────────────────────────────────────────────────
@@ -46,8 +55,7 @@ export const Route = createAPIFileRoute("/api/internal/process-blockchain-queue"
             );
         }
 
-        const providedSecret = request.headers.get("x-cron-secret") ?? "";
-        if (providedSecret !== CRON_SECRET) {
+        if (!validateCronAuth(request)) {
             return Response.json(
                 ApiResponse.error("Unauthorized", 401),
                 { status: 401 }
@@ -77,8 +85,7 @@ export const Route = createAPIFileRoute("/api/internal/process-blockchain-queue"
         if (!CRON_SECRET) {
             return Response.json(ApiResponse.error("CRON_SECRET not configured", 500), { status: 500 });
         }
-        const providedSecret = request.headers.get("x-cron-secret") ?? "";
-        if (providedSecret !== CRON_SECRET) {
+        if (!validateCronAuth(request)) {
             return Response.json(ApiResponse.error("Unauthorized", 401), { status: 401 });
         }
         try {

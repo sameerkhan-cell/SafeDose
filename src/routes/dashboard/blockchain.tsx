@@ -22,7 +22,7 @@ import { Navigate } from "@tanstack/react-router";
 export const Route = createFileRoute("/dashboard/blockchain")({
   head: () => ({
     meta: [
-      { title: "Blockchain Command Center — MediVerify" },
+      { title: "Blockchain Command Center — SafeDose" },
       { name: "description", content: "Futuristic blockchain visualization system for medicine verification." },
     ],
   }),
@@ -237,7 +237,7 @@ function BlockchainPage() {
   return (
     <DashShell
       title="Blockchain Command Center"
-      subtitle="Immersive supply-chain verification · powered by MediVerify AI"
+      subtitle="Immersive supply-chain verification · powered by SafeDose AI"
       badge="Blockchain"
       nav={DASH_NAV}
     >
@@ -262,7 +262,7 @@ function BlockchainPage() {
               <div>
                 <div className="flex items-center gap-2">
                   <span className="text-[11px] font-black uppercase tracking-widest text-[#06b6d4]">
-                    MediVerify
+                    SafeDose
                   </span>
                   <motion.span
                     className="rounded-full bg-[#16a34a]/20 border border-[#16a34a]/40 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-[#16a34a]"
@@ -475,7 +475,7 @@ function BlockchainPage() {
           >
             <ShieldCheck className="h-7 w-7 text-[#1a56db]" />
           </div>
-          <p className="text-[13px] font-bold text-foreground">MediVerify Blockchain Network</p>
+          <p className="text-[13px] font-bold text-foreground">SafeDose Blockchain Network</p>
           <p className="text-[11px] text-muted-foreground max-w-md">
             All pharmaceutical data is immutably recorded on a permissioned blockchain.
             Tamper-proof · AI-verified · DRAP compliant.

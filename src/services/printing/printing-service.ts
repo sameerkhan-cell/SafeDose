@@ -3,7 +3,7 @@ import QRCode from "qrcode";
 import type { MedicineBatch, PillRecord } from "@/types/dual-qr";
 
 /**
- * Printing Service — MediVerify Dual QR System
+ * Printing Service — SafeDose Dual QR System
  * Handles PDF generation for architectural print layouts.
  */
 export class PrintingService {
@@ -103,7 +103,7 @@ export class PrintingService {
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(0, 0, 0);
-            doc.text("MediVerify · Pill QR Print Sheet", MARGIN_X, 8);
+            doc.text("SafeDose · Pill QR Print Sheet", MARGIN_X, 8);
 
             doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
@@ -235,7 +235,7 @@ export class PrintingService {
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(0, 0, 0);
-            doc.text("MediVerify · Box QR Print Sheet", MARGIN_X, 8);
+            doc.text("SafeDose · Box QR Print Sheet", MARGIN_X, 8);
 
             doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
@@ -359,7 +359,7 @@ export class PrintingService {
             doc.setFontSize(10);
             doc.setFont("helvetica", "bold");
             doc.setTextColor(0, 0, 0);
-            doc.text("MediVerify · Carton QR Print Sheet", MARGIN_X, 8);
+            doc.text("SafeDose · Carton QR Print Sheet", MARGIN_X, 8);
 
             doc.setFontSize(7);
             doc.setFont("helvetica", "normal");
@@ -470,7 +470,7 @@ export class PrintingService {
 
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(22);
-        doc.text("MediVerify", 20, 20);
+        doc.text("SafeDose", 20, 20);
         doc.setFontSize(12);
         doc.text("PHARMACEUTICAL AUTHENTICATION SYSTEM", 20, 28);
 
@@ -543,7 +543,7 @@ export class PrintingService {
         doc.setFont("helvetica", "normal");
         doc.setTextColor(156, 163, 175);
         doc.setFontSize(8);
-        doc.text("This report is digitally signed by MediVerify nodes. Any tampering invalidates the verification.", 105, 280, { align: "center" });
+        doc.text("This report is digitally signed by SafeDose nodes. Any tampering invalidates the verification.", 105, 280, { align: "center" });
 
         return doc.output("blob");
     }

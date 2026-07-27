@@ -24,7 +24,7 @@ import { cn } from "@/lib/utils";
 export const Route = createFileRoute("/dashboard/qr-library")({
     head: () => ({
         meta: [
-            { title: "QR Library — MediVerify" },
+            { title: "QR Library — SafeDose" },
             { name: "description", content: "View and manage all previously generated QR codes and batch medicine records." },
         ],
     }),

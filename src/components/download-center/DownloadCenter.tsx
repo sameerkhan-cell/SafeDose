@@ -115,7 +115,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
             switch (key) {
                 case "carton-pdf": {
                     const blob = await PrintingService.generateCartonQrPdf(batch);
-                    saveAs(blob, `MediVerify_CartonLabels_${batchId}.pdf`);
+                    saveAs(blob, `SafeDose_CartonLabels_${batchId}.pdf`);
                     break;
                 }
                 case "carton-zip": {
@@ -125,7 +125,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     const blob = await res.blob();
-                    saveAs(blob, `MediVerify_CartonAssets_${batchId}.zip`);
+                    saveAs(blob, `SafeDose_CartonAssets_${batchId}.zip`);
                     break;
                 }
                 case "box-pdf": {
@@ -133,7 +133,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                     if (!canvas) throw new Error("Canvas not ready");
                     const dataUrl = canvas.toDataURL("image/png");
                     const blob = await PrintingService.generateBoxQrPdf(batch, dataUrl);
-                    saveAs(blob, `MediVerify_BoxLabel_${batchId}.pdf`);
+                    saveAs(blob, `SafeDose_BoxLabel_${batchId}.pdf`);
                     break;
                 }
                 case "box-sheet": {
@@ -148,7 +148,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                         boxesList = data.data?.boxes || [];
                     }
                     const blob = await PrintingService.generateBoxQrSheetPdf(batch, boxesList);
-                    saveAs(blob, `MediVerify_AllBoxQRs_${batchId}.pdf`);
+                    saveAs(blob, `SafeDose_AllBoxQRs_${batchId}.pdf`);
                     break;
                 }
                 case "box-zip": {
@@ -158,7 +158,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                         headers: { "Authorization": `Bearer ${token}` }
                     });
                     const blob = await res.blob();
-                    saveAs(blob, `MediVerify_BoxAssets_${batchId}.zip`);
+                    saveAs(blob, `SafeDose_BoxAssets_${batchId}.zip`);
                     break;
                 }
                 case "pill-sheet": {
@@ -169,10 +169,10 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                             headers: { "Authorization": `Bearer ${token}` }
                         });
                         const blob = await res.blob();
-                        saveAs(blob, `MediVerify_PillSheet_${batchId}.pdf`);
+                        saveAs(blob, `SafeDose_PillSheet_${batchId}.pdf`);
                     } else {
                         const blob = await PrintingService.generatePillQrSheetPdf(batch, pills);
-                        saveAs(blob, `MediVerify_PillSheet_${batchId}.pdf`);
+                        saveAs(blob, `SafeDose_PillSheet_${batchId}.pdf`);
                     }
                     break;
                 }
@@ -184,7 +184,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                             headers: { "Authorization": `Bearer ${token}` }
                         });
                         const blob = await res.blob();
-                        saveAs(blob, `MediVerify_Assets_${batchId}.zip`);
+                        saveAs(blob, `SafeDose_Assets_${batchId}.zip`);
                     } else {
                         const canvas = boxQrCanvasRef.current?.querySelector("canvas");
                         const blob = canvas ? await new Promise<Blob>(r => canvas.toBlob(b => r(b!))) : undefined;
@@ -194,7 +194,7 @@ export function DownloadCenter({ result, boxQrCanvasRef }: Props) {
                 }
                 case "batch-report-pdf": {
                     const blob = await PrintingService.generateBatchReportPdf(batch, result.totalPillsGenerated);
-                    saveAs(blob, `MediVerify_BatchReport_${batchId}.pdf`);
+                    saveAs(blob, `SafeDose_BatchReport_${batchId}.pdf`);
                     break;
                 }
             }

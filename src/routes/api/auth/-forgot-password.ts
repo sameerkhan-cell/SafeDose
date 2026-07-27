@@ -21,7 +21,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/forgot-password")({
       });
 
       // In production: send email with reset link
-      console.log(`[MediVerify] Password reset token for ${email}: ${token}`);
+      console.log(`[SafeDose] Password reset token for ${email}: ${token}`);
 
       // Always return success to prevent email enumeration
       return json({

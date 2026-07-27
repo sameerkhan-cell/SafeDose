@@ -38,8 +38,8 @@ const MENU_ITEMS = [
 ];
 
 export function UserProfileMenu({
-  name = "MediVerify User",
-  email = "user@mediverify.com",
+  name = "SafeDose User",
+  email = "user@safedose.com",
   role = "customer",
   logoUrl: propLogoUrl,
   companyLogo: propCompanyLogo,

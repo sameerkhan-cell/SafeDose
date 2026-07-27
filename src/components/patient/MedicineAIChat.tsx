@@ -184,7 +184,7 @@ export function MedicineAIChat({ medicineContext, authToken }: MedicineAIChatPro
                   <Cpu className="h-5 w-5 text-primary animate-pulse" />
                 </div>
                 <div className="text-left">
-                  <p className="text-[10px] font-black uppercase tracking-[0.15em] text-primary">MediVerify AI</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.15em] text-primary">SafeDose AI</p>
                   <p className="text-[13px] font-bold text-foreground">Ask AI about this medicine</p>
                 </div>
               </div>
@@ -211,7 +211,7 @@ export function MedicineAIChat({ medicineContext, authToken }: MedicineAIChatPro
                   <Cpu className="h-4 w-4 text-primary" />
                 </div>
                 <div>
-                  <h4 className="text-[13px] font-bold text-foreground">MediVerify AI Assistant</h4>
+                  <h4 className="text-[13px] font-bold text-foreground">SafeDose AI Assistant</h4>
                   <p className="text-[10px] text-muted-foreground font-medium">Answering contextually for {medicineContext.name}</p>
                 </div>
               </div>
@@ -274,7 +274,7 @@ export function MedicineAIChat({ medicineContext, authToken }: MedicineAIChatPro
                   </div>
                   <div className="bg-secondary/40 rounded-2xl px-4 py-2.5 border border-border/30 flex items-center gap-1">
                     <Loader2 className="h-3.5 w-3.5 text-primary animate-spin" />
-                    <span className="text-[12px] text-muted-foreground font-medium">MediVerify is thinking...</span>
+                    <span className="text-[12px] text-muted-foreground font-medium">SafeDose is thinking...</span>
                   </div>
                 </div>
               )}

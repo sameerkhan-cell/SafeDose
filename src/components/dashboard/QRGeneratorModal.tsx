@@ -127,13 +127,13 @@ export function QRGeneratorModal({
     ctx.font = "11px sans-serif";
     ctx.fillStyle = "#666666";
     ctx.fillText(
-      `MediVerify · ${generated?.medicine || ""}`,
+      `SafeDose · ${generated?.medicine || ""}`,
       dlCanvas.width / 2,
       canvas.height + padding + 48
     );
 
     const link = document.createElement("a");
-    link.download = `MediVerify-QR-${generated?.batchId || "batch"}.png`;
+    link.download = `SafeDose-QR-${generated?.batchId || "batch"}.png`;
     link.href = dlCanvas.toDataURL("image/png");
     link.click();
   }, [generated]);
@@ -314,7 +314,7 @@ export function QRGeneratorModal({
                       <CheckCircle2 className="h-5 w-5 text-success" />
                       <div>
                         <p className="text-[13px] font-bold text-success">QR Code Generated Successfully</p>
-                        <p className="text-[11px] text-foreground/70">Registered on MediVerify blockchain</p>
+                        <p className="text-[11px] text-foreground/70">Registered on SafeDose blockchain</p>
                       </div>
                     </div>
 

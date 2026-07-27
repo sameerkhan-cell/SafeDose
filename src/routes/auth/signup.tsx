@@ -24,8 +24,8 @@ declare global {
 export const Route = createFileRoute("/auth/signup")({
   head: () => ({
     meta: [
-      { title: "Create Account — MediVerify" },
-      { name: "description", content: "Join MediVerify — the trusted AI + blockchain medicine verification platform." },
+      { title: "Create Account — SafeDose" },
+      { name: "description", content: "Join SafeDose — the trusted AI + blockchain medicine verification platform." },
     ],
   }),
   component: SignUpPage,
@@ -110,7 +110,7 @@ function SignUpPage() {
 
     signIn(res.data, false);
     toast.success("Account created!", {
-      description: res.message ?? `Welcome to MediVerify, ${data.fullName}!`,
+      description: res.message ?? `Welcome to SafeDose, ${data.fullName}!`,
       duration: 5000,
     });
 
@@ -213,7 +213,7 @@ function SignUpPage() {
   return (
     <AuthLayout
       title="Create your account"
-      subtitle="Join thousands of healthcare professionals on MediVerify."
+      subtitle="Join thousands of healthcare professionals on SafeDose."
       panelHeading="Start Protecting Lives Today"
       panelTagline="Set up your account in under 2 minutes. No credit card required."
     >
@@ -413,7 +413,7 @@ function SignUpPage() {
               className="mt-0.5 h-4 w-4 rounded border-border/70 accent-primary cursor-pointer"
             />
             <label htmlFor="signup-terms" className="text-[12px] text-muted-foreground cursor-pointer leading-relaxed">
-              I agree to MediVerify's{" "}
+              I agree to SafeDose's{" "}
               <span className="text-primary hover:underline cursor-pointer">Terms of Service</span>{" "}
               and{" "}
               <span className="text-primary hover:underline cursor-pointer">Privacy Policy</span>

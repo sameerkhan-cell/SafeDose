@@ -11,7 +11,7 @@ import { TiltCard } from "@/components/motion/TiltCard";
 import { ease } from "@/lib/motion";
 
 export const Route = createFileRoute("/about")({
-  head: () => ({ meta: [{ title: "About & Mission — MediVerify" }, { name: "description", content: "Our mission to eliminate counterfeit medicines worldwide." }] }),
+  head: () => ({ meta: [{ title: "About & Mission — SafeDose" }, { name: "description", content: "Our mission to eliminate counterfeit medicines worldwide." }] }),
   component: Page,
 });
 
@@ -88,7 +88,7 @@ function Page() {
         <div className="mx-auto max-w-7xl px-5 sm:px-6 lg:px-8">
           <div className="text-center">
             <span className="section-label">Team</span>
-            <h2 className="mt-3 heading-lg">The people behind MediVerify</h2>
+            <h2 className="mt-3 heading-lg">The people behind SafeDose</h2>
           </div>
           <StaggerReveal className="mt-14 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
             {TEAM.map((t) => (

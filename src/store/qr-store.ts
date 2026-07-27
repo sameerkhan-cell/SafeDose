@@ -24,7 +24,7 @@ interface QRState {
 }
 
 /**
- * QR Store — MediVerify State Management
+ * QR Store — SafeDose State Management
  * Persistent store for managing batches, individual pills, and generation sessions.
  */
 export const useQRStore = create<QRState>()(

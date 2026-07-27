@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && vite dev",
-    "build": "prisma generate && vite build",
+    "worker:dev": "tsx scripts/dev-worker.ts",
+    "build": "prisma generate && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
@@ -119,6 +120,7 @@
     "@types/react-dom": "^19.2.0",
     "@vitejs/plugin-react": "^5.0.4",
     "chai": "^6.2.2",
+    "cross-env": "^10.1.0",
     "eslint": "^9.32.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.6",

@@ -20,7 +20,7 @@ import { ScanLocationMap } from "@/components/shared/ScanLocationMap";
 export const Route = createFileRoute("/dashboard/monitoring")({
   head: () => ({
     meta: [
-      { title: "Global Intelligence — MediVerify" },
+      { title: "Global Intelligence — SafeDose" },
       { name: "description", content: "Real-time global medicine monitoring and fraud detection command center." },
     ],
   }),

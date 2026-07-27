@@ -8,7 +8,7 @@ import { SMSSimulator } from "@/services/verification/sms-simulator";
 export function SMSSimulatorWidget() {
     const [input, setInput] = useState("");
     const [messages, setMessages] = useState<Array<{ text: string, type: 'user' | 'system', time: string }>>([
-        { text: "Welcome to MediVerify SMS. Send 'VERIFY {CODE}' to check medicine authenticity.", type: 'system', time: '12:00 PM' }
+        { text: "Welcome to SafeDose SMS. Send 'VERIFY {CODE}' to check medicine authenticity.", type: 'system', time: '12:00 PM' }
     ]);
     const [isTyping, setIsTyping] = useState(false);
 

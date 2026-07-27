@@ -1,5 +1,5 @@
 /**
- * Shared navigation configuration for all MediVerify dashboard pages.
+ * Shared navigation configuration for all SafeDose dashboard pages.
  * Import DASH_NAV in every route that uses DashShell — do NOT redeclare locally.
  *
  * Usage:

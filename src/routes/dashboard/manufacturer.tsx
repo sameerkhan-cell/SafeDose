@@ -23,7 +23,7 @@ import { RecallHubWidget } from "@/components/regulatory/RecallHubWidget";
 export const Route = createFileRoute("/dashboard/manufacturer")({
   head: () => ({
     meta: [
-      { title: "Manufacturer Command Center — MediVerify" },
+      { title: "Manufacturer Command Center — SafeDose" },
       { name: "description", content: "Enterprise pharmaceutical intelligence, batch registration, and blockchain medicine control center." },
     ],
   }),
@@ -116,7 +116,7 @@ function Page() {
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
     link.setAttribute("href", url);
-    link.setAttribute("download", `mediverify_batches_${Date.now()}.csv`);
+    link.setAttribute("download", `safedose_batches_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);

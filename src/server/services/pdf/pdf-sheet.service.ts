@@ -45,7 +45,7 @@ export class PDFSheetService {
         const drawHeader = (pageNumber: number) => {
             doc.setFont("helvetica", "bold");
             doc.setFontSize(14);
-            doc.text(`MediVerify Production Asset: ${batch.medicine?.name}`, margin, 12);
+            doc.text(`SafeDose Production Asset: ${batch.medicine?.name}`, margin, 12);
             doc.setFont("helvetica", "normal");
             doc.setFontSize(9);
             doc.text(`Batch ID: ${batch.batchNumber} | Mfg: ${new Date(batch.manufacturingDate).toLocaleDateString()} | Exp: ${new Date(batch.expiryDate).toLocaleDateString()}`, margin, 18);

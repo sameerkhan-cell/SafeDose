@@ -14,7 +14,7 @@ import { AnimatedCounter } from "@/components/site/AnimatedCounter";
 export const Route = createFileRoute("/blockchain")({
   head: () => ({
     meta: [
-      { title: "Blockchain Command Center — MediVerify" },
+      { title: "Blockchain Command Center — SafeDose" },
       { name: "description", content: "Cinematic, real-time blockchain visualization of every medicine — from manufacturer to patient. AI-powered fraud detection." },
     ],
   }),
@@ -52,7 +52,7 @@ function BlockchainPage() {
             </motion.span>
             <h1 className="mt-3 heading-lg">The pulse of every medicine, in real time.</h1>
             <p className="mx-auto mt-3 max-w-2xl text-[15px] text-muted-foreground">
-              A cinematic, AI-powered window into the MediVerify ledger — every batch, scan, hash and anomaly across the network.
+              A cinematic, AI-powered window into the SafeDose ledger — every batch, scan, hash and anomaly across the network.
             </p>
           </FadeUp>
 

@@ -74,7 +74,7 @@ export async function sendDocumentNotificationEmail(params: {
         return;
     }
 
-    const fromAddress = process.env.SMTP_FROM || `MediVerify <${process.env.SMTP_USER}>`;
+    const fromAddress = process.env.SMTP_FROM || `SafeDose <${process.env.SMTP_USER}>`;
 
     const driveSection = params.driveLink
         ? `<p><strong>Google Drive Link:</strong> <a href="${params.driveLink}">${params.driveLink}</a></p>`
@@ -83,7 +83,7 @@ export async function sendDocumentNotificationEmail(params: {
     const htmlContent = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e5e7eb; border-radius: 8px;">
             <h2 style="color: #0f172a; border-bottom: 2px solid #3b82f6; padding-bottom: 8px;">New Regulatory Document Uploaded</h2>
-            <p>A new regulatory compliance document has been uploaded to MediVerify.</p>
+            <p>A new regulatory compliance document has been uploaded to SafeDose.</p>
             
             <div style="background-color: #f8fafc; padding: 15px; border-radius: 6px; margin: 20px 0;">
                 <h3 style="margin-top: 0; color: #1e293b;">Metadata</h3>
@@ -121,7 +121,7 @@ export async function sendDocumentNotificationEmail(params: {
     const textContent = `
 New Regulatory Document Uploaded
 
-A new regulatory compliance document has been uploaded to MediVerify.
+A new regulatory compliance document has been uploaded to SafeDose.
 
 Metadata:
 - Manufacturer: ${params.manufacturerName} (ID: ${params.manufacturerId})
@@ -139,7 +139,7 @@ This is an automated notification. Please do not reply to this email.
     await transporter.sendMail({
         from: fromAddress,
         to: notifyEmail,
-        subject: `[MediVerify] New Document Upload: ${params.documentName} (${params.manufacturerName})`,
+        subject: `[SafeDose] New Document Upload: ${params.documentName} (${params.manufacturerName})`,
         text: textContent,
         html: htmlContent,
         attachments: [

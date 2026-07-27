@@ -9,7 +9,7 @@ export class AuthService {
     static async register(data: any) {
         const restrictedRoles = ["MANUFACTURER", "manufacturer", "ADMIN", "SUPER_ADMIN", "DRAP_ADMIN", "REGULATOR"];
         if (data.role && restrictedRoles.includes(String(data.role).toUpperCase()) || restrictedRoles.includes(String(data.role))) {
-          throw new ApiError(403, "This account type can only be created by administrators. Please contact MediVerify support.");
+          throw new ApiError(403, "This account type can only be created by administrators. Please contact SafeDose support.");
         }
 
         const { email, password, name, role } = data;

@@ -15,8 +15,8 @@ import { ease } from "@/lib/motion";
 export const Route = createFileRoute("/auth/reset-password")({
   head: () => ({
     meta: [
-      { title: "Reset Password — MediVerify" },
-      { name: "description", content: "Set a new secure password for your MediVerify account." },
+      { title: "Reset Password — SafeDose" },
+      { name: "description", content: "Set a new secure password for your SafeDose account." },
     ],
   }),
   validateSearch: z.object({ token: z.string().optional() }),

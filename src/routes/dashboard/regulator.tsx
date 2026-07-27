@@ -21,7 +21,7 @@ import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from 
 export const Route = createFileRoute("/dashboard/regulator")({
     head: () => ({
         meta: [
-            { title: "DRAP Regulatory Portal — MediVerify" },
+            { title: "DRAP Regulatory Portal — SafeDose" },
             { name: "description", content: "National healthcare surveillance and regulatory inspection dashboard." },
         ],
     }),

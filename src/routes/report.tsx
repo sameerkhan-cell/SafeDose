@@ -23,7 +23,7 @@ export const Route = createFileRoute("/report")({
       source: (search.source as string) || undefined,
     };
   },
-  head: () => ({ meta: [{ title: "Report Fake Medicine — MediVerify" }, { name: "description", content: "Submit a fake medicine report. Auto-routed to DRAP for action." }] }),
+  head: () => ({ meta: [{ title: "Report Fake Medicine — SafeDose" }, { name: "description", content: "Submit a fake medicine report. Auto-routed to DRAP for action." }] }),
   component: Page,
 });
 

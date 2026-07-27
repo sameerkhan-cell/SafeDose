@@ -89,9 +89,9 @@ export function Navbar() {
               </button>
             )}
             <Link to={homePath} className="group flex items-center gap-2">
-              <img src="/logo.png" alt="MediVerify" className="h-6 w-6 object-contain transition-transform duration-300 group-hover:scale-105" />
+              <img src="/logo.png" alt="SafeDose" className="h-6 w-6 object-contain transition-transform duration-300 group-hover:scale-105" />
               <span className="flex items-center gap-2">
-                <span className="text-[15px] font-bold tracking-tight">MediVerify</span>
+                <span className="text-[15px] font-bold tracking-tight">SafeDose</span>
                 <span className="hidden rounded-full border border-border/60 bg-card/60 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.08em] text-muted-foreground sm:inline">
                   DRAP · WHO
                 </span>

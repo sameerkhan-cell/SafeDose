@@ -25,7 +25,7 @@ import { MedicineAIChat } from "@/components/patient/MedicineAIChat";
 export const Route = createFileRoute("/dashboard/patient")({
   head: () => ({
     meta: [
-      { title: "Patient Portal — MediVerify" },
+      { title: "Patient Portal — SafeDose" },
       { name: "description", content: "Verify any medicine instantly using batch number, QR code or barcode. Backed by blockchain." },
     ],
   }),
@@ -638,7 +638,7 @@ function AIAssistantWidget() {
             </div>
           </div>
           <div>
-            <h3 className="text-[15px] font-semibold">MediVerify AI</h3>
+            <h3 className="text-[15px] font-semibold">SafeDose AI</h3>
             <p className="text-[11px] text-success font-medium flex items-center gap-1"><span className="h-1.5 w-1.5 rounded-full bg-success pulse-dot" /> Monitoring Active</p>
           </div>
         </div>
@@ -1092,7 +1092,7 @@ function ResultCard({ status: result, batch }: { status: IVerificationResult; ba
             <ol className="space-y-6 pl-2">
               {[
                 { t: "Production", s: result.manufacturer?.companyName ?? result.batchDetails?.manufacturer ?? "Manufacturer", d: result.batchDetails?.expiry ? "Verified" : "Genesis", active: true },
-                { t: "Wholesale", s: "MediVerify Logistics", d: "Transit Secure", active: true },
+                { t: "Wholesale", s: "SafeDose Logistics", d: "Transit Secure", active: true },
                 { t: "Distribution", s: result.supplyChain?.pharmacyName ?? "Pharmacy Node", d: result.supplyChain?.boxNumber ? "Received" : "Processing", active: !!result.supplyChain?.pharmacyName },
                 { t: result.status === 'genuine' ? "Final Checkout" : "Security Alert", s: "Patient Mobile Scan", d: "Now", active: true, color: m.tone },
               ].map((step, i, arr) => (

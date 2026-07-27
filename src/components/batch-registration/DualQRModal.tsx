@@ -119,27 +119,27 @@ export function DualQRModal({ open, onClose, initialValues }: Props) {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.batch.cartons?.[0]?.qrCode ?? "",
-            `MediVerify · ${result?.batch.medicineName ?? ""} · Carton`
+            `SafeDose · ${result?.batch.medicineName ?? ""} · Carton`
         );
-        triggerDownload(dataUrl, `MediVerify-CartonQR-${result?.batch.batchNumber ?? "batch"}.png`);
+        triggerDownload(dataUrl, `SafeDose-CartonQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
 
     const handleBoxDownload = useCallback((canvas: HTMLCanvasElement) => {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.batch.boxes?.[0]?.qrCode || result?.batch.boxQrCode || "",
-            `MediVerify · ${result?.batch.medicineName ?? ""} · Box`
+            `SafeDose · ${result?.batch.medicineName ?? ""} · Box`
         );
-        triggerDownload(dataUrl, `MediVerify-BoxQR-${result?.batch.batchNumber ?? "batch"}.png`);
+        triggerDownload(dataUrl, `SafeDose-BoxQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
 
     const handlePillDownload = useCallback((canvas: HTMLCanvasElement) => {
         const dataUrl = exportQRCanvasToPng(
             canvas,
             result?.pills[0]?.pillQrCode ?? "",
-            `MediVerify · ${result?.batch.medicineName ?? ""} · Pill`
+            `SafeDose · ${result?.batch.medicineName ?? ""} · Pill`
         );
-        triggerDownload(dataUrl, `MediVerify-SamplePillQR-${result?.batch.batchNumber ?? "batch"}.png`);
+        triggerDownload(dataUrl, `SafeDose-SamplePillQR-${result?.batch.batchNumber ?? "batch"}.png`);
     }, [result]);
 
     const handleDownloadPng = (canvas: HTMLCanvasElement, type: string) => {
@@ -150,7 +150,7 @@ export function DualQRModal({ open, onClose, initialValues }: Props) {
 
     const stepTitles: Record<ModalStep, { title: string; sub: string }> = {
         form: { title: "Register Batch + Generate Dual QR", sub: "Box QR & per-pill QR codes for Pakistan-style dispensing" },
-        generating: { title: "Generating Dual QR Architecture", sub: "Please wait — minting on MediVerify blockchain…" },
+        generating: { title: "Generating Dual QR Architecture", sub: "Please wait — minting on SafeDose blockchain…" },
         result: { title: "Dual QR System Ready", sub: `${result?.totalPillsGenerated?.toLocaleString() ?? 0} pill QRs + 1 box QR generated` },
         downloads: { title: "Download Center", sub: "Export all QR codes and batch documentation" },
     };

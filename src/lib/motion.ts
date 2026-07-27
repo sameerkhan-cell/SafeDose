@@ -1,5 +1,5 @@
 /**
- * Shared animation constants for MediVerify.
+ * Shared animation constants for SafeDose.
  * Import from here — do NOT redeclare in individual components.
  *
  * Usage:

@@ -105,18 +105,18 @@ export class MfaService {
             };
         }
 
-        const from = process.env.SMTP_FROM || process.env.SMTP_USER || "no-reply@mediverify.local";
+        const from = process.env.SMTP_FROM || process.env.SMTP_USER || "no-reply@safedose.local";
         const expiryMinutes = 10;
 
         try {
             await mailer.sendMail({
                 from,
                 to: deliveryEmail,
-                subject: "MediVerify - Your verification code",
-                text: `Your MediVerify verification code is ${otpCode}. This code expires in ${expiryMinutes} minutes.`,
+                subject: "SafeDose - Your verification code",
+                text: `Your SafeDose verification code is ${otpCode}. This code expires in ${expiryMinutes} minutes.`,
                 html: `
                 <div style="font-family: Arial, sans-serif; line-height:1.5; color:#111827;">
-                    <h2 style="margin:0 0 12px;">MediVerify Verification Code</h2>
+                    <h2 style="margin:0 0 12px;">SafeDose Verification Code</h2>
                     <p style="margin:0 0 8px;">Use the code below to complete sign-in:</p>
                     <p style="font-size:28px; letter-spacing:4px; font-weight:700; margin:8px 0 14px;">${otpCode}</p>
                     <p style="margin:0;">This code expires in ${expiryMinutes} minutes.</p>
@@ -185,16 +185,16 @@ export class MfaService {
         const from =
             process.env.SMTP_FROM ||
             process.env.SMTP_USER ||
-            "no-reply@mediverify.local";
+            "no-reply@safedose.local";
 
         await mailer.sendMail({
             from,
             to: toEmail,
-            subject: "MediVerify — Reset your password",
+            subject: "SafeDose — Reset your password",
             text: `Reset your password: ${resetUrl}\n\nThis link expires in 1 hour.\nIf you did not request this, ignore this email.`,
             html: `
         <div style="font-family:Arial,sans-serif;max-width:480px;margin:0 auto;color:#111827;">
-          <h2 style="margin:0 0 12px;color:#4F46E5;">Reset your MediVerify password</h2>
+          <h2 style="margin:0 0 12px;color:#4F46E5;">Reset your SafeDose password</h2>
           <p style="margin:0 0 20px;color:#6B7280;">
             Click the button below to set a new password. This link expires in <strong>1 hour</strong>.
           </p>

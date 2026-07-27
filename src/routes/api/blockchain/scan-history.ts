@@ -12,7 +12,7 @@ function parseDevice(ua: string | null | undefined): string {
     if (/Mobile/.test(ua)) return "Android Phone";
     return "Android Tablet";
   }
-  if (/MediVerify Scanner/.test(ua)) return "MediVerify Scanner";
+  if (/MediVerify Scanner|SafeDose Scanner/.test(ua)) return "SafeDose Scanner";
   if (/Zebra/.test(ua)) return "Zebra Scanner";
   if (/Windows/.test(ua)) return "Windows PC";
   if (/Macintosh/.test(ua)) return "Mac";

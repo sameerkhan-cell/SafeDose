@@ -14,8 +14,8 @@ import { ease } from "@/lib/motion";
 export const Route = createFileRoute("/auth/forgot-password")({
   head: () => ({
     meta: [
-      { title: "Forgot Password — MediVerify" },
-      { name: "description", content: "Reset your MediVerify password securely." },
+      { title: "Forgot Password — SafeDose" },
+      { name: "description", content: "Reset your SafeDose password securely." },
     ],
   }),
   component: ForgotPasswordPage,

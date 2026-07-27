@@ -132,7 +132,7 @@ export function LiveBlockchainDashboard() {
           </span>
           <h2 className="text-2xl font-bold tracking-tight">Command Center</h2>
           <p className="mt-1 text-[13px] font-medium text-foreground/80">
-            Real-time MediVerify blockchain network · Block #{bc.blockNumber > 0 ? bc.blockNumber.toLocaleString() : "Connecting..."}
+            Real-time SafeDose blockchain network · Block #{bc.blockNumber > 0 ? bc.blockNumber.toLocaleString() : "Connecting..."}
           </p>
         </div>
         <div className="hidden sm:flex flex-col items-end gap-1">

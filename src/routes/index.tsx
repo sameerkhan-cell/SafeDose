@@ -19,9 +19,9 @@ export const Route = createFileRoute("/")(
   {
     head: () => ({
       meta: [
-        { title: "MediVerify — Scan Karo, Safe Raho" },
+        { title: "SafeDose — Scan Karo, Safe Raho" },
         { name: "description", content: "AI + blockchain powered fake medicine detection. Verify any medicine with QR, barcode, or batch number in seconds." },
-        { property: "og:title", content: "MediVerify — Scan Karo, Safe Raho" },
+        { property: "og:title", content: "SafeDose — Scan Karo, Safe Raho" },
         { property: "og:description", content: "AI + blockchain powered fake medicine detection. Verify any medicine in seconds." },
       ],
     }),
@@ -89,7 +89,7 @@ function Landing() {
             </h1>
 
             <p data-hero-sub style={{ opacity: 0 }} className="mt-6 text-[17px] leading-relaxed text-muted-foreground sm:text-lg">
-              Scan. Verify. Stay Safe. MediVerify uses AI and a tamper-proof
+              Scan. Verify. Stay Safe. SafeDose uses AI and a tamper-proof
               blockchain ledger to detect counterfeit medicines in under a
               second.
             </p>
@@ -293,7 +293,7 @@ function Landing() {
 
         <div className="grid gap-6 lg:grid-cols-3">
           {[
-            { q: "MediVerify caught two counterfeit batches in our first month. It's now mandatory for every shipment we accept.", n: "Dr. Ayesha Khan", r: "Chief Pharmacist, Servaid" },
+            { q: "SafeDose caught two counterfeit batches in our first month. It's now mandatory for every shipment we accept.", n: "Dr. Ayesha Khan", r: "Chief Pharmacist, Servaid" },
             { q: "The blockchain trail gives our patients real peace of mind. The dashboards are world-class.", n: "Hassan Raza", r: "Operations, GSK Pakistan" },
             { q: "We integrated their API in two days. Easiest health-tech onboarding I've ever done.", n: "Maria Lopez", r: "CTO, FarmaTrust" },
           ].map((t, idx) => (

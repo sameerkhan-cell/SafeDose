@@ -62,7 +62,7 @@ export const APIRoute = createAPIFileRoute("/api/auth/register")({
       return json({
         success: true,
         data: { user, token, expiresAt },
-        message: `Welcome to MediVerify, ${user.fullName}!`,
+        message: `Welcome to SafeDose, ${user.fullName}!`,
       });
     } catch {
       return json({ error: "Internal server error." }, { status: 500 });

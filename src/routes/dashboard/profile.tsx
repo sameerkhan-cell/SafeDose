@@ -25,8 +25,8 @@ import { ease } from "@/lib/motion";
 export const Route = createFileRoute("/dashboard/profile")({
   head: () => ({
     meta: [
-      { title: "My Profile — MediVerify" },
-      { name: "description", content: "Manage your MediVerify profile and business information." },
+      { title: "My Profile — SafeDose" },
+      { name: "description", content: "Manage your SafeDose profile and business information." },
     ],
   }),
   component: ProfilePage,
