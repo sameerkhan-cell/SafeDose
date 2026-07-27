@@ -20,44 +20,47 @@ const MEDIVERIFY_ABI = [
     "function pills(string) view returns (string pillQR, string batchId, uint256 pillNumber, bool isRegistered)",
     "function getPillHistory(string _pillQR) view returns (tuple(uint256 timestamp, string location, string status)[])",
     "event BatchRegistered(string indexed batchId, string medicineName, address manufacturer)",
-    "event PillVerified(string indexed pillQR, string status, string location, uint256 timestamp)",
 ];
 
 export class BlockchainService {
-    private static provider = new ethers.JsonRpcProvider(RPC_URL, AMOY_NETWORK, {
-        staticNetwork: AMOY_NETWORK,
-    });
-
-    private static wallet = (() => {
-        try {
-            if (!PRIVATE_KEY || PRIVATE_KEY === "0x0000000000000000000000000000000000000000000000000000000000000000") {
-                return null;
-            }
-            const normalizedKey = PRIVATE_KEY.startsWith("0x") ? PRIVATE_KEY : "0x" + PRIVATE_KEY;
-            return new ethers.Wallet(normalizedKey, BlockchainService.provider);
-        } catch (e) {
-            console.warn("[BLOCKCHAIN] Failed to initialize wallet with provided key. Blockchain features will be disabled.");
+    private static getWallet(): ethers.Wallet | null {
+        const key = (process.env.BLOCKCHAIN_SIGNER_KEY || PRIVATE_KEY || "").trim();
+        if (!key || key === "0x0000000000000000000000000000000000000000000000000000000000000000") {
             return null;
         }
-    })();
+        try {
+            const normalizedKey = key.startsWith("0x") ? key : "0x" + key;
+            return new ethers.Wallet(normalizedKey, this.getProvider());
+        } catch (e) {
+            console.warn("[BLOCKCHAIN] Failed to initialize wallet with provided key.");
+            return null;
+        }
+    }
 
     static getContract() {
-        if (!this.wallet) throw new Error("Blockchain signer not configured.");
-        return new ethers.Contract(CONTRACT_ADDRESS, MEDIVERIFY_ABI, this.wallet);
+        const wallet = this.getWallet();
+        if (!wallet) throw new Error("Blockchain signer not configured.");
+        const contractAddr = (process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || CONTRACT_ADDRESS || "").trim();
+        return new ethers.Contract(contractAddr, MEDIVERIFY_ABI, wallet);
     }
 
     static getWalletAddress(): string | null {
-        return this.wallet?.address ?? null;
+        return this.getWallet()?.address ?? null;
     }
 
     static getProvider() {
-        return this.provider;
+        const rpcUrl = (process.env.POLYGON_AMOY_RPC || RPC_URL || "https://rpc-amoy.polygon.technology").trim();
+        return new ethers.JsonRpcProvider(rpcUrl, AMOY_NETWORK, {
+            staticNetwork: AMOY_NETWORK,
+        });
     }
 
     static async getSignerBalance(): Promise<string> {
-        if (!this.wallet) return "0.0";
+        const wallet = this.getWallet();
+        if (!wallet) return "0.0";
         try {
-            const balance = await this.provider.getBalance(this.wallet.address);
+            const provider = this.getProvider();
+            const balance = await provider.getBalance(wallet.address);
             return ethers.formatEther(balance);
         } catch (error) {
             console.error("[BLOCKCHAIN] Failed to fetch signer balance:", error);
