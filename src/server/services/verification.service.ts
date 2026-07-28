@@ -5,10 +5,12 @@ import { RealtimeService } from "./realtime/realtime.service";
 import { AIService } from "./ai/ai.service";
 import { FraudEngine } from "./fraud/fraud-engine";
 import { logVerificationAnchorError } from "./blockchain/blockchain.queue";
+import { isImpossibleTravel } from "./geo-anomaly.util";
 
 export interface VerificationRequest {
     code: string;
     location?: string;
+    resolvedLocation?: string;
     lat?: number;
     lng?: number;
     deviceInfo?: string;
@@ -41,7 +43,9 @@ export interface VerificationResponse {
     supplyChain?: { boxNumber: string; pharmacyName: string | null; verifiedBy: string };
     pillInfo?: { pillNumber: string; boxNumber: string | null; sequencePosition: string };
     cartonInfo?: { cartonNumber: string; boxesCount: number; boxNumbers: string[] };
+    priorScanInfo?: { scannerRole: string | null; scannerName: string | null; location: string | null; scannedAt: string } | null;
 }
+
 
 export class VerificationEngine {
     // ═══════════════════════════════════
@@ -247,19 +251,58 @@ export class VerificationEngine {
             });
 
             if (drapBatch) {
-                // Check for any prior scan of this exact batch code (informational only —
-                // the same batch code legitimately appears on many physical units, so we
-                // never block re-scans; this is purely for the message to the user).
+                // Check for any prior scan of this exact batch code (most recent scan)
                 const priorScan = await prisma.drapBatchScanLog.findFirst({
                     where: { drapBatchId: drapBatch.id },
-                    orderBy: { scannedAt: "asc" },
+                    orderBy: { scannedAt: "desc" },
                 });
+
+                // Determine active location string (real IP GeoIP location preferred, falling back to channel location)
+                const activeLocation = req.resolvedLocation && req.resolvedLocation !== "Unknown Location"
+                    ? req.resolvedLocation
+                    : (req.location || "Unknown Location");
+
+                // Determine actor role and display name
+                let scannerRole: string = "GUEST";
+                let scannerName: string = "Guest User";
+                if (req.userId) {
+                    const user = await prisma.user.findUnique({
+                        where: { id: req.userId },
+                        include: { pharmacy: true }
+                    });
+                    if (user) {
+                        scannerRole = user.role;
+                        if (user.role === "PHARMACY") {
+                            scannerName = user.pharmacy?.name ?? "Pharmacy User";
+                        } else if (user.role === "PATIENT") {
+                            scannerName = "Patient";
+                        } else {
+                            scannerName = user.name ?? user.role;
+                        }
+                    }
+                }
+
+                // Geo-anomaly check (impossible travel detection under 60 mins)
+                const geoCheck = isImpossibleTravel(
+                    priorScan ? { location: priorScan.location, timestamp: priorScan.scannedAt } : null,
+                    activeLocation,
+                    new Date(),
+                    60
+                );
+
+                const warnings: string[] = [];
+                if (geoCheck.isAnomaly) {
+                    warnings.push(geoCheck.message);
+                }
 
                 // Log this scan — fire-and-forget, never blocks the result.
                 prisma.drapBatchScanLog.create({
                     data: {
                         drapBatchId: drapBatch.id,
                         scannedByUserId: req.userId ?? null,
+                        location: activeLocation,
+                        scannerRole,
+                        scannerName,
                     },
                 }).catch(console.error);
 
@@ -267,10 +310,10 @@ export class VerificationEngine {
                 const log = await this.logVerification(req, "GENUINE", drapBatch.medicineId, null);
 
                 // Side-effects (non-blocking).
-                this.anchorWithLogging(log.id, req.code, req.location || "Unknown", "GENUINE");
+                this.anchorWithLogging(log.id, req.code, activeLocation, "GENUINE");
                 RealtimeService.broadcastVerification({ ...log, status: "GENUINE" } as any);
                 if (req.location) AIService.predictFraudOutbreak(req.location).catch(console.error);
-        void FraudEngine.analyzeScan(req.code, req.location || "Unknown", { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
+                void FraudEngine.analyzeScan(req.code, activeLocation, { deviceInfo: req.deviceInfo, userId: req.userId }).catch((err) => console.error("[FRAUD_ENGINE] Analysis failed:", err));
 
                 const drapManufacturer = {
                     companyName: drapBatch.companyName ?? drapBatch.medicine.manufacturer_name ?? "Not provided",
@@ -280,9 +323,32 @@ export class VerificationEngine {
                     businessEmail: null,
                 };
 
-                const message = priorScan
-                    ? `This batch was previously scanned on ${priorScan.scannedAt.toISOString()}. This is expected — the same batch code can appear on multiple genuine units.`
-                    : `${drapBatch.medicine.name} — DRAP-confirmed batch. This is a genuine, registered product.`;
+                let message: string;
+                if (priorScan) {
+                    const formattedTime = new Date(priorScan.scannedAt).toLocaleDateString("en-US", {
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "2-digit",
+                        hour12: true
+                    });
+                    const whoStr = priorScan.scannerName
+                        ? `${priorScan.scannerName} (${priorScan.scannerRole ?? "User"})`
+                        : (priorScan.scannerRole ?? "a user");
+                    const locStr = priorScan.location ?? "Unknown Location";
+                    message = `This batch was previously scanned by ${whoStr} in ${locStr} on ${formattedTime}. This is expected — the same batch code can appear on multiple genuine units.`;
+                } else {
+                    message = `${drapBatch.medicine.name} — DRAP-confirmed batch. This is a genuine, registered product.`;
+                }
+
+                const priorScanInfo = priorScan
+                    ? {
+                        scannerRole: priorScan.scannerRole,
+                        scannerName: priorScan.scannerName,
+                        location: priorScan.location,
+                        scannedAt: new Date(priorScan.scannedAt).toISOString(),
+                    }
+                    : null;
 
                 return {
                     success: true,
@@ -294,16 +360,18 @@ export class VerificationEngine {
                     verification: {
                         id: log.id,
                         scanTime: log.createdAt,
-                        scanLocation: req.location || "Unknown",
+                        scanLocation: activeLocation,
                         deviceInfo: req.deviceInfo || "Web",
                         blockchainStatus: "NOT_APPLICABLE",
                     },
                     blockchain: { txHash: null, status: "NOT_APPLICABLE", verifiedOnChain: false },
-                    warnings: [],
-                    riskScore: 10,
+                    warnings,
+                    riskScore: geoCheck.isAnomaly ? 60 : 10,
                     message,
+                    priorScanInfo,
                 };
             }
+
 
             // ── STEP 5: Not in registry, not in SafeDose — definitive FAKE ─────
             return this.handleFakeResult(

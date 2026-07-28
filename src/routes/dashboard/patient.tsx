@@ -55,10 +55,12 @@ type IVerificationResult = {
   supplyChain?: { boxNumber: string; pharmacyName: string | null; verifiedBy: string };
   pillInfo?: { pillNumber: string; boxNumber: string | null; sequencePosition: string };
   cartonInfo?: { cartonNumber: string; boxesCount: number; boxNumbers: string[] };
+  priorScanInfo?: { scannerRole?: string | null; scannerName?: string | null; location?: string | null; scannedAt?: string } | null;
   manufacturer?: { licenseNumber?: string; address?: string; businessPhone?: string; businessEmail?: string; companyName?: string };
   message: string;
   medicine?: any;
 };
+
 
 import { useVerificationStore } from "@/store/verification-store";
 
@@ -188,10 +190,12 @@ function VerifyPage() {
         supplyChain: d.supplyChain,
         pillInfo: d.pillInfo,
         cartonInfo: d.cartonInfo,
+        priorScanInfo: d.priorScanInfo,
         manufacturer: d.manufacturer,
         message: d.message || "Verification complete.",
         medicine: d.medicine,
       };
+
 
       setResult(mapped);
       addToHistory(code, mapped);
@@ -999,6 +1003,18 @@ function ResultCard({ status: result, batch }: { status: IVerificationResult; ba
                   {result.cartonInfo && <DetailRow icon={<Package className="h-3.5 w-3.5" />} label="Industrial Carton" value={result.cartonInfo.cartonNumber} />}
                   {result.pillInfo?.boxNumber && <DetailRow icon={<Archive className="h-3.5 w-3.5" />} label="Retail Container" value={result.pillInfo.boxNumber} />}
                   {result.pillInfo && <DetailRow icon={<Circle className="h-3.5 w-3.5" />} label="Unit Position" value={result.pillInfo.sequencePosition} />}
+                </div>
+              )}
+
+              {/* Prior Batch Scan Info — DRAP registry path */}
+              {result.priorScanInfo && (
+                <div className="rounded-2xl bg-primary/5 border border-primary/20 p-4 space-y-2.5">
+                  <p className="text-[10px] font-black uppercase tracking-[0.2em] text-primary flex items-center gap-1.5">
+                    <Clock className="h-3.5 w-3.5" /> Prior Batch Scan History
+                  </p>
+                  <DetailRow icon={<Users className="h-3.5 w-3.5" />} label="Last Scanned By" value={`${result.priorScanInfo.scannerName ?? "User"} (${result.priorScanInfo.scannerRole ?? "User"})`} />
+                  <DetailRow icon={<MapPin className="h-3.5 w-3.5" />} label="Scan Location" value={result.priorScanInfo.location ?? "Unknown Location"} />
+                  <DetailRow icon={<Calendar className="h-3.5 w-3.5" />} label="Timestamp" value={new Date(result.priorScanInfo.scannedAt ?? Date.now()).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })} />
                 </div>
               )}
             </div>

@@ -632,8 +632,12 @@ model DrapBatchScanLog {
   drapBatchId     String
   drapBatch       DrapBatchRegistry @relation(fields: [drapBatchId], references: [id], onDelete: Cascade)
   scannedByUserId String?
+  location        String?
+  scannerRole     String?
+  scannerName     String?
   scannedAt       DateTime          @default(now())
 
   @@index([drapBatchId])
   @@map("drap_batch_scan_log")
 }
+

@@ -3,6 +3,7 @@ import { VerificationEngine } from "@/server/services/verification.service";
 import { VerificationSchemas } from "@/server/validation/schemas";
 import { ApiResponse } from "@/server/utils/api-response";
 import { JwtService } from "@/server/auth/jwt.service";
+import { GeoIPService } from "@/server/services/geoip.service";
 
 export const Route = createAPIFileRoute("/api/verify")({
     POST: async ({ request }) => {
@@ -35,9 +36,16 @@ export const Route = createAPIFileRoute("/api/verify")({
                 }
             }
 
+            // Extract client IP and resolve real geographical location (city, country)
+            const xForwardedFor = request.headers.get("x-forwarded-for");
+            const xRealIp = request.headers.get("x-real-ip");
+            const clientIp = xForwardedFor?.split(",")[0]?.trim() || xRealIp || undefined;
+            const resolvedLocation = await GeoIPService.resolveLocation(clientIp);
+
             const result = await VerificationEngine.verify({
                 ...validatedData,
                 userId,
+                resolvedLocation,
                 deviceInfo: request.headers.get("user-agent") || "Web"
             });
 
@@ -48,3 +56,4 @@ export const Route = createAPIFileRoute("/api/verify")({
         }
     },
 });
+

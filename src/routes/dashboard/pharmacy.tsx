@@ -309,6 +309,17 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
                   <PharmacyDetailRow icon={<Archive className="h-3 w-3" />} label="Box Serial" value={result.supplyChain.boxNumber} />
                 </div>
               )}
+              {result.priorScanInfo && (
+                <div className="pt-2 mt-2 border-t border-border/30">
+                  <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1.5 flex items-center gap-1">
+                    <Clock className="h-3 w-3" /> Prior Batch Scan History
+                  </p>
+                  <PharmacyDetailRow label="Last Scanned By" value={`${result.priorScanInfo.scannerName ?? "User"} (${result.priorScanInfo.scannerRole ?? "User"})`} />
+                  <PharmacyDetailRow label="Scan Location" value={result.priorScanInfo.location ?? "Unknown Location"} />
+                  <PharmacyDetailRow label="Timestamp" value={new Date(result.priorScanInfo.scannedAt ?? Date.now()).toLocaleString("en-US", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit", hour12: true })} />
+                </div>
+              )}
+
               {/* Blockchain Ledger Proof */}
               <div className="pt-2 mt-2 border-t border-border/30">
                 <p className="text-[9px] font-black text-primary uppercase tracking-widest mb-1">Blockchain Ledger Proof</p>

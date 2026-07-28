@@ -1,4 +1,5 @@
 import { prisma } from "../../db/client";
+import { isImpossibleTravel } from "../geo-anomaly.util";
 
 export class FraudEngine {
     static async analyzeScan(qrCode: string, location: string, metadata: any = {}) {
@@ -22,29 +23,32 @@ export class FraudEngine {
 
             // 2. Geo-Anomaly Check (Impossible Travel)
             const lastScan = previousScans[0];
-            if (lastScan.location && lastScan.location !== location) {
-                const timeDiff = (Date.now() - new Date(lastScan.createdAt).getTime()) / 1000 / 60; // in minutes
+            const geoCheck = isImpossibleTravel(
+                { location: lastScan.location, timestamp: lastScan.createdAt },
+                location,
+                new Date(),
+                60
+            );
 
-                // Simple heuristic: if different city and < 60 mins
-                if (timeDiff < 60) {
-                    riskScore += 50;
-                    alerts.push({
-                        type: "GEO_ANOMALY",
-                        severity: "CRITICAL",
-                        message: `Impossible travel detected: ${lastScan.location} to ${location} in ${Math.round(timeDiff)} mins.`
-                    });
+            if (geoCheck.isAnomaly) {
+                riskScore += 50;
+                alerts.push({
+                    type: "GEO_ANOMALY",
+                    severity: "CRITICAL",
+                    message: geoCheck.message
+                });
 
-                    await prisma.geoAnalytics.create({
-                        data: {
-                            qrCode,
-                            previousLocation: lastScan.location,
-                            currentLocation: location,
-                            suspicious: true
-                        }
-                    });
-                }
+                await prisma.geoAnalytics.create({
+                    data: {
+                        qrCode,
+                        previousLocation: lastScan.location,
+                        currentLocation: location,
+                        suspicious: true
+                    }
+                });
             }
         }
+
 
         // 3. Automated Risk Scoring Update
         const riskLevel = this.getRiskLevel(riskScore);
