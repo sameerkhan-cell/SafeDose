@@ -5,10 +5,10 @@ import {
   ScanLine, QrCode, Barcode, CheckCircle2, AlertTriangle, XCircle, Loader2,
   ShieldAlert, MapPin, Calendar, Building2, Share2, Hash, Cpu, Shield, Zap,
   Pill, Bell, Clock, Filter, FileText, Activity, Plus, Star, ArrowRight,
-  MessageSquare, Map, ShieldCheck, Layers, WifiOff, ChevronDown, Factory,
+  MessageSquare, Map as MapIcon, ShieldCheck, Layers, WifiOff, ChevronDown, Factory,
   ShoppingBag, Package, Archive, Circle, Phone, CheckCircle
 } from "lucide-react";
-import { BrowserMultiFormatReader } from "@zxing/library";
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from "@zxing/library";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -454,7 +454,19 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const reader = new BrowserMultiFormatReader();
+    // Build format hints based on mode — QR_CODE only for qr, 1D barcodes for barcode
+    const hints = new Map();
+    if (mode === "barcode") {
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+        BarcodeFormat.ITF,
+      ]);
+    } else {
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.QR_CODE]);
+    }
+    const reader = new BrowserMultiFormatReader(hints);
     reader.decodeFromVideoDevice(null, videoRef.current, (result: any) => {
       if (result) {
         const text = result.getText();
@@ -466,7 +478,7 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
       setError("Camera access denied. Please allow camera permissions.");
     });
     return () => reader.reset();
-  }, [onResult]);
+  }, [mode, onResult]);
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm">
@@ -693,7 +705,7 @@ function SafetyMapWidget() {
   return (
     <div className="card-premium p-6">
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-[15px] font-semibold flex items-center gap-2"><Map className="h-4 w-4 text-primary" /> Live Safety Map</h3>
+        <h3 className="text-[15px] font-semibold flex items-center gap-2"><MapIcon className="h-4 w-4 text-primary" /> Live Safety Map</h3>
       </div>
       <div className="relative h-[200px] rounded-xl overflow-hidden bg-secondary/30 border border-border/50">
         <div className="absolute inset-0 grid-bg opacity-20" />

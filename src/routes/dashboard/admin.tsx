@@ -2,11 +2,10 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
-  Shield, Plus, Search, Edit2, Trash2, AlertTriangle,
-  CheckCircle, XCircle, Database, Pill, Building2,
-  RefreshCw, Save, X, ChevronDown, ChevronUp, Bell,
-  FileText, Store, BarChart3, Archive, Settings
+  AlertTriangle, Database, Building2,
+  Bell, FileText, Store, BarChart3, Archive, Settings, X, RefreshCw, Save, Search, Plus
 } from "lucide-react";
+
 import { useAuth } from "@/lib/auth-context";
 import { DashShell, NavItem } from "@/components/dashboard/DashShell";
 import { Button } from "@/components/ui/button";
@@ -21,19 +20,6 @@ export const Route = createFileRoute("/dashboard/admin")({
 });
 
 // ── Types ──────────────────────────────────────────────
-interface DRAPMedicine {
-  id: string;
-  name: string;
-  genericName?: string;
-  category?: string;
-  dosage?: string;
-  drapRegNumber?: string;
-  activeIngredients?: string;
-  approvalStatus: string;
-  manufacturer_name?: string;
-  isPublicDRAPEntry: boolean;
-  createdAt: string;
-}
 
 interface BatchSequence {
   id: string;
@@ -88,124 +74,10 @@ function SectionHeader({ title, subtitle, onAdd }: { title: string; subtitle: st
   );
 }
 
-// ── Medicine Form Modal ─────────────────────────────────
-function MedicineFormModal({ medicine, onClose, onSave, session }: { medicine?: DRAPMedicine | null; onClose: () => void; onSave: () => void; session: any }) {
-  const [form, setForm] = useState({
-    name: medicine?.name ?? "",
-    genericName: medicine?.genericName ?? "",
-    category: medicine?.category ?? "",
-    dosage: medicine?.dosage ?? "",
-    drapRegNumber: medicine?.drapRegNumber ?? "",
-    activeIngredients: medicine?.activeIngredients ?? "",
-    approvalStatus: medicine?.approvalStatus ?? "REGISTERED",
-    manufacturer_name: medicine?.manufacturer_name ?? "",
-  });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const set = (k: string, v: string) => setForm(p => ({ ...p, [k]: v }));
-
-  const handleSave = async () => {
-    if (!form.name.trim()) { setError("Medicine name is required."); return; }
-    setLoading(true); setError(null);
-    try {
-      const url = medicine ? `/api/admin/medicines/${medicine.id}` : "/api/admin/medicines";
-      const method = medicine ? "PUT" : "POST";
-      const res = await fetch(url, {
-        method,
-        headers: { "Content-Type": "application/json", "Authorization": `Bearer ${session?.token ?? ""}` },
-        body: JSON.stringify({ ...form, isPublicDRAPEntry: true })
-      });
-      const data = await res.json();
-      if (!data.success) throw new Error(data.error ?? "Failed to save");
-      onSave();
-      onClose();
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const Field = ({ label, field, placeholder, textarea }: { label: string; field: string; placeholder: string; textarea?: boolean }) => (
-    <div>
-      <label className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1 block">{label}</label>
-      {textarea ? (
-        <textarea
-          value={(form as any)[field]}
-          onChange={e => set(field, e.target.value)}
-          placeholder={placeholder}
-          rows={3}
-          className="w-full rounded-xl border border-border bg-secondary/20 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 resize-none"
-        />
-      ) : (
-        <input
-          value={(form as any)[field]}
-          onChange={e => set(field, e.target.value)}
-          placeholder={placeholder}
-          className="w-full h-10 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
-        />
-      )}
-    </div>
-  );
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-card border border-border rounded-2xl w-full max-w-lg shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between p-5 border-b border-border/50 sticky top-0 bg-card z-10">
-          <div>
-            <h2 className="font-semibold">{medicine ? "Edit Medicine" : "Add DRAP Medicine"}</h2>
-            <p className="text-xs text-muted-foreground mt-0.5">Layer 1 — Public intelligence database</p>
-          </div>
-          <button onClick={onClose} className="w-8 h-8 rounded-lg bg-secondary/50 flex items-center justify-center">
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="p-5 space-y-4">
-          <Field label="Medicine Name *" field="name" placeholder="e.g. Panadol Extra 500mg Tablet" />
-          <Field label="Generic Name" field="genericName" placeholder="e.g. Paracetamol" />
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="Category" field="category" placeholder="e.g. Analgesic" />
-            <Field label="Dosage" field="dosage" placeholder="e.g. 500mg" />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <Field label="DRAP Reg. Number" field="drapRegNumber" placeholder="e.g. DRAP-MED-0001" />
-            <div>
-              <label className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1 block">Approval Status</label>
-              <select
-                value={form.approvalStatus}
-                onChange={e => set("approvalStatus", e.target.value)}
-                className="w-full h-10 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none"
-              >
-                <option value="REGISTERED">Registered</option>
-                <option value="SUSPENDED">Suspended</option>
-                <option value="BANNED">Banned</option>
-              </select>
-            </div>
-          </div>
-          <Field label="Manufacturer Name" field="manufacturer_name" placeholder="e.g. GSK Pakistan" />
-          <Field label="Active Ingredients" field="activeIngredients" placeholder="e.g. Paracetamol 500mg, Caffeine 65mg" textarea />
-
-          {error && <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
-
-          <div className="flex gap-2 pt-2">
-            <Button onClick={onClose} variant="outline" className="flex-1">Cancel</Button>
-            <Button onClick={handleSave} disabled={loading} className="flex-1 gap-1.5">
-              {loading ? <RefreshCw className="h-3.5 w-3.5 animate-spin" /> : <Save className="h-3.5 w-3.5" />}
-              {medicine ? "Update" : "Save to DRAP DB"}
-            </Button>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // ── Batch Sequence Form Modal ───────────────────────────
 function BatchSequenceModal({ onClose, onSave, session }: { onClose: () => void; onSave: () => void; session: any }) {
   const [form, setForm] = useState({ medicineId: "", prefix: "", year: new Date().getFullYear(), minSequence: 1, maxSequence: 100, totalBatches: 100, confidence: "MEDIUM" });
-  const [medicines, setMedicines] = useState<DRAPMedicine[]>([]);
+  const [medicines, setMedicines] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -383,7 +255,6 @@ function RecallFormModal({ onClose, onSave, session }: { onClose: () => void; on
 }
 
 const TAB_ICONS: Record<string, any> = {
-  medicines: Pill,
   sequences: Database,
   recalls: AlertTriangle,
   documents: FileText,
@@ -394,7 +265,6 @@ const TAB_ICONS: Record<string, any> = {
 };
 
 const TAB_LABELS: Record<string, string> = {
-  medicines: "DRAP Medicines",
   sequences: "Batch Sequences",
   recalls: "Recall Alerts",
   documents: "Document Review",
@@ -404,7 +274,7 @@ const TAB_LABELS: Record<string, string> = {
   "batch-registry": "Batch Registry",
 };
 
-const TAB_ORDER = ["medicines", "sequences", "recalls", "documents", "manufacturers", "pharmacies", "reports", "batch-registry"] as const;
+const TAB_ORDER = ["batch-registry", "sequences", "recalls", "documents", "manufacturers", "pharmacies", "reports"] as const;
 
 // ── Main Page ───────────────────────────────────────────
 function Page() {
@@ -422,17 +292,15 @@ function Page() {
   }
 
   // State
-  const [medicines, setMedicines] = useState<DRAPMedicine[]>([]);
   const [sequences, setSequences] = useState<BatchSequence[]>([]);
+
   const [recalls, setRecalls] = useState<DRAPRecall[]>([]);
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState<"medicines" | "sequences" | "recalls" | "documents" | "manufacturers" | "pharmacies" | "reports" | "batch-registry">("medicines");
-  const [showMedicineForm, setShowMedicineForm] = useState(false);
+  const [activeTab, setActiveTab] = useState<"sequences" | "recalls" | "documents" | "manufacturers" | "pharmacies" | "reports" | "batch-registry">("batch-registry");
   const [showSequenceForm, setShowSequenceForm] = useState(false);
   const [showRecallForm, setShowRecallForm] = useState(false);
-  const [editMedicine, setEditMedicine] = useState<DRAPMedicine | null>(null);
 
   const headers = { "Authorization": `Bearer ${session?.token ?? ""}` };
 
@@ -454,13 +322,11 @@ function Page() {
   const fetchAll = async () => {
     setLoading(true);
     try {
-      const [medRes, seqRes, recRes, statsRes] = await Promise.all([
-        fetch("/api/admin/medicines", { headers }).then(r => r.json()),
+      const [seqRes, recRes, statsRes] = await Promise.all([
         fetch("/api/admin/batch-sequences", { headers }).then(r => r.json()),
         fetch("/api/admin/recalls", { headers }).then(r => r.json()),
         fetch("/api/admin/dashboard", { headers }).then(r => r.json()),
       ]);
-      if (medRes.success) setMedicines(medRes.data);
       if (seqRes.success) setSequences(seqRes.data);
       if (recRes.success) setRecalls(recRes.data);
       if (statsRes.success) setStats(statsRes.data);
@@ -470,18 +336,6 @@ function Page() {
   };
 
   useEffect(() => { fetchAll(); }, [session?.token]);
-
-  const filteredMedicines = medicines.filter(m =>
-    m.name.toLowerCase().includes(search.toLowerCase()) ||
-    m.drapRegNumber?.toLowerCase().includes(search.toLowerCase()) ||
-    m.manufacturer_name?.toLowerCase().includes(search.toLowerCase())
-  );
-
-  const handleDeleteMedicine = async (id: string) => {
-    if (!confirm("Delete this medicine from DRAP database?")) return;
-    await fetch(`/api/admin/medicines/${id}`, { method: "DELETE", headers });
-    fetchAll();
-  };
 
   const handleToggleRecall = async (id: string, isActive: boolean) => {
     await fetch(`/api/admin/recalls/${id}`, {
@@ -499,8 +353,7 @@ function Page() {
       <div className="space-y-6 p-4 md:p-6">
 
         {/* Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <StatCard icon={Pill} label="DRAP Medicines" value={medicines.length} color="bg-blue-500/15 text-blue-500" />
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
           <StatCard icon={Database} label="Batch Sequences" value={sequences.length} color="bg-purple-500/15 text-purple-500" />
           <StatCard icon={AlertTriangle} label="Active Recalls" value={recalls.filter(r => r.isActive).length} color="bg-red-500/15 text-red-500" />
           <StatCard icon={Building2} label="Total Scans" value={stats?.totalScans ?? "..."} color="bg-green-500/15 text-green-500" />
@@ -516,51 +369,6 @@ function Page() {
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.18, ease: "easeOut" }}
             >
-              {activeTab === "medicines" && (
-                <div>
-                  <SectionHeader title="DRAP Medicine Database" subtitle="Medicines entered here are checked during every patient scan (Layer 1)" onAdd={() => { setEditMedicine(null); setShowMedicineForm(true); }} />
-                  <div className="mb-4 relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search by name, DRAP number, or manufacturer..." className="w-full h-10 rounded-xl border border-border bg-secondary/20 pl-9 pr-4 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" />
-                  </div>
-                  <div className="space-y-2">
-                    {loading ? (
-                      <div className="text-center py-8 text-muted-foreground text-sm">Loading...</div>
-                    ) : filteredMedicines.length === 0 ? (
-                      <div className="text-center py-12 text-muted-foreground">
-                        <Pill className="h-8 w-8 mx-auto mb-2 opacity-30" />
-                        <p className="text-sm">No medicines yet — add your first DRAP medicine</p>
-                      </div>
-                    ) : filteredMedicines.map(med => (
-                      <div key={med.id} className="rounded-xl border border-border/50 bg-card p-4 flex items-center justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center gap-2 flex-wrap">
-                            <p className="font-medium text-sm">{med.name}</p>
-                            <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${med.approvalStatus === "REGISTERED" ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-600"}`}>
-                              {med.approvalStatus}
-                            </span>
-                            {med.isPublicDRAPEntry && <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-600">DRAP Entry</span>}
-                          </div>
-                          <div className="flex gap-3 mt-1 flex-wrap">
-                            {med.genericName && <span className="text-[11px] text-muted-foreground">{med.genericName}</span>}
-                            {med.drapRegNumber && <span className="text-[11px] font-mono text-blue-500">{med.drapRegNumber}</span>}
-                            {med.manufacturer_name && <span className="text-[11px] text-muted-foreground">by {med.manufacturer_name}</span>}
-                          </div>
-                        </div>
-                        <div className="flex gap-1.5 flex-shrink-0">
-                          <button onClick={() => { setEditMedicine(med); setShowMedicineForm(true); }} className="w-8 h-8 rounded-lg border border-border bg-secondary/30 flex items-center justify-center hover:bg-secondary transition-colors">
-                            <Edit2 className="h-3.5 w-3.5" />
-                          </button>
-                          <button onClick={() => handleDeleteMedicine(med.id)} className="w-8 h-8 rounded-lg border border-red-200 bg-red-500/5 flex items-center justify-center hover:bg-red-500/10 transition-colors">
-                            <Trash2 className="h-3.5 w-3.5 text-red-500" />
-                          </button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {activeTab === "sequences" && (
                 <div>
                   <SectionHeader title="Batch Sequence Ranges" subtitle="Define valid batch number ranges — anything outside these is flagged as FAKE" onAdd={() => setShowSequenceForm(true)} />
@@ -652,7 +460,6 @@ function Page() {
       </div>
 
       {/* Modals */}
-      {showMedicineForm && <MedicineFormModal medicine={editMedicine} onClose={() => { setShowMedicineForm(false); setEditMedicine(null); }} onSave={fetchAll} session={session} />}
       {showSequenceForm && <BatchSequenceModal onClose={() => setShowSequenceForm(false)} onSave={fetchAll} session={session} />}
       {showRecallForm && <RecallFormModal onClose={() => setShowRecallForm(false)} onSave={fetchAll} session={session} />}
     </DashShell>

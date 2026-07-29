@@ -142,16 +142,31 @@ export class VerificationEngine {
     // ═══════════════════════════════════
     private static async isAnomalous(batchNumber: string): Promise<{ anomalous: boolean; reason: string; severity: "HIGH" | "MEDIUM" }> {
         const parts = batchNumber.split("-");
-        if (parts.length !== 3) {
+
+        // ── Format pre-check: if not PREFIX-YYYY-NNN, consult DrapBatchRegistry first ──
+        // Admin-confirmed batch codes are trusted regardless of their real-world format.
+        // Only apply heuristic rejection to codes that are NOT in the admin registry.
+        const hasValidFormat = parts.length === 3 && !isNaN(parseInt(parts[1])) && !isNaN(parseInt(parts[2]));
+
+        if (!hasValidFormat) {
+            const inRegistry = await prisma.drapBatchRegistry.findFirst({
+                where: {
+                    OR: [
+                        { batchCode: batchNumber },
+                        { barcode: batchNumber }
+                    ]
+                },
+                select: { id: true },
+            });
+            if (inRegistry) {
+                // Admin-confirmed — skip all heuristics, treat as genuine format
+                return { anomalous: false, reason: "Admin-confirmed batch code or barcode.", severity: "HIGH" };
+            }
             return { anomalous: true, reason: "Invalid batch number format.", severity: "HIGH" };
         }
 
         const year = parseInt(parts[1]);
         const num = parseInt(parts[2]);
-
-        if (isNaN(year) || isNaN(num)) {
-            return { anomalous: true, reason: "Invalid batch number format.", severity: "HIGH" };
-        }
 
         const currentYear = new Date().getFullYear();
 
@@ -242,11 +257,16 @@ export class VerificationEngine {
                 return this.handleFakeResult(req, "SUSPICIOUS: " + check.reason + " Additionally, this batch was not found in the SafeDose database.");
             }
 
-            // ── STEP 4: Exact batch-code lookup in DrapBatchRegistry ─────────────
-            // This registry holds specific, admin-confirmed batch codes for DRAP-
-            // entered legacy medicines (uploaded via CSV bulk-upload).
-            const drapBatch = await prisma.drapBatchRegistry.findUnique({
-                where: { batchCode: req.code },
+            // ── STEP 4: Exact batch-code or barcode lookup in DrapBatchRegistry ────
+            // This registry holds specific, admin-confirmed batch codes and barcodes
+            // for DRAP-entered legacy medicines.
+            const drapBatch = await prisma.drapBatchRegistry.findFirst({
+                where: {
+                    OR: [
+                        { batchCode: req.code },
+                        { barcode: req.code }
+                    ]
+                },
                 include: { medicine: true },
             });
 

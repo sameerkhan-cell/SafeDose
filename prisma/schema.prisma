@@ -613,17 +613,25 @@ model BlockchainJob {
 }
 
 model DrapBatchRegistry {
-  id            String    @id @default(cuid())
-  medicineId    String
-  medicine      Medicine  @relation(fields: [medicineId], references: [id], onDelete: Cascade)
-  batchCode     String    @unique
-  companyName   String?   // denormalized snapshot of the medicine's manufacturer_name at registration time
-  registeredBy  String?   // admin userId who uploaded this record
-  registeredAt  DateTime  @default(now())
+  id                String    @id @default(cuid())
+  medicineId        String
+  medicine          Medicine  @relation(fields: [medicineId], references: [id], onDelete: Cascade)
+  batchCode         String    @unique
+  barcode           String?   // optional 1D barcode / EAN / GTIN for scanning
+  companyName       String?   // denormalized snapshot of the medicine's manufacturer_name at registration time
+  registeredBy      String?   // admin userId who uploaded this record
+  registeredAt      DateTime  @default(now())
 
-  scans         DrapBatchScanLog[]
+  // Phase 2 additions
+  expiryDate        DateTime? // batch expiry date
+  manufactureDate   DateTime? // batch manufacture date
+  extraData         Json?     // unstructured additional fields (composition, storage conditions, etc.)
+  sourceDocumentUrl String?   // URL to uploaded PDF/XML/eCTD source document for audit trail
+
+  scans             DrapBatchScanLog[]
 
   @@index([batchCode])
+  @@index([barcode])
   @@map("drap_batch_registry")
 }
 

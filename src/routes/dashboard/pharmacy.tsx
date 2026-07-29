@@ -2,10 +2,10 @@ import { createFileRoute, Navigate } from "@tanstack/react-router";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Stethoscope, PackageCheck, AlertTriangle, Star, ScanLine, ShieldCheck, XCircle, Clock, ArrowRight, TrendingUp,
-  CheckCircle2, Package, RefreshCw, Filter, Activity, UploadCloud, Truck, BrainCircuit, Map, ShieldAlert, FileText, Lock, Users,
+  CheckCircle2, Package, RefreshCw, Filter, Activity, UploadCloud, Truck, BrainCircuit, Map as MapIcon, ShieldAlert, FileText, Lock, Users,
   X, Camera, Loader2, ChevronDown, ShoppingBag, Factory, Archive, Circle, Phone, CheckCircle
 } from "lucide-react";
-import { BrowserMultiFormatReader } from "@zxing/library";
+import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from "@zxing/library";
 import { useAuth } from "@/lib/auth-context";
 import { DASH_NAV } from "@/config/nav";
 import { ease } from "@/lib/motion";
@@ -92,7 +92,19 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const reader = new BrowserMultiFormatReader();
+    // Build format hints based on mode — avoids scanning all ~20 formats every frame
+    const hints = new Map();
+    if (mode === "barcode") {
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
+        BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
+        BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
+        BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
+        BarcodeFormat.ITF,
+      ]);
+    } else {
+      hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.QR_CODE]);
+    }
+    const reader = new BrowserMultiFormatReader(hints);
     reader.decodeFromVideoDevice(null, videoRef.current, (result: any) => {
       if (result) {
         const text = result.getText();
@@ -101,7 +113,7 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
       }
     }).catch(() => setError("Camera access denied. Please allow camera permissions."));
     return () => reader.reset();
-  }, []);
+  }, [mode]);
 
   return (
     <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center bg-black/85 backdrop-blur-sm">
@@ -111,7 +123,9 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
           <div className="absolute inset-x-0 top-1/2 h-0.5 bg-primary/50 shadow-[0_0_10px_2px_rgba(var(--primary-rgb),0.5)] animate-scan-y" />
         </div>
       </div>
-      <p className="text-white text-center font-bold text-sm mt-8 px-6">Point camera at the Carton or box</p>
+      <p className="text-white text-center font-bold text-sm mt-8 px-6">
+        {mode === "barcode" ? "Point camera at the barcode on the package" : "Point camera at the Carton or box QR code"}
+      </p>
       {error && <p className="text-destructive font-bold text-sm mt-4">{error}</p>}
       <Button onClick={onClose} className="mt-8 rounded-xl px-12" variant="secondary">Cancel</Button>
     </div>
@@ -131,7 +145,7 @@ function PharmacyDetailRow({ icon, label, value, bold, mono }: { icon?: React.Re
 }
 
 function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; session: any; user: any }) {
-  const [activeMode, setActiveMode] = useState<"carton" | "box" | "batch">("carton");
+  const [activeMode, setActiveMode] = useState<"carton" | "box" | "batch" | "barcode">("carton");
   const [input, setInput] = useState("");
   const [result, setResult] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -213,18 +227,25 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
         </div>
 
         <div className="px-5 pt-4">
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-4 gap-1.5 mb-4">
             {[
-              { key: "carton", label: "Carton QR", color: "blue", desc: "Outer carton" },
-              { key: "box", label: "Box QR", color: "green", desc: "Individual box" },
-              { key: "batch", label: "Batch No.", color: "purple", desc: "Manual entry" }
+              { key: "carton",  label: "Carton QR",   color: "blue",   desc: "Outer carton" },
+              { key: "box",     label: "Box QR",       color: "green",  desc: "Individual box" },
+              { key: "batch",   label: "Batch No.",    color: "purple", desc: "Manual entry" },
+              { key: "barcode", label: "Barcode Scan", color: "orange", desc: "Camera scan" },
             ].map(item => {
               const isActive = activeMode === item.key;
               return (
                 <button
                   key={item.key}
                   type="button"
-                  onClick={() => { setActiveMode(item.key as typeof activeMode); setInput(""); setResult(null); }}
+                  onClick={() => {
+                    setActiveMode(item.key as typeof activeMode);
+                    setInput("");
+                    setResult(null);
+                    // Barcode tab auto-opens the camera scanner
+                    if (item.key === "barcode") setShowCamera(true);
+                  }}
                   className={`rounded-lg border p-2 text-center transition-all cursor-pointer ${
                     isActive
                       ? `border-${item.color}-500 bg-${item.color}-500/15 ring-1 ring-${item.color}-500/40`
@@ -359,9 +380,9 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
 
       {showCamera && (
         <LiveScanner
-          mode={activeMode === "batch" ? "barcode" : "qr"}
+          mode={activeMode === "batch" || activeMode === "barcode" ? "barcode" : "qr"}
           onResult={(code) => { setShowCamera(false); setInput(code); handleVerify(code); }}
-          onClose={() => setShowCamera(false)}
+          onClose={() => { setShowCamera(false); if (activeMode === "barcode") setActiveMode("batch"); }}
         />
       )}
     </div>

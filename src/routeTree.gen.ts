@@ -106,6 +106,8 @@ import { Route as ApiAdminRecallCreateRouteImport } from './routes/api/admin/rec
 import { Route as ApiAdminPharmacyBlacklistRouteImport } from './routes/api/admin/pharmacy/blacklist'
 import { Route as ApiAdminMedicinesIdRouteImport } from './routes/api/admin/medicines.$id'
 import { Route as ApiAdminManufacturersCreateRouteImport } from './routes/api/admin/manufacturers/create'
+import { Route as ApiAdminDrapBatchesManualRouteImport } from './routes/api/admin/drap-batches/manual'
+import { Route as ApiAdminDrapBatchesDocumentRouteImport } from './routes/api/admin/drap-batches/document'
 import { Route as ApiManufacturerBatchIdAssetsRouteImport } from './routes/api/manufacturer/batch.$id.assets'
 import { Route as ApiAdminReportsIdStatusRouteImport } from './routes/api/admin/reports.$id.status'
 import { Route as ApiAdminPharmaciesIdUnverifyRouteImport } from './routes/api/admin/pharmacies.$id.unverify'
@@ -115,6 +117,10 @@ import { Route as ApiAdminManufacturersIdUnverifyRouteImport } from './routes/ap
 import { Route as ApiAdminManufacturersIdSuspendRouteImport } from './routes/api/admin/manufacturers.$id.suspend'
 import { Route as ApiAdminManufacturersIdRestoreRouteImport } from './routes/api/admin/manufacturers.$id.restore'
 import { Route as ApiAdminManufacturersIdReportRouteImport } from './routes/api/admin/manufacturers.$id.report'
+import { Route as ApiAdminDrapBatchesXmlInspectRouteImport } from './routes/api/admin/drap-batches/xml/inspect'
+import { Route as ApiAdminDrapBatchesXmlImportRouteImport } from './routes/api/admin/drap-batches/xml/import'
+import { Route as ApiAdminDrapBatchesPdfImportRouteImport } from './routes/api/admin/drap-batches/pdf/import'
+import { Route as ApiAdminDrapBatchesPdfExtractRouteImport } from './routes/api/admin/drap-batches/pdf/extract'
 import { Route as ApiAdminDocumentsIdReviewRouteImport } from './routes/api/admin/documents.$id.review'
 import { Route as ApiAdminDocumentsIdRejectRouteImport } from './routes/api/admin/documents.$id.reject'
 import { Route as ApiAdminDocumentsIdExpireRouteImport } from './routes/api/admin/documents.$id.expire'
@@ -624,6 +630,18 @@ const ApiAdminManufacturersCreateRoute =
     path: '/create',
     getParentRoute: () => ApiAdminManufacturersRoute,
   } as any)
+const ApiAdminDrapBatchesManualRoute =
+  ApiAdminDrapBatchesManualRouteImport.update({
+    id: '/manual',
+    path: '/manual',
+    getParentRoute: () => ApiAdminDrapBatchesRoute,
+  } as any)
+const ApiAdminDrapBatchesDocumentRoute =
+  ApiAdminDrapBatchesDocumentRouteImport.update({
+    id: '/document',
+    path: '/document',
+    getParentRoute: () => ApiAdminDrapBatchesRoute,
+  } as any)
 const ApiManufacturerBatchIdAssetsRoute =
   ApiManufacturerBatchIdAssetsRouteImport.update({
     id: '/assets',
@@ -677,6 +695,30 @@ const ApiAdminManufacturersIdReportRoute =
     path: '/$id/report',
     getParentRoute: () => ApiAdminManufacturersRoute,
   } as any)
+const ApiAdminDrapBatchesXmlInspectRoute =
+  ApiAdminDrapBatchesXmlInspectRouteImport.update({
+    id: '/xml/inspect',
+    path: '/xml/inspect',
+    getParentRoute: () => ApiAdminDrapBatchesRoute,
+  } as any)
+const ApiAdminDrapBatchesXmlImportRoute =
+  ApiAdminDrapBatchesXmlImportRouteImport.update({
+    id: '/xml/import',
+    path: '/xml/import',
+    getParentRoute: () => ApiAdminDrapBatchesRoute,
+  } as any)
+const ApiAdminDrapBatchesPdfImportRoute =
+  ApiAdminDrapBatchesPdfImportRouteImport.update({
+    id: '/pdf/import',
+    path: '/pdf/import',
+    getParentRoute: () => ApiAdminDrapBatchesRoute,
+  } as any)
+const ApiAdminDrapBatchesPdfExtractRoute =
+  ApiAdminDrapBatchesPdfExtractRouteImport.update({
+    id: '/pdf/extract',
+    path: '/pdf/extract',
+    getParentRoute: () => ApiAdminDrapBatchesRoute,
+  } as any)
 const ApiAdminDocumentsIdReviewRoute =
   ApiAdminDocumentsIdReviewRouteImport.update({
     id: '/$id/review',
@@ -729,7 +771,7 @@ export interface FileRoutesByFullPath {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
-  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
+  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRouteWithChildren
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/pharmacies': typeof ApiAdminPharmaciesRouteWithChildren
@@ -786,6 +828,8 @@ export interface FileRoutesByFullPath {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
+  '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
   '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
   '/api/admin/medicines/$id': typeof ApiAdminMedicinesIdRoute
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
@@ -804,6 +848,10 @@ export interface FileRoutesByFullPath {
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
   '/api/admin/documents/$id/review': typeof ApiAdminDocumentsIdReviewRoute
+  '/api/admin/drap-batches/pdf/extract': typeof ApiAdminDrapBatchesPdfExtractRoute
+  '/api/admin/drap-batches/pdf/import': typeof ApiAdminDrapBatchesPdfImportRoute
+  '/api/admin/drap-batches/xml/import': typeof ApiAdminDrapBatchesXmlImportRoute
+  '/api/admin/drap-batches/xml/inspect': typeof ApiAdminDrapBatchesXmlInspectRoute
   '/api/admin/manufacturers/$id/report': typeof ApiAdminManufacturersIdReportRoute
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
@@ -841,7 +889,7 @@ export interface FileRoutesByTo {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
-  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
+  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRouteWithChildren
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/pharmacies': typeof ApiAdminPharmaciesRouteWithChildren
@@ -898,6 +946,8 @@ export interface FileRoutesByTo {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report': typeof ApiReportIndexRoute
   '/api/verify': typeof ApiVerifyIndexRoute
+  '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
+  '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
   '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
   '/api/admin/medicines/$id': typeof ApiAdminMedicinesIdRoute
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
@@ -916,6 +966,10 @@ export interface FileRoutesByTo {
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
   '/api/admin/documents/$id/review': typeof ApiAdminDocumentsIdReviewRoute
+  '/api/admin/drap-batches/pdf/extract': typeof ApiAdminDrapBatchesPdfExtractRoute
+  '/api/admin/drap-batches/pdf/import': typeof ApiAdminDrapBatchesPdfImportRoute
+  '/api/admin/drap-batches/xml/import': typeof ApiAdminDrapBatchesXmlImportRoute
+  '/api/admin/drap-batches/xml/inspect': typeof ApiAdminDrapBatchesXmlInspectRoute
   '/api/admin/manufacturers/$id/report': typeof ApiAdminManufacturersIdReportRoute
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
@@ -954,7 +1008,7 @@ export interface FileRoutesById {
   '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
-  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRoute
+  '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRouteWithChildren
   '/api/admin/manufacturers': typeof ApiAdminManufacturersRouteWithChildren
   '/api/admin/medicines': typeof ApiAdminMedicinesRouteWithChildren
   '/api/admin/pharmacies': typeof ApiAdminPharmaciesRouteWithChildren
@@ -1011,6 +1065,8 @@ export interface FileRoutesById {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
+  '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
   '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
   '/api/admin/medicines/$id': typeof ApiAdminMedicinesIdRoute
   '/api/admin/pharmacy/blacklist': typeof ApiAdminPharmacyBlacklistRoute
@@ -1029,6 +1085,10 @@ export interface FileRoutesById {
   '/api/admin/documents/$id/expire': typeof ApiAdminDocumentsIdExpireRoute
   '/api/admin/documents/$id/reject': typeof ApiAdminDocumentsIdRejectRoute
   '/api/admin/documents/$id/review': typeof ApiAdminDocumentsIdReviewRoute
+  '/api/admin/drap-batches/pdf/extract': typeof ApiAdminDrapBatchesPdfExtractRoute
+  '/api/admin/drap-batches/pdf/import': typeof ApiAdminDrapBatchesPdfImportRoute
+  '/api/admin/drap-batches/xml/import': typeof ApiAdminDrapBatchesXmlImportRoute
+  '/api/admin/drap-batches/xml/inspect': typeof ApiAdminDrapBatchesXmlInspectRoute
   '/api/admin/manufacturers/$id/report': typeof ApiAdminManufacturersIdReportRoute
   '/api/admin/manufacturers/$id/restore': typeof ApiAdminManufacturersIdRestoreRoute
   '/api/admin/manufacturers/$id/suspend': typeof ApiAdminManufacturersIdSuspendRoute
@@ -1125,6 +1185,8 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/drap-batches/document'
+    | '/api/admin/drap-batches/manual'
     | '/api/admin/manufacturers/create'
     | '/api/admin/medicines/$id'
     | '/api/admin/pharmacy/blacklist'
@@ -1143,6 +1205,10 @@ export interface FileRouteTypes {
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
     | '/api/admin/documents/$id/review'
+    | '/api/admin/drap-batches/pdf/extract'
+    | '/api/admin/drap-batches/pdf/import'
+    | '/api/admin/drap-batches/xml/import'
+    | '/api/admin/drap-batches/xml/inspect'
     | '/api/admin/manufacturers/$id/report'
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
@@ -1237,6 +1303,8 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report'
     | '/api/verify'
+    | '/api/admin/drap-batches/document'
+    | '/api/admin/drap-batches/manual'
     | '/api/admin/manufacturers/create'
     | '/api/admin/medicines/$id'
     | '/api/admin/pharmacy/blacklist'
@@ -1255,6 +1323,10 @@ export interface FileRouteTypes {
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
     | '/api/admin/documents/$id/review'
+    | '/api/admin/drap-batches/pdf/extract'
+    | '/api/admin/drap-batches/pdf/import'
+    | '/api/admin/drap-batches/xml/import'
+    | '/api/admin/drap-batches/xml/inspect'
     | '/api/admin/manufacturers/$id/report'
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
@@ -1349,6 +1421,8 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/drap-batches/document'
+    | '/api/admin/drap-batches/manual'
     | '/api/admin/manufacturers/create'
     | '/api/admin/medicines/$id'
     | '/api/admin/pharmacy/blacklist'
@@ -1367,6 +1441,10 @@ export interface FileRouteTypes {
     | '/api/admin/documents/$id/expire'
     | '/api/admin/documents/$id/reject'
     | '/api/admin/documents/$id/review'
+    | '/api/admin/drap-batches/pdf/extract'
+    | '/api/admin/drap-batches/pdf/import'
+    | '/api/admin/drap-batches/xml/import'
+    | '/api/admin/drap-batches/xml/inspect'
     | '/api/admin/manufacturers/$id/report'
     | '/api/admin/manufacturers/$id/restore'
     | '/api/admin/manufacturers/$id/suspend'
@@ -1400,7 +1478,7 @@ export interface RootRouteChildren {
   ApiAdminBatchSequencesRoute: typeof ApiAdminBatchSequencesRoute
   ApiAdminDashboardRoute: typeof ApiAdminDashboardRoute
   ApiAdminDocumentsRoute: typeof ApiAdminDocumentsRouteWithChildren
-  ApiAdminDrapBatchesRoute: typeof ApiAdminDrapBatchesRoute
+  ApiAdminDrapBatchesRoute: typeof ApiAdminDrapBatchesRouteWithChildren
   ApiAdminManufacturersRoute: typeof ApiAdminManufacturersRouteWithChildren
   ApiAdminMedicinesRoute: typeof ApiAdminMedicinesRouteWithChildren
   ApiAdminPharmaciesRoute: typeof ApiAdminPharmaciesRouteWithChildren
@@ -2143,6 +2221,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAdminManufacturersCreateRouteImport
       parentRoute: typeof ApiAdminManufacturersRoute
     }
+    '/api/admin/drap-batches/manual': {
+      id: '/api/admin/drap-batches/manual'
+      path: '/manual'
+      fullPath: '/api/admin/drap-batches/manual'
+      preLoaderRoute: typeof ApiAdminDrapBatchesManualRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
+    }
+    '/api/admin/drap-batches/document': {
+      id: '/api/admin/drap-batches/document'
+      path: '/document'
+      fullPath: '/api/admin/drap-batches/document'
+      preLoaderRoute: typeof ApiAdminDrapBatchesDocumentRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
+    }
     '/api/manufacturer/batch/$id/assets': {
       id: '/api/manufacturer/batch/$id/assets'
       path: '/assets'
@@ -2205,6 +2297,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/api/admin/manufacturers/$id/report'
       preLoaderRoute: typeof ApiAdminManufacturersIdReportRouteImport
       parentRoute: typeof ApiAdminManufacturersRoute
+    }
+    '/api/admin/drap-batches/xml/inspect': {
+      id: '/api/admin/drap-batches/xml/inspect'
+      path: '/xml/inspect'
+      fullPath: '/api/admin/drap-batches/xml/inspect'
+      preLoaderRoute: typeof ApiAdminDrapBatchesXmlInspectRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
+    }
+    '/api/admin/drap-batches/xml/import': {
+      id: '/api/admin/drap-batches/xml/import'
+      path: '/xml/import'
+      fullPath: '/api/admin/drap-batches/xml/import'
+      preLoaderRoute: typeof ApiAdminDrapBatchesXmlImportRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
+    }
+    '/api/admin/drap-batches/pdf/import': {
+      id: '/api/admin/drap-batches/pdf/import'
+      path: '/pdf/import'
+      fullPath: '/api/admin/drap-batches/pdf/import'
+      preLoaderRoute: typeof ApiAdminDrapBatchesPdfImportRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
+    }
+    '/api/admin/drap-batches/pdf/extract': {
+      id: '/api/admin/drap-batches/pdf/extract'
+      path: '/pdf/extract'
+      fullPath: '/api/admin/drap-batches/pdf/extract'
+      preLoaderRoute: typeof ApiAdminDrapBatchesPdfExtractRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
     }
     '/api/admin/documents/$id/review': {
       id: '/api/admin/documents/$id/review'
@@ -2283,6 +2403,27 @@ const ApiAdminDocumentsRouteChildren: ApiAdminDocumentsRouteChildren = {
 
 const ApiAdminDocumentsRouteWithChildren =
   ApiAdminDocumentsRoute._addFileChildren(ApiAdminDocumentsRouteChildren)
+
+interface ApiAdminDrapBatchesRouteChildren {
+  ApiAdminDrapBatchesDocumentRoute: typeof ApiAdminDrapBatchesDocumentRoute
+  ApiAdminDrapBatchesManualRoute: typeof ApiAdminDrapBatchesManualRoute
+  ApiAdminDrapBatchesPdfExtractRoute: typeof ApiAdminDrapBatchesPdfExtractRoute
+  ApiAdminDrapBatchesPdfImportRoute: typeof ApiAdminDrapBatchesPdfImportRoute
+  ApiAdminDrapBatchesXmlImportRoute: typeof ApiAdminDrapBatchesXmlImportRoute
+  ApiAdminDrapBatchesXmlInspectRoute: typeof ApiAdminDrapBatchesXmlInspectRoute
+}
+
+const ApiAdminDrapBatchesRouteChildren: ApiAdminDrapBatchesRouteChildren = {
+  ApiAdminDrapBatchesDocumentRoute: ApiAdminDrapBatchesDocumentRoute,
+  ApiAdminDrapBatchesManualRoute: ApiAdminDrapBatchesManualRoute,
+  ApiAdminDrapBatchesPdfExtractRoute: ApiAdminDrapBatchesPdfExtractRoute,
+  ApiAdminDrapBatchesPdfImportRoute: ApiAdminDrapBatchesPdfImportRoute,
+  ApiAdminDrapBatchesXmlImportRoute: ApiAdminDrapBatchesXmlImportRoute,
+  ApiAdminDrapBatchesXmlInspectRoute: ApiAdminDrapBatchesXmlInspectRoute,
+}
+
+const ApiAdminDrapBatchesRouteWithChildren =
+  ApiAdminDrapBatchesRoute._addFileChildren(ApiAdminDrapBatchesRouteChildren)
 
 interface ApiAdminManufacturersRouteChildren {
   ApiAdminManufacturersCreateRoute: typeof ApiAdminManufacturersCreateRoute
@@ -2441,7 +2582,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiAdminBatchSequencesRoute: ApiAdminBatchSequencesRoute,
   ApiAdminDashboardRoute: ApiAdminDashboardRoute,
   ApiAdminDocumentsRoute: ApiAdminDocumentsRouteWithChildren,
-  ApiAdminDrapBatchesRoute: ApiAdminDrapBatchesRoute,
+  ApiAdminDrapBatchesRoute: ApiAdminDrapBatchesRouteWithChildren,
   ApiAdminManufacturersRoute: ApiAdminManufacturersRouteWithChildren,
   ApiAdminMedicinesRoute: ApiAdminMedicinesRouteWithChildren,
   ApiAdminPharmaciesRoute: ApiAdminPharmaciesRouteWithChildren,
