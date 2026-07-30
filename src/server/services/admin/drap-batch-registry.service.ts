@@ -3,6 +3,7 @@ import Papa from "papaparse";
 import * as XLSX from "xlsx";
 import fs from "node:fs/promises";
 import path from "node:path";
+import { XMLParser } from "fast-xml-parser";
 
 // ─── Shared Row Interface ─────────────────────────────────────────────────────
 

@@ -4,7 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
-    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && vite dev",
+    "dev": "set NODE_OPTIONS=--max-old-space-size=4096 && vite dev --host",
     "worker:dev": "tsx scripts/dev-worker.ts",
     "build": "prisma generate && cross-env NODE_OPTIONS=--max-old-space-size=8192 vite build",
     "build:dev": "vite build --mode development",

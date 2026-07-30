@@ -5,10 +5,10 @@ import {
   ScanLine, QrCode, Barcode, CheckCircle2, AlertTriangle, XCircle, Loader2,
   ShieldAlert, MapPin, Calendar, Building2, Share2, Hash, Cpu, Shield, Zap,
   Pill, Bell, Clock, Filter, FileText, Activity, Plus, Star, ArrowRight,
-  MessageSquare, Map as MapIcon, ShieldCheck, Layers, WifiOff, ChevronDown, Factory,
+  MessageSquare, ShieldCheck, Layers, WifiOff, ChevronDown, Factory,
   ShoppingBag, Package, Archive, Circle, Phone, CheckCircle
 } from "lucide-react";
-import { BrowserMultiFormatReader, BarcodeFormat, DecodeHintType } from "@zxing/library";
+import { BrowserBarcodeReader, BrowserQRCodeReader } from "@zxing/library";
 import { SiteLayout } from "@/components/site/SiteLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -454,29 +454,28 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Build format hints based on mode — QR_CODE only for qr, 1D barcodes for barcode
-    const hints = new Map();
-    if (mode === "barcode") {
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [
-        BarcodeFormat.EAN_13, BarcodeFormat.EAN_8,
-        BarcodeFormat.CODE_128, BarcodeFormat.CODE_39,
-        BarcodeFormat.UPC_A, BarcodeFormat.UPC_E,
-        BarcodeFormat.ITF,
-      ]);
-    } else {
-      hints.set(DecodeHintType.POSSIBLE_FORMATS, [BarcodeFormat.QR_CODE]);
-    }
-    const reader = new BrowserMultiFormatReader(hints);
-    reader.decodeFromVideoDevice(null, videoRef.current, (result: any) => {
-      if (result) {
-        const text = result.getText();
-        reader.reset();
-        onResult(text);
+    // Use the dedicated reader class for each mode — BarcodeFormat/DecodeHintType are
+    // not top-level exports of this @zxing/library version; the specialized readers
+    // already have the correct format lists baked in.
+    const barcodeHints = new Map();
+    barcodeHints.set(3, true); // DecodeHintType.TRY_HARDER
+    barcodeHints.set(2, [7, 6, 4, 2, 14, 15, 8]); // DecodeHintType.POSSIBLE_FORMATS -> [EAN_13, EAN_8, CODE_128, CODE_39, UPC_A, UPC_E, ITF]
+
+    const reader = mode === "barcode"
+      ? new BrowserBarcodeReader(500, barcodeHints)
+      : new BrowserQRCodeReader();
+    reader.decodeFromConstraints(
+      { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } },
+      videoRef.current,
+      (result: any, err: any) => {
+        console.log("SCAN FRAME:", result ? result.getText() : "no result", err ? err.name : "no error");
+        if (result) {
+          const text = result.getText();
+          reader.reset();
+          onResult(text);
+        }
       }
-    }).catch((err: any) => {
-      console.error(err);
-      setError("Camera access denied. Please allow camera permissions.");
-    });
+    ).catch(() => setError("Camera access denied. Please allow camera permissions."));
     return () => reader.reset();
   }, [mode, onResult]);
 

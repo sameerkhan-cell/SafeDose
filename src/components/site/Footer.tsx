@@ -3,7 +3,7 @@ import { ShieldCheck, ArrowUpRight } from "lucide-react";
 
 const PRODUCT = [
   { to: "/verify", label: "Verify Medicine" },
-  { to: "/dashboard/manufacturer", label: "Manufacturer Portal" },
+  // { to: "/dashboard/manufacturer", label: "Manufacturer Portal" },
   { to: "/pharmacy", label: "Pharmacy Portal" },
   { to: "/monitoring", label: "Live Monitoring" },
 ];
