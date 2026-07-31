@@ -4,7 +4,7 @@ import {
     Upload, Search, Database, Loader2, CheckCircle2, AlertTriangle,
     ChevronLeft, ChevronRight, RefreshCw, FileText, X, Plus, Save,
     FileUp, FilePlus, Pill, ChevronDown, ChevronUp, ExternalLink,
-    FileSpreadsheet, File, FileCode, Table, Trash2, ArrowRight, ArrowLeft
+    FileSpreadsheet, File, FileCode, Table, Trash2, ArrowRight, ArrowLeft, Pencil
 } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
@@ -12,6 +12,7 @@ import {
     adminDrapBatchesService,
     type DrapBatchItem,
     type ManualEntryPayload,
+    type EditBatchPayload,
 } from "@/services/admin-drap-batches";
 import { ease } from "@/lib/motion";
 
@@ -740,6 +741,112 @@ function ManualEntryForm({
     );
 }
 
+// ─── Edit Batch Modal ─────────────────────────────────────────────────────────
+
+function EditBatchModal({
+    item,
+    onClose,
+    onSaved,
+}: {
+    item: DrapBatchItem;
+    onClose: () => void;
+    onSaved: () => void;
+}) {
+    const [form, setForm] = useState<EditBatchPayload>({
+        batchCode: item.batchCode,
+        barcode: item.barcode ?? "",
+        companyName: item.companyName ?? "",
+        expiryDate: item.expiryDate ? item.expiryDate.slice(0, 10) : "",
+        manufactureDate: item.manufactureDate ? item.manufactureDate.slice(0, 10) : "",
+        sourceDocumentUrl: item.sourceDocumentUrl ?? "",
+    });
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+
+    const set = (k: keyof EditBatchPayload, v: string) =>
+        setForm((p) => ({ ...p, [k]: v }));
+
+    const handleSave = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const res = await adminDrapBatchesService.updateBatch(item.id, form);
+            if (!res.success) throw new Error(res.error?.message ?? "Update failed.");
+            toast.success("Batch entry updated successfully.");
+            onSaved();
+            onClose();
+        } catch (err: any) {
+            setError(err.message);
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const Field = ({ label, k, placeholder, type }: { label: string; k: keyof EditBatchPayload; placeholder: string; type?: string }) => (
+        <div>
+            <label className="text-[11px] uppercase tracking-widest text-muted-foreground mb-1 block">{label}</label>
+            <input
+                type={type ?? "text"}
+                value={(form[k] as string) ?? ""}
+                onChange={(e) => set(k, e.target.value)}
+                placeholder={placeholder}
+                className="w-full h-10 rounded-xl border border-border bg-secondary/20 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30"
+            />
+        </div>
+    );
+
+    return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4" onClick={onClose}>
+            <motion.div
+                initial={{ opacity: 0, scale: 0.96, y: 16 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.96, y: 16 }}
+                transition={{ duration: 0.2 }}
+                className="bg-card border border-border/50 rounded-2xl shadow-2xl w-full max-w-lg p-6 space-y-5"
+                onClick={(e) => e.stopPropagation()}
+            >
+                <div className="flex items-center justify-between">
+                    <h3 className="text-[15px] font-semibold flex items-center gap-2">
+                        <Pencil className="h-4 w-4 text-primary" /> Edit Batch Entry
+                    </h3>
+                    <button onClick={onClose} className="text-muted-foreground hover:text-foreground transition-colors">
+                        <X className="h-4 w-4" />
+                    </button>
+                </div>
+
+                <div className="rounded-xl bg-secondary/20 border border-border/40 px-3 py-2">
+                    <p className="text-[11px] uppercase tracking-widest text-muted-foreground mb-0.5">Medicine</p>
+                    <p className="text-sm font-medium text-foreground">{item.medicineName}</p>
+                </div>
+
+                <div className="space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field label="Batch Code *" k="batchCode" placeholder="e.g. WL-GZ-2025-047" />
+                        <Field label="Barcode / GTIN" k="barcode" placeholder="e.g. 8964000831083" />
+                    </div>
+                    <Field label="Company Name" k="companyName" placeholder="e.g. National Absorbent Cotton Mills" />
+                    <div className="grid grid-cols-2 gap-3">
+                        <Field label="Manufacture Date" k="manufactureDate" placeholder="YYYY-MM-DD" type="date" />
+                        <Field label="Expiry Date" k="expiryDate" placeholder="YYYY-MM-DD" type="date" />
+                    </div>
+                </div>
+
+                {error && <p className="text-red-500 text-xs bg-red-500/10 rounded-lg px-3 py-2">{error}</p>}
+
+                <div className="flex gap-2 pt-1">
+                    <Button variant="outline" className="flex-1 rounded-xl" onClick={onClose} disabled={loading}>
+                        Cancel
+                    </Button>
+                    <Button className="flex-1 rounded-xl" onClick={handleSave} disabled={loading}>
+                        {loading ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
+                        Save Changes
+                    </Button>
+                </div>
+            </motion.div>
+        </div>
+    );
+}
+
 // ─── Main Panel ───────────────────────────────────────────────────────────────
 
 export function DrapBatchRegistryPanel() {
@@ -754,6 +861,7 @@ export function DrapBatchRegistryPanel() {
     const [uploadResult, setUploadResult] = useState<{
         created: number; skipped: number; errors: string[];
     } | null>(null);
+    const [editingItem, setEditingItem] = useState<DrapBatchItem | null>(null);
 
     // Section open/close state
     const [showBulkUpload, setShowBulkUpload] = useState(true);
@@ -842,6 +950,7 @@ export function DrapBatchRegistryPanel() {
     );
 
     return (
+        <>
         <motion.div
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
@@ -1041,7 +1150,7 @@ export function DrapBatchRegistryPanel() {
                         <table className="w-full text-sm">
                             <thead>
                                 <tr className="border-b border-border/50 bg-secondary/20">
-                                    {["Batch Code", "Barcode", "Medicine", "Company", "Expiry", "Doc", "Registered"].map((h) => (
+                                    {["Batch Code", "Barcode", "Medicine", "Company", "Expiry", "Doc", "Registered", ""].map((h) => (
                                         <th key={h} className="text-left text-[11px] font-semibold uppercase tracking-widest text-muted-foreground px-4 py-3">
                                             {h}
                                         </th>
@@ -1092,6 +1201,15 @@ export function DrapBatchRegistryPanel() {
                                                 year: "numeric",
                                             })}
                                         </td>
+                                        <td className="px-3 py-3">
+                                            <button
+                                                onClick={() => setEditingItem(item)}
+                                                className="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-[11px] font-medium text-muted-foreground hover:text-primary hover:bg-primary/10 transition-all"
+                                                title="Edit this entry"
+                                            >
+                                                <Pencil className="h-3 w-3" /> Edit
+                                            </button>
+                                        </td>
                                     </tr>
                                 ))}
                             </tbody>
@@ -1129,5 +1247,17 @@ export function DrapBatchRegistryPanel() {
                 )}
             </div>
         </motion.div>
+
+        {/* Edit modal — rendered outside the card to avoid overflow clip */}
+        <AnimatePresence>
+            {editingItem && (
+                <EditBatchModal
+                    item={editingItem}
+                    onClose={() => setEditingItem(null)}
+                    onSaved={() => { void loadBatches(); }}
+                />
+            )}
+        </AnimatePresence>
+        </>
     );
 }

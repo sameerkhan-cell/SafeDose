@@ -44,6 +44,15 @@ export interface ManualEntryPayload {
     sourceDocumentUrl?: string;
 }
 
+export interface EditBatchPayload {
+    batchCode?: string;
+    barcode?: string;
+    companyName?: string;
+    expiryDate?: string;
+    manufactureDate?: string;
+    sourceDocumentUrl?: string;
+}
+
 export interface DocumentUploadResult {
     documentUrl: string;
     driveUrl: string | null;
@@ -126,6 +135,15 @@ export const adminDrapBatchesService = {
     manualCreate: (payload: ManualEntryPayload): Promise<AuthResponse<{ batchId: string }>> => {
         return authFetch<{ batchId: string }>("/api/admin/drap-batches/manual", {
             method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
+        });
+    },
+
+    // Edit an existing batch registry entry
+    updateBatch: (id: string, payload: EditBatchPayload): Promise<AuthResponse<{ id: string; batchCode: string; barcode: string | null }>> => {
+        return authFetch("/api/admin/drap-batches/" + id, {
+            method: "PATCH",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload),
         });

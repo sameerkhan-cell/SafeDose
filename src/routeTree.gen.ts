@@ -92,6 +92,7 @@ import { Route as ApiReportIndexRouteImport } from './routes/api/report/index'
 import { Route as ApiReportIdRouteImport } from './routes/api/report.$id'
 import { Route as ApiVerifyIndexRouteImport } from './routes/api/verify/index'
 import { Route as ApiVerifyHistoryRouteImport } from './routes/api/verify/history'
+import { Route as ApiAdminDrapBatchesIdRouteImport } from './routes/api/admin/drap-batches/$id'
 import { Route as ApiAdminDrapBatchesDocumentRouteImport } from './routes/api/admin/drap-batches/document'
 import { Route as ApiAdminDrapBatchesManualRouteImport } from './routes/api/admin/drap-batches/manual'
 import { Route as ApiAdminManufacturersCreateRouteImport } from './routes/api/admin/manufacturers/create'
@@ -551,6 +552,11 @@ const ApiVerifyHistoryRoute = ApiVerifyHistoryRouteImport.update({
   path: '/api/verify/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminDrapBatchesIdRoute = ApiAdminDrapBatchesIdRouteImport.update({
+  id: '/$id',
+  path: '/$id',
+  getParentRoute: () => ApiAdminDrapBatchesRoute,
+} as any)
 const ApiAdminDrapBatchesDocumentRoute =
   ApiAdminDrapBatchesDocumentRouteImport.update({
     id: '/document',
@@ -828,6 +834,7 @@ export interface FileRoutesByFullPath {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/drap-batches/$id': typeof ApiAdminDrapBatchesIdRoute
   '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
   '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
   '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
@@ -946,6 +953,7 @@ export interface FileRoutesByTo {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report': typeof ApiReportIndexRoute
   '/api/verify': typeof ApiVerifyIndexRoute
+  '/api/admin/drap-batches/$id': typeof ApiAdminDrapBatchesIdRoute
   '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
   '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
   '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
@@ -1065,6 +1073,7 @@ export interface FileRoutesById {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/drap-batches/$id': typeof ApiAdminDrapBatchesIdRoute
   '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
   '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
   '/api/admin/manufacturers/create': typeof ApiAdminManufacturersCreateRoute
@@ -1185,6 +1194,7 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/drap-batches/$id'
     | '/api/admin/drap-batches/document'
     | '/api/admin/drap-batches/manual'
     | '/api/admin/manufacturers/create'
@@ -1303,6 +1313,7 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report'
     | '/api/verify'
+    | '/api/admin/drap-batches/$id'
     | '/api/admin/drap-batches/document'
     | '/api/admin/drap-batches/manual'
     | '/api/admin/manufacturers/create'
@@ -1421,6 +1432,7 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/drap-batches/$id'
     | '/api/admin/drap-batches/document'
     | '/api/admin/drap-batches/manual'
     | '/api/admin/manufacturers/create'
@@ -2123,6 +2135,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVerifyHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/drap-batches/$id': {
+      id: '/api/admin/drap-batches/$id'
+      path: '/$id'
+      fullPath: '/api/admin/drap-batches/$id'
+      preLoaderRoute: typeof ApiAdminDrapBatchesIdRouteImport
+      parentRoute: typeof ApiAdminDrapBatchesRoute
+    }
     '/api/admin/drap-batches/document': {
       id: '/api/admin/drap-batches/document'
       path: '/document'
@@ -2405,6 +2424,7 @@ const ApiAdminDocumentsRouteWithChildren =
   ApiAdminDocumentsRoute._addFileChildren(ApiAdminDocumentsRouteChildren)
 
 interface ApiAdminDrapBatchesRouteChildren {
+  ApiAdminDrapBatchesIdRoute: typeof ApiAdminDrapBatchesIdRoute
   ApiAdminDrapBatchesDocumentRoute: typeof ApiAdminDrapBatchesDocumentRoute
   ApiAdminDrapBatchesManualRoute: typeof ApiAdminDrapBatchesManualRoute
   ApiAdminDrapBatchesPdfExtractRoute: typeof ApiAdminDrapBatchesPdfExtractRoute
@@ -2414,6 +2434,7 @@ interface ApiAdminDrapBatchesRouteChildren {
 }
 
 const ApiAdminDrapBatchesRouteChildren: ApiAdminDrapBatchesRouteChildren = {
+  ApiAdminDrapBatchesIdRoute: ApiAdminDrapBatchesIdRoute,
   ApiAdminDrapBatchesDocumentRoute: ApiAdminDrapBatchesDocumentRoute,
   ApiAdminDrapBatchesManualRoute: ApiAdminDrapBatchesManualRoute,
   ApiAdminDrapBatchesPdfExtractRoute: ApiAdminDrapBatchesPdfExtractRoute,
