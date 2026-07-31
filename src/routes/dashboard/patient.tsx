@@ -454,29 +454,116 @@ function LiveScanner({ mode, onResult, onClose }: { mode: "qr" | "barcode"; onRe
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Use the dedicated reader class for each mode — BarcodeFormat/DecodeHintType are
-    // not top-level exports of this @zxing/library version; the specialized readers
-    // already have the correct format lists baked in.
-    const barcodeHints = new Map();
-    barcodeHints.set(3, true); // DecodeHintType.TRY_HARDER
-    barcodeHints.set(2, [7, 6, 4, 2, 14, 15, 8]); // DecodeHintType.POSSIBLE_FORMATS -> [EAN_13, EAN_8, CODE_128, CODE_39, UPC_A, UPC_E, ITF]
+    let cancelled = false;
+    let activeStream: MediaStream | null = null;
+    let animFrameId: number | null = null;
 
-    const reader = mode === "barcode"
-      ? new BrowserBarcodeReader(500, barcodeHints)
-      : new BrowserQRCodeReader();
-    reader.decodeFromConstraints(
-      { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } },
-      videoRef.current,
-      (result: any, err: any) => {
-        console.log("SCAN FRAME:", result ? result.getText() : "no result", err ? err.name : "no error");
-        if (result) {
-          const text = result.getText();
-          reader.reset();
-          onResult(text);
+    if (mode === "qr") {
+      const reader = new BrowserQRCodeReader();
+      reader.decodeFromConstraints(
+        { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } },
+        videoRef.current,
+        (result: any) => {
+          if (result) {
+            reader.reset();
+            onResult(result.getText());
+          }
         }
+      ).catch(() => setError("Camera access denied. Please allow camera permissions."));
+      return () => {
+        cancelled = true;
+        reader.reset();
+      };
+    }
+
+    // Barcode mode: Hybrid approach (Native BarcodeDetector preferred on supported devices/browsers, ZXing fallback)
+    if ("BarcodeDetector" in window) {
+      try {
+        const detector = new (window as any).BarcodeDetector({
+          formats: ["ean_13", "ean_8", "upc_a", "upc_e", "code_128", "code_39", "itf"],
+        });
+
+        let frameCount = 0;
+        navigator.mediaDevices
+          .getUserMedia({
+            video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } },
+          })
+          .then((stream) => {
+            if (cancelled) {
+              stream.getTracks().forEach((t) => t.stop());
+              return;
+            }
+            activeStream = stream;
+            const video = videoRef.current;
+            if (video) {
+              video.srcObject = stream;
+              video.play().catch(() => {});
+            }
+
+            const scan = async () => {
+              if (cancelled) return;
+              frameCount++;
+              if (frameCount % 3 === 0 && video && video.readyState >= 2) {
+                try {
+                  const barcodes = await detector.detect(video);
+                  if (barcodes && barcodes.length > 0 && !cancelled) {
+                    const code = barcodes[0].rawValue;
+                    console.log("NATIVE BARCODE DETECTED:", code, barcodes[0].format);
+                    if (activeStream) {
+                      activeStream.getTracks().forEach((t) => t.stop());
+                      activeStream = null;
+                    }
+                    onResult(code);
+                    return;
+                  }
+                } catch {
+                  // Frame not ready or detection skipped for this frame
+                }
+              }
+              animFrameId = requestAnimationFrame(scan);
+            };
+            animFrameId = requestAnimationFrame(scan);
+          })
+          .catch(() => setError("Camera access denied. Please allow camera permissions."));
+      } catch {
+        // Fall back to ZXing if detector fails to initialize
       }
-    ).catch(() => setError("Camera access denied. Please allow camera permissions."));
-    return () => reader.reset();
+    } else {
+      // Fallback ZXing BrowserBarcodeReader
+      const barcodeHints = new Map();
+      barcodeHints.set(3, true); // DecodeHintType.TRY_HARDER
+      barcodeHints.set(2, [7, 6, 4, 2, 14, 15, 8]); // DecodeHintType.POSSIBLE_FORMATS -> [EAN_13, EAN_8, CODE_128, CODE_39, UPC_A, UPC_E, ITF]
+
+      const reader = new BrowserBarcodeReader(500, barcodeHints);
+      reader
+        .decodeFromConstraints(
+          { video: { facingMode: "environment", width: { ideal: 1920 }, height: { ideal: 1080 } } },
+          videoRef.current,
+          (result: any) => {
+            if (result) {
+              reader.reset();
+              onResult(result.getText());
+            }
+          }
+        )
+        .catch(() => setError("Camera access denied. Please allow camera permissions."));
+
+      return () => {
+        cancelled = true;
+        reader.reset();
+      };
+    }
+
+    return () => {
+      cancelled = true;
+      if (animFrameId !== null) {
+        cancelAnimationFrame(animFrameId);
+      }
+      if (activeStream) {
+        activeStream.getTracks().forEach((t) => t.stop());
+        activeStream = null;
+      }
+    };
   }, [mode, onResult]);
 
   return (
