@@ -2,10 +2,8 @@ import { Link } from "@tanstack/react-router";
 import { ShieldCheck, ArrowUpRight } from "lucide-react";
 
 const PRODUCT = [
-  { to: "/verify", label: "Verify Medicine" },
-  // { to: "/dashboard/manufacturer", label: "Manufacturer Portal" },
-  { to: "/pharmacy", label: "Pharmacy Portal" },
-  { to: "/monitoring", label: "Live Monitoring" },
+  { to: "/dashboard/patient", label: "Verify Medicine" },
+  { to: "/auth/login", label: "Pharmacy Portal" },
 ];
 
 const COMPANY = [

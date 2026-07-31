@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   ScanLine, QrCode, Barcode, CheckCircle2, AlertTriangle, XCircle, Loader2,
-  ShieldAlert, MapPin, Calendar, Building2, Share2, Hash, Cpu, Shield, Zap,
+  ShieldAlert, MapPin, Map as MapIcon, Calendar, Building2, Share2, Hash, Cpu, Shield, Zap,
   Pill, Bell, Clock, Filter, FileText, Activity, Plus, Star, ArrowRight,
   MessageSquare, ShieldCheck, Layers, WifiOff, ChevronDown, Factory,
   ShoppingBag, Package, Archive, Circle, Phone, CheckCircle
