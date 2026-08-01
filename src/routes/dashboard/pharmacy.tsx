@@ -233,7 +233,7 @@ function PharmacyDetailRow({ icon, label, value, bold, mono }: { icon?: React.Re
   );
 }
 
-function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; session: any; user: any }) {
+function PharmacyScanModal({ onClose, onScanComplete, session, user }: { onClose: () => void; onScanComplete?: () => void; session: any; user: any }) {
   const [activeMode, setActiveMode] = useState<"carton" | "box" | "batch" | "barcode">("carton");
   const [input, setInput] = useState("");
   const [result, setResult] = useState<any>(null);
@@ -279,6 +279,8 @@ function PharmacyScanModal({ onClose, session, user }: { onClose: () => void; se
       const data = await res.json();
       if (data.success) {
         setResult(data.data);
+        // Notify parent to refresh the scan-locations map
+        onScanComplete?.();
       } else {
         setError(data.message || "Verification failed");
       }
@@ -481,6 +483,7 @@ function Page() {
   const { user, session, isAuthenticated, signOut, isLoading, updateUser } = useAuth();
   const [liveLog, setLiveLog] = useState(VERIF_LOGS);
   const [showScanModal, setShowScanModal] = useState(false);
+  const [mapRefreshTrigger, setMapRefreshTrigger] = useState(0);
 
   useEffect(() => {
     if (isAuthenticated && user?.role !== "pharmacy") {
@@ -644,7 +647,7 @@ function Page() {
       {/* 2. Bulk Verify & 13. Safety Map Row */}
       <div className="mt-6 grid gap-5 lg:grid-cols-3">
         <BulkVerifyWidget className="lg:col-span-2" />
-        <ScanLocationsMap endpoint="/api/pharmacy/scan-locations" title="Patient Scan Locations" />
+        <ScanLocationsMap endpoint="/api/pharmacy/scan-locations" title="Patient Scan Locations" refreshTrigger={mapRefreshTrigger} />
       </div>
 
       {/* 7. Analytics & 10. AI Fraud Row */}
@@ -671,7 +674,14 @@ function Page() {
         <PerformanceInsightsWidget />
       </div>
 
-      {showScanModal && <PharmacyScanModal onClose={() => setShowScanModal(false)} session={session} user={user} />}
+      {showScanModal && (
+        <PharmacyScanModal
+          onClose={() => setShowScanModal(false)}
+          onScanComplete={() => setMapRefreshTrigger((t) => t + 1)}
+          session={session}
+          user={user}
+        />
+      )}
     </DashShell>
   );
 }

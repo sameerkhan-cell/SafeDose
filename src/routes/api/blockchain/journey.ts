@@ -17,7 +17,16 @@ async function getBatchTxHash(batch: any): Promise<string> {
     orderBy: { createdAt: "desc" },
   });
 
-  return job?.txHash || "Pending Anchoring";
+  if (job?.txHash) return job.txHash;
+
+  // Batch is marked CONFIRMED in the database but txHash wasn't stored back
+  // (can happen on an early race before the update completed).
+  // Show an honest label rather than implying the batch is still pending.
+  if (batch.blockchainStatus === "CONFIRMED") {
+    return "Confirmed on-chain (tx not cached)";
+  }
+
+  return "Pending Anchoring";
 }
 
 async function getPillTxHash(pill: any, fallbackBatchTx: string): Promise<string> {
@@ -38,7 +47,14 @@ async function getPillTxHash(pill: any, fallbackBatchTx: string): Promise<string
     return job.txHash;
   }
 
+  // Real confirmed batch tx available — use it as the pill stage hash too
   if (fallbackBatchTx && fallbackBatchTx.startsWith("0x")) {
+    return fallbackBatchTx;
+  }
+
+  // Batch tx is also unresolved (e.g. "Confirmed on-chain (tx not cached)").
+  // Propagate the same label so both stages read consistently.
+  if (fallbackBatchTx && fallbackBatchTx !== "Pending Anchoring") {
     return fallbackBatchTx;
   }
 

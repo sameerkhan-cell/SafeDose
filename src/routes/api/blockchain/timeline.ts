@@ -84,6 +84,7 @@ export const Route = createAPIFileRoute("/api/blockchain/timeline")({
           ? "flagged"
           : "transfer";
 
+        const isVerifAnchor = job.entityType === "VERIFICATION_ANCHOR";
         let actor = isBatch ? "Manufacturer (Batch Anchor)" : isPill ? "Pill Registration" : "Verification Anchor";
         let detail = job.lastError
           ? `Job status: ${job.status}. Details: ${job.lastError}`
@@ -91,9 +92,26 @@ export const Route = createAPIFileRoute("/api/blockchain/timeline")({
 
         const gasUsed = parseGasUsed(job.gasUsed);
 
+        // Determine an accurate txHash label when no real hash is available:
+        // • VERIFICATION_ANCHOR rows are error-log records, never pending chain ops —
+        //   the medicine itself IS on-chain; the scan simply happened before the pill
+        //   was anchored. Show an honest label rather than "Pending Anchoring".
+        // • FAILED BATCH/PILL jobs exhausted retries — show that clearly.
+        // • Genuinely PENDING/PROCESSING jobs are the only real "Pending Anchoring" case.
+        let txHashDisplay: string;
+        if (resolvedHash) {
+          txHashDisplay = resolvedHash;
+        } else if (isVerifAnchor) {
+          txHashDisplay = "Scan logged (medicine confirmed on-chain)";
+        } else if (job.status === "FAILED") {
+          txHashDisplay = "Anchoring failed — see details";
+        } else {
+          txHashDisplay = "Pending Anchoring";
+        }
+
         return {
           id: `job-${job.id}`,
-          txHash: resolvedHash ?? "Pending Anchoring",
+          txHash: txHashDisplay,
           actor,
           role: isBatch ? "Manufacturer" : isPill ? "Batch Unit" : "Verification Log",
           location: "Polygon Amoy Network",
@@ -134,9 +152,23 @@ export const Route = createAPIFileRoute("/api/blockchain/timeline")({
         const gasUsed = parseGasUsed(chainJob?.gasUsed);
         const blockNumber = chainJob?.blockNumber ?? 0;
 
+        // Determine accurate txHash label when no real hash is resolvable:
+        // • No pill relation (pillId null) → DRAP barcode / off-chain scan; never blockchain-anchored.
+        // • Pill relation exists but tx still null → pill genuinely pending anchoring.
+        let logTxDisplay: string;
+        if (resolvedHash) {
+          logTxDisplay = resolvedHash;
+        } else if (!log.pillId) {
+          // Barcode scan (DRAP registry item) — no pill QR registered on-chain
+          logTxDisplay = "Off-chain scan — DRAP registry item";
+        } else {
+          // Pill exists; tx not yet resolved (legitimately still pending)
+          logTxDisplay = "Pending Anchoring";
+        }
+
         return {
           id: `log-${log.id}`,
-          txHash: resolvedHash ?? "Pending Anchoring",
+          txHash: logTxDisplay,
           actor: `${medName} — ${actor}`,
           role: log.user?.role || "Public Scanner",
           location: log.location || "Unknown Location",
