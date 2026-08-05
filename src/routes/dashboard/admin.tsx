@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   AlertTriangle, Database, Building2,
-  Bell, FileText, Store, BarChart3, Archive, Settings, X, RefreshCw, Save, Search, Plus
+  Bell, FileText, Store, BarChart3, Archive, Settings, X, RefreshCw, Save, Search, Plus, Trash2
 } from "lucide-react";
 
 import { useAuth } from "@/lib/auth-context";
@@ -346,6 +346,15 @@ function Page() {
     fetchAll();
   };
 
+  const handleDeleteSequence = async (id: string) => {
+    if (!window.confirm("Remove this batch sequence?")) return;
+    await fetch(`/api/admin/batch-sequences/${id}`, {
+      method: "DELETE",
+      headers,
+    });
+    fetchAll();
+  };
+
   const severityColor = (s: string) => s === "CRITICAL" ? "text-red-600 bg-red-500/10" : s === "HIGH" ? "text-orange-600 bg-orange-500/10" : s === "MEDIUM" ? "text-amber-600 bg-amber-500/10" : "text-green-600 bg-green-500/10";
 
   return (
@@ -382,16 +391,21 @@ function Page() {
                       </div>
                     ) : sequences.map(seq => (
                       <div key={seq.id} className="rounded-xl border border-border/50 bg-card p-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-start justify-between gap-3">
                           <div>
                             <p className="font-medium text-sm">{seq.medicine?.name}</p>
                             <p className="text-[11px] text-muted-foreground mt-0.5">
                               Prefix: <span className="font-mono text-blue-500">{seq.prefix}</span> — Year: <span className="font-mono">{seq.year}</span> — Range: <span className="font-mono">{seq.minSequence.toString().padStart(4,"0")} to {seq.maxSequence.toString().padStart(4,"0")}</span>
                             </p>
                           </div>
-                          <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${seq.confidence === "HIGH" ? "bg-green-500/10 text-green-600" : seq.confidence === "MEDIUM" ? "bg-amber-500/10 text-amber-600" : "bg-red-500/10 text-red-600"}`}>
-                            {seq.confidence}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className={`text-[10px] px-2 py-1 rounded-full font-medium ${seq.confidence === "HIGH" ? "bg-green-500/10 text-green-600" : seq.confidence === "MEDIUM" ? "bg-amber-500/10 text-amber-600" : "bg-red-500/10 text-red-600"}`}>
+                              {seq.confidence}
+                            </span>
+                            <button onClick={() => handleDeleteSequence(seq.id)} className="p-2 rounded-lg bg-red-500/10 text-red-600 hover:bg-red-500/20 transition-colors" aria-label="Remove sequence">
+                              <Trash2 className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
                         </div>
                         <div className="mt-2 text-[11px] text-muted-foreground bg-secondary/30 rounded-lg px-3 py-1.5">
                           Valid: <span className="font-mono">{seq.prefix}-{seq.year}-{seq.minSequence.toString().padStart(4,"0")}</span> to <span className="font-mono">{seq.prefix}-{seq.year}-{seq.maxSequence.toString().padStart(4,"0")}</span>

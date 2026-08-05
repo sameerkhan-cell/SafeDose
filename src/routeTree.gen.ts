@@ -92,6 +92,7 @@ import { Route as ApiReportIndexRouteImport } from './routes/api/report/index'
 import { Route as ApiReportIdRouteImport } from './routes/api/report.$id'
 import { Route as ApiVerifyIndexRouteImport } from './routes/api/verify/index'
 import { Route as ApiVerifyHistoryRouteImport } from './routes/api/verify/history'
+import { Route as ApiAdminBatchSequencesIdRouteImport } from './routes/api/admin/batch-sequences.$id'
 import { Route as ApiAdminDrapBatchesIdRouteImport } from './routes/api/admin/drap-batches/$id'
 import { Route as ApiAdminDrapBatchesDocumentRouteImport } from './routes/api/admin/drap-batches/document'
 import { Route as ApiAdminDrapBatchesManualRouteImport } from './routes/api/admin/drap-batches/manual'
@@ -552,6 +553,12 @@ const ApiVerifyHistoryRoute = ApiVerifyHistoryRouteImport.update({
   path: '/api/verify/history',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiAdminBatchSequencesIdRoute =
+  ApiAdminBatchSequencesIdRouteImport.update({
+    id: '/$id',
+    path: '/$id',
+    getParentRoute: () => ApiAdminBatchSequencesRoute,
+  } as any)
 const ApiAdminDrapBatchesIdRoute = ApiAdminDrapBatchesIdRouteImport.update({
   id: '/$id',
   path: '/$id',
@@ -774,7 +781,7 @@ export interface FileRoutesByFullPath {
   '/dashboard/qr-library': typeof DashboardQrLibraryRoute
   '/dashboard/regulator': typeof DashboardRegulatorRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
+  '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRouteWithChildren
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
   '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRouteWithChildren
@@ -834,6 +841,7 @@ export interface FileRoutesByFullPath {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/batch-sequences/$id': typeof ApiAdminBatchSequencesIdRoute
   '/api/admin/drap-batches/$id': typeof ApiAdminDrapBatchesIdRoute
   '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
   '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
@@ -893,7 +901,7 @@ export interface FileRoutesByTo {
   '/dashboard/qr-library': typeof DashboardQrLibraryRoute
   '/dashboard/regulator': typeof DashboardRegulatorRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
+  '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRouteWithChildren
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
   '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRouteWithChildren
@@ -953,6 +961,7 @@ export interface FileRoutesByTo {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report': typeof ApiReportIndexRoute
   '/api/verify': typeof ApiVerifyIndexRoute
+  '/api/admin/batch-sequences/$id': typeof ApiAdminBatchSequencesIdRoute
   '/api/admin/drap-batches/$id': typeof ApiAdminDrapBatchesIdRoute
   '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
   '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
@@ -1013,7 +1022,7 @@ export interface FileRoutesById {
   '/dashboard/qr-library': typeof DashboardQrLibraryRoute
   '/dashboard/regulator': typeof DashboardRegulatorRoute
   '/dashboard/settings': typeof DashboardSettingsRoute
-  '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRoute
+  '/api/admin/batch-sequences': typeof ApiAdminBatchSequencesRouteWithChildren
   '/api/admin/dashboard': typeof ApiAdminDashboardRoute
   '/api/admin/documents': typeof ApiAdminDocumentsRouteWithChildren
   '/api/admin/drap-batches': typeof ApiAdminDrapBatchesRouteWithChildren
@@ -1073,6 +1082,7 @@ export interface FileRoutesById {
   '/api/verify/history': typeof ApiVerifyHistoryRoute
   '/api/report/': typeof ApiReportIndexRoute
   '/api/verify/': typeof ApiVerifyIndexRoute
+  '/api/admin/batch-sequences/$id': typeof ApiAdminBatchSequencesIdRoute
   '/api/admin/drap-batches/$id': typeof ApiAdminDrapBatchesIdRoute
   '/api/admin/drap-batches/document': typeof ApiAdminDrapBatchesDocumentRoute
   '/api/admin/drap-batches/manual': typeof ApiAdminDrapBatchesManualRoute
@@ -1194,6 +1204,7 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/batch-sequences/$id'
     | '/api/admin/drap-batches/$id'
     | '/api/admin/drap-batches/document'
     | '/api/admin/drap-batches/manual'
@@ -1313,6 +1324,7 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report'
     | '/api/verify'
+    | '/api/admin/batch-sequences/$id'
     | '/api/admin/drap-batches/$id'
     | '/api/admin/drap-batches/document'
     | '/api/admin/drap-batches/manual'
@@ -1432,6 +1444,7 @@ export interface FileRouteTypes {
     | '/api/verify/history'
     | '/api/report/'
     | '/api/verify/'
+    | '/api/admin/batch-sequences/$id'
     | '/api/admin/drap-batches/$id'
     | '/api/admin/drap-batches/document'
     | '/api/admin/drap-batches/manual'
@@ -1487,7 +1500,7 @@ export interface RootRouteChildren {
   DashboardQrLibraryRoute: typeof DashboardQrLibraryRoute
   DashboardRegulatorRoute: typeof DashboardRegulatorRoute
   DashboardSettingsRoute: typeof DashboardSettingsRoute
-  ApiAdminBatchSequencesRoute: typeof ApiAdminBatchSequencesRoute
+  ApiAdminBatchSequencesRoute: typeof ApiAdminBatchSequencesRouteWithChildren
   ApiAdminDashboardRoute: typeof ApiAdminDashboardRoute
   ApiAdminDocumentsRoute: typeof ApiAdminDocumentsRouteWithChildren
   ApiAdminDrapBatchesRoute: typeof ApiAdminDrapBatchesRouteWithChildren
@@ -2135,6 +2148,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiVerifyHistoryRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/admin/batch-sequences/$id': {
+      id: '/api/admin/batch-sequences/$id'
+      path: '/$id'
+      fullPath: '/api/admin/batch-sequences/$id'
+      preLoaderRoute: typeof ApiAdminBatchSequencesIdRouteImport
+      parentRoute: typeof ApiAdminBatchSequencesRoute
+    }
     '/api/admin/drap-batches/$id': {
       id: '/api/admin/drap-batches/$id'
       path: '/$id'
@@ -2406,6 +2426,20 @@ const ApiHealthRouteWithChildren = ApiHealthRoute._addFileChildren(
   ApiHealthRouteChildren,
 )
 
+interface ApiAdminBatchSequencesRouteChildren {
+  ApiAdminBatchSequencesIdRoute: typeof ApiAdminBatchSequencesIdRoute
+}
+
+const ApiAdminBatchSequencesRouteChildren: ApiAdminBatchSequencesRouteChildren =
+  {
+    ApiAdminBatchSequencesIdRoute: ApiAdminBatchSequencesIdRoute,
+  }
+
+const ApiAdminBatchSequencesRouteWithChildren =
+  ApiAdminBatchSequencesRoute._addFileChildren(
+    ApiAdminBatchSequencesRouteChildren,
+  )
+
 interface ApiAdminDocumentsRouteChildren {
   ApiAdminDocumentsIdApproveRoute: typeof ApiAdminDocumentsIdApproveRoute
   ApiAdminDocumentsIdExpireRoute: typeof ApiAdminDocumentsIdExpireRoute
@@ -2600,7 +2634,7 @@ const rootRouteChildren: RootRouteChildren = {
   DashboardQrLibraryRoute: DashboardQrLibraryRoute,
   DashboardRegulatorRoute: DashboardRegulatorRoute,
   DashboardSettingsRoute: DashboardSettingsRoute,
-  ApiAdminBatchSequencesRoute: ApiAdminBatchSequencesRoute,
+  ApiAdminBatchSequencesRoute: ApiAdminBatchSequencesRouteWithChildren,
   ApiAdminDashboardRoute: ApiAdminDashboardRoute,
   ApiAdminDocumentsRoute: ApiAdminDocumentsRouteWithChildren,
   ApiAdminDrapBatchesRoute: ApiAdminDrapBatchesRouteWithChildren,
